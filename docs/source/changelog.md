@@ -18,3 +18,8 @@ of rst and use slightly different categories.
 -->
 
 <!-- towncrier release notes start -->
+
+## input4mips-validation v0.1.1 (2024-02-06)
+
+
+No significant changes.

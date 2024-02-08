@@ -10,6 +10,13 @@ packages = [{include = "input4mips_validation", from = "src"}]
 python = "^3.9"
 matplotlib = { version = "^3.7.1", optional = true }
 notebook = { version = "^6.5.3", optional = true }
+click = "^8.1.7"
+loguru = "^0.7.2"
+cf-xarray = "^0.8.9"
+xarray = "^2024.1.1"
+pint-xarray = "^0.3"
+numpy = "^1.26.4"
+cftime = "^1.6.3"
 
 [tool.poetry.extras]
 plots = ["matplotlib"]
@@ -88,9 +95,8 @@ select = [
     "RUF",  # ruff specifics
     "UP",  # pyupgrade
     "S",  # flake8-bandit
-    # pandas support via pandas-vet. In some cases we will want to disable
-    # this because it can lead to too many false positives.
-    "PD",
+    # Disable pandas rules because ruff gets confused by xarray's API
+    # "PD",
 ]
 unfixable = [
     "PD002",  # Disable autofix for inplace as this often introduces bugs

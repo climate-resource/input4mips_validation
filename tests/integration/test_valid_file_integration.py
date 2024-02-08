@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from input4mips_validation.cli import cli
+from input4mips_validation.cli import root_cli
 
 TEST_DATA_DIR = Path(__file__).parent.parent / "test-data"
 
@@ -26,7 +26,7 @@ TEST_DATA_DIR = Path(__file__).parent.parent / "test-data"
 def test_valid_file_passes(valid_file):
     runner = CliRunner()
 
-    result = runner.invoke(cli, ["validate", valid_file])
+    result = runner.invoke(root_cli, ["validate-file", valid_file])
     assert not result.exception
     expected_stdout = (
         "TBD, could confirm that the file is valid "

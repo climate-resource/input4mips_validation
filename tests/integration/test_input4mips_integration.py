@@ -11,7 +11,7 @@ import numpy as np
 import pint_xarray  # noqa: F401 # required to enable pint accessors
 import xarray as xr
 
-from input4mips_validation.controlled_vocabularies import (
+from input4mips_validation.controlled_vocabularies.constants import (
     CREATION_DATE_REGEX,
     UUID_REGEX,
 )

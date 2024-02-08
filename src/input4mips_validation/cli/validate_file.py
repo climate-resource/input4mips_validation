@@ -29,5 +29,5 @@ def validate_file_command(filepath: str) -> None:
 
     FILEPATH is the path to the file to validate.
     """
-    filepath = Path(filepath)
+    file_p = Path(filepath)  # noqa: F841
     raise NotImplementedError

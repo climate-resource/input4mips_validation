@@ -17,9 +17,72 @@ TEST_DATA_DIR = Path(__file__).parent.parent / "test-data"
     "valid_file",
     (
         pytest.param(
-            TEST_DATA_DIR / "valid-files" / "path_to_pauls_file.nc",
-            id="paul_durack_cmip6plus",
-            marks=pytest.mark.xfail(reason="Waiting to download file"),
+            str(
+                TEST_DATA_DIR
+                / "input4MIPs"
+                / "CMIP6Plus"
+                / "CMIP"
+                / "PCMDI"
+                / "PCMDI-AMIP-1-1-9"
+                / "ocean"
+                / "mon"
+                / "tos"
+                / "gn"
+                / "v20230512"
+                / "tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-9_gn_187001-202212.nc"  # noqa: E501
+            ),
+            id="paul_durack_cmip6plus_tos",
+        ),
+        pytest.param(
+            str(
+                TEST_DATA_DIR
+                / "input4MIPs"
+                / "CMIP6Plus"
+                / "CMIP"
+                / "PCMDI"
+                / "PCMDI-AMIP-1-1-9"
+                / "ocean"
+                / "mon"
+                / "siconc"
+                / "gn"
+                / "v20230512"
+                / "siconc_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-9_gn_187001-202212.nc"  # noqa: E501
+            ),
+            id="paul_durack_cmip6plus_siconc",
+        ),
+        pytest.param(
+            str(
+                TEST_DATA_DIR
+                / "input4MIPs"
+                / "CMIP6Plus"
+                / "CMIP"
+                / "PCMDI"
+                / "PCMDI-AMIP-1-1-9"
+                / "ocean"
+                / "fx"
+                / "sftof"
+                / "gn"
+                / "v20230512"
+                / "sftof_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-9_gn.nc"
+            ),
+            id="paul_durack_cmip6plus_sftof",
+        ),
+        pytest.param(
+            str(
+                TEST_DATA_DIR
+                / "input4MIPs"
+                / "CMIP6Plus"
+                / "CMIP"
+                / "PCMDI"
+                / "PCMDI-AMIP-1-1-9"
+                / "ocean"
+                / "fx"
+                / "areacello"
+                / "gn"
+                / "v20230512"
+                / "areacello_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-9_gn.nc"
+            ),
+            id="paul_durack_cmip6plus_areacello",
         ),
     ),
 )

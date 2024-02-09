@@ -4003,4 +4003,4 @@ plots = ["matplotlib"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d50df9baf9148fbdd3d95ee46fe8d3fdd4424a500cb906ed1977233f43b9b170"
+content-hash = "a005c56ddd20d73a7b8fc9a8cf643d53527600bd9e47da506cab2d2d62798808"

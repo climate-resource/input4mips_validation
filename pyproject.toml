@@ -18,8 +18,11 @@ pint-xarray = "^0.3"
 numpy = "^1.26.4"
 cftime = "^1.6.3"
 typing-extensions = "^4.9.0"
-pooch = "^1.8.0"  # dependency of cf-xarray but not included...
+pooch = "^1.8.0"
+# Pooch is a dependency of cf-xarray but not included in cf-xarray's dependencies.
+# TODO: PR into cf-xarray
 netcdf4 = "^1.6.5"
+attrs = "^23.2.0"
 
 [tool.poetry.extras]
 plots = ["matplotlib"]

@@ -18,6 +18,8 @@ xfail_paul_file = pytest.mark.xfail(
         "Somehow xarray can't tell "
         "that only one variable is a data variable in these files. "
         "Not sure whether this is an xarray problem or a file formatting problem."
+        "On CI, test files don't exist "
+        "(haven't worked out how to handle that best yet)."
     )
 )
 

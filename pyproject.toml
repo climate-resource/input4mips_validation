@@ -35,6 +35,7 @@ sphinx-autodoc-typehints = "^1.23.0"
 sphinx-autodocgen = "^1.3"
 jupytext = "^1.14.5"
 sphinx-copybutton = "^0.5.2"
+sphinx-click = "^5.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest-cov = "^4.0.0"

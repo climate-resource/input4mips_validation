@@ -7,35 +7,43 @@
 # Input4MIPs-validation
 
 ```{include} ../../README.md
-:start-after: <!--- sec-begin-description -->
-:end-before: <!--- sec-end-description -->
+---
+start-after: <!--- sec-begin-description -->
+end-before: <!--- sec-end-description -->
+---
 ```
 
 ## Installation
 
 ```{include} ../../README.md
-:start-after: <!--- sec-begin-installation -->
-:end-before: <!--- sec-end-installation -->
+---
+start-after: <!--- sec-begin-installation -->
+end-before: <!--- sec-end-installation -->
+---
 ```
 
 ### For developers
 
 ```{include} ../../README.md
-:start-after: <!--- sec-begin-installation-dev -->
-:end-before: <!--- sec-end-installation-dev -->
+---
+start-after: <!--- sec-begin-installation-dev -->
+end-before: <!--- sec-end-installation-dev -->
+---
 ```
 
 ```{toctree}
-:caption: Contents
-:maxdepth: 2
+---
+caption: Contents
+maxdepth: 2
+---
+command_line_interface
 notebooks
 development
 api/input4mips_validation
 changelog
 ```
 
-Index
------
+## Index
 
 - :ref:`genindex`
 - :ref:`modindex`

@@ -52,6 +52,8 @@ extensions = [
     "sphinx_copybutton",
     # math support
     "sphinx.ext.mathjax",
+    # click documentation
+    "sphinx_click",
 ]
 
 # general sphinx settings

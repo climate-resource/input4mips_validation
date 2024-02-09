@@ -5,6 +5,8 @@ description = "Validation of input4MIPs data (checking file formats, metadata et
 authors = ["Zebedee Nicholls <zebedee.nicholls@climate-resource.com>"]
 readme = "README.md"
 packages = [{include = "input4mips_validation", from = "src"}]
+license = "BSD-3-Clause"
+include = ["LICENCE"]  # poetry uses US English so assumes it will be spelt LICENSE
 
 [tool.poetry.dependencies]
 python = "^3.9"

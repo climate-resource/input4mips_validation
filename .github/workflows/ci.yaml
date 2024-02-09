@@ -101,6 +101,8 @@ jobs:
       - name: Check build
         run: |
           tar -tvf dist/input4mips_validation-*.tar.gz --wildcards '*input4mips_validation/py.typed'
+          tar -tvf dist/input4mips_validation-*.tar.gz --wildcards 'input4mips_validation-*/LICENCE'
+
 
   check-dependency-licences:
     runs-on: ubuntu-latest

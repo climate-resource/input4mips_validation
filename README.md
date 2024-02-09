@@ -21,7 +21,7 @@ Validation of input4MIPs data (checking file formats, metadata etc.).
 [![PyPI install](https://github.com/climate-resource/input4mips_validation/actions/workflows/install.yaml/badge.svg?branch=main)](https://github.com/climate-resource/input4mips_validation/actions/workflows/install.yaml)
 
 **Other info :**
-[![License](https://img.shields.io/github/license/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/blob/main/LICENSE)
+[![Licence](https://img.shields.io/github/license/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/blob/main/LICENCE)
 [![Last Commit](https://img.shields.io/github/last-commit/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/commits/main)
 [![Contributors](https://img.shields.io/github/contributors/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/graphs/contributors)
 
@@ -37,10 +37,11 @@ don't render correctly on GitHub's viewer.
 
 <!--- sec-begin-installation -->
 
-Input4MIPs-validation can be installed with conda or pip:
+Input4MIPs-validation can be installed with pip, mamba or conda:
 
 ```bash
 pip install input4mips-validation
+mamba install -c conda-forge input4mips-validation
 conda install -c conda-forge input4mips-validation
 ```
 
@@ -75,10 +76,9 @@ but we generally discourage this because it can be error prone.
 In order to create your environment, run `make virtual-environment`.
 
 If there are any issues, the messages from the `Makefile` should guide you
-through. If not, please raise an issue in the [issue tracker][issue_tracker].
+through. If not, please raise an issue in the
+[issue tracker](https://github.com/climate-resource/input4mips_validation/issues).
 
 For the rest of our developer docs, please see [](development-reference).
-
-[issue_tracker]: https://github.com/climate-resource/input4mips_validation/issues
 
 <!--- sec-end-installation-dev -->

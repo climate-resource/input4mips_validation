@@ -45,7 +45,7 @@ def setup_logging(config: dict[str, Any] | None = None) -> None:
     logger.enable("fgen")
 
 
-@click.group
+@click.group()
 def root_cli() -> None:
     """
     Entrypoint for the command-line interface

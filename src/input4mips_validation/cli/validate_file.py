@@ -11,6 +11,7 @@ from pathlib import Path
 import click
 
 from input4mips_validation.cli.root import root_cli
+from input4mips_validation.validation import assert_file_is_valid
 
 
 @root_cli.command(name="validate-file")
@@ -29,5 +30,4 @@ def validate_file_command(filepath: str) -> None:
 
     FILEPATH is the path to the file to validate.
     """
-    file_p = Path(filepath)  # noqa: F841
-    raise NotImplementedError
+    assert_file_is_valid(Path(filepath))

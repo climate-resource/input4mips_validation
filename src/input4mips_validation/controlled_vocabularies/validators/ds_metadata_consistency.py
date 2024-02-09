@@ -37,7 +37,7 @@ def assert_metadata_value_matches_ds_variable(dataset: xr.Dataset, key: str) -> 
         raise AssertionError(msg)
 
 
-def assert_dataset_category_matches_ds(dataset: xr.dataset, key: str) -> None:
+def assert_dataset_category_matches_ds(dataset: xr.Dataset, key: str) -> None:
     """
     Assert that the dataset_category metadata matches the dataset
 

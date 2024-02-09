@@ -4,7 +4,7 @@ Validation related to controlled vocabularies
 from __future__ import annotations
 
 from functools import partial
-from typing import Callable, TypeVar
+from typing import Any, Callable, TypeVar
 
 import xarray as xr
 from typing_extensions import TypeAlias
@@ -23,7 +23,7 @@ from input4mips_validation.controlled_vocabularies.validators.email import (
 T = TypeVar("T")
 
 MetadataValidator: TypeAlias = Callable[[T], None]
-MetadataValidators: TypeAlias = dict[str, MetadataValidator]
+MetadataValidators: TypeAlias = dict[str, MetadataValidator[Any]]
 
 DS_METADATA_VALIDATORS: MetadataValidators = {
     "contact": assert_includes_email,

@@ -29,7 +29,7 @@ def get_ds_variable(dataset: xr.Dataset) -> str:
         For these processing flows, we expect to be handling
         single variable datasets.
     """
-    variables = list(dataset.data_vars)
+    variables: list[str] = list(dataset.data_vars)
 
     if len(variables) != 1:
         msg = (

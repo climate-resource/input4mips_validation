@@ -21,9 +21,7 @@ if TYPE_CHECKING:
 
 # Could also use pooch to store or something fancier for this caching, to be discussed
 @functools.cache
-def get_controlled_vocabulary_raw_default(
-    key: str, timeout: int = 10
-) -> dict[str, Any]:
+def get_controlled_vocabulary_raw_default(key: str, timeout: int = 10) -> Any:
     """
     Get raw controlled vocabulary JSON, default implementation
 
@@ -233,7 +231,7 @@ def assert_target_mip_attribute_matches_controlled_vocabulary(
     attribute: attr.Attribute[Any],
     value: str,
     **kwargs: Any,
-):
+) -> None:
     """
     Assert that the target_mip attribute matches the controlled vocabulary
 

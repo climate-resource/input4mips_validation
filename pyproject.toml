@@ -17,6 +17,9 @@ xarray = "^2024.1.1"
 pint-xarray = "^0.3"
 numpy = "^1.26.4"
 cftime = "^1.6.3"
+typing-extensions = "^4.9.0"
+pooch = "^1.8.0"  # dependency of cf-xarray but not included...
+netcdf4 = "^1.6.5"
 
 [tool.poetry.extras]
 plots = ["matplotlib"]

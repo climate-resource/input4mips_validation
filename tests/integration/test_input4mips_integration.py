@@ -3,7 +3,9 @@ Integration tests of :mod:`carpet_concentrations.input4mips`
 
 Checks that we can produce well formatted netCDF files
 """
-from pathlib import Path
+from __future__ import annotations
+
+from functools import partial
 
 import cf_xarray.units
 import cftime
@@ -11,6 +13,7 @@ import numpy as np
 import pint_xarray  # noqa: F401 # required to enable pint accessors
 import xarray as xr
 
+import input4mips_validation.xarray_helpers
 from input4mips_validation.controlled_vocabularies.constants import (
     CREATION_DATE_REGEX,
     UUID_REGEX,
@@ -21,6 +24,7 @@ from input4mips_validation.metadata import (
     Input4MIPsMetadataOptional,
 )
 from input4mips_validation.time import get_start_of_next_month
+from input4mips_validation.validation import assert_file_is_valid
 
 # TODO: PR into cf_xarray adding these units
 # TODO: PR into cf_xarray so it is easier to handle unit registry etc.
@@ -29,49 +33,23 @@ cf_xarray.units.units.define("ppb = ppm / 1000")
 RNG = np.random.default_rng()
 
 
-def test_file_creation(tmpdir):
+def test_file_creation(tmp_path):
     # TODO: update this depending on which metadata we think is actually compulsory
     metadata = Input4MIPsMetadata(
-        contact="contact test (test@address.com)",
-        dataset_category="GHGConcentrations",
-        frequency="mon",
-        further_info_url="cmip6.science.unimelb.edu.au",
-        grid_label="gr1-GMNHSH",
-        Conventions="CF-1.6",
         activity_id="input4MIPs",
-        institution="Climate Resource",
-        institution_id="CR",
-        mip_era="CMIP6",
-        nominal_resolution="10000 km",
-        realm="atmos",
-        source_version="1.2.1",
-        source_id="CR-1-2-1",
-        source="CR 1.2.1: Test file",
-        target_mip="ScenarioMIP",
-        title="CR 1.2.1 test dataset for testing",
+        contact="contact test (test@address.com)",
+        mip_era="CMIP6Plus",
+        target_mip="CMIP",
+        institution_id="PCMDI",
+        source_id="PCMDI-AMIP-1-1-9",
+        # rules here make no sense to me,
+        # can this be inferred from the data or only checked against it?
+        grid_label="placeholder",
     )
 
     # TODO: update this depending on our approach to optional metadata and CVs
     metadata_optional = Input4MIPsMetadataOptional(
         comment="Some comment",
-        data_specs_version="01.00.31",
-        # Could check a) value and b) consistency with grid here if we had
-        # external variables submitted at the same time...
-        external_variables="areacella",
-        grid=(
-            "global and hemispheric means - area-averages "
-            "from the original latitudinal 15-degree bands"
-        ),
-        history="some history info here",
-        product="observations",
-        references="refs",
-        region="some region",
-        release_year="2019",
-        source_description="desc",
-        source_type="satellite_blended",
-        table_id="some table",
-        table_info="table info",
-        license="license",
     )
 
     time = [
@@ -81,6 +59,7 @@ def test_file_creation(tmpdir):
     ]
     lat = np.arange(-82.5, 82.5 + 1, 15)
     dimensions = ("time", "lat")
+    time_dimension = "time"
 
     time_ref = cftime.datetime(2010, 1, 1)
     time_bounds_exp = []
@@ -107,20 +86,15 @@ def test_file_creation(tmpdir):
 
     ds = xr.Dataset(
         {
-            "windspeed": (
-                dimensions,
-                RNG.random(size=(len(time), len(lat))),
-                {"units": "m / s"},
-            ),
             "mole_fraction_of_carbon_dioxide_in_air": (
                 dimensions,
                 RNG.random(size=(len(time), len(lat))),
                 {"units": "ppm"},
             ),
-            "mole_fraction_of_methane_in_air": (
+            "tos": (
                 dimensions,
                 RNG.random(size=(len(time), len(lat))),
-                {"units": "ppb"},
+                {"units": "K"},
             ),
         },
         coords={
@@ -135,15 +109,26 @@ def test_file_creation(tmpdir):
 
     for data_var in ds.data_vars:
         data_var_dataset = ds[[data_var]]
-        input4mips_ds = Input4MIPsDataset.from_metadata_autoadd_bounds_to_dimensions(
+        input4mips_ds = Input4MIPsDataset.from_raw_dataset(
             data_var_dataset,
-            dimensions,
+            dimensions=dimensions,
+            time_dimension=time_dimension,
             metadata=metadata,
             metadata_optional=metadata_optional,
+            add_time_bounds=partial(
+                input4mips_validation.xarray_helpers.add_time_bounds,
+                monthly_time_bounds=True,
+            ),
         )
-        written = input4mips_ds.write(root_data_dir=Path(tmpdir))
+        written = input4mips_ds.write(root_data_dir=tmp_path)
+
+        # Make sure the written file passes validation
+        # (The specific checks below may be moved into this validation file later.)
+        assert_file_is_valid(written)
 
         assert written.name.endswith(".nc")
+        # Check that data variable is included in the filename, except with
+        # underscores replaced with hyphens to match input4MIPs conventions.
         assert data_var.replace("_", "-") in written.name
 
         read = xr.load_dataset(written, decode_times=False)
@@ -169,7 +154,10 @@ def test_file_creation(tmpdir):
             unit_registry=cf_xarray.units.units
         )
 
+        # Assert the data was not mangled while writing
         xr.testing.assert_equal(read[data_var], ds[data_var])
+
+        # Check that the creation date and UUID are there and were written correctly
         assert (
             CREATION_DATE_REGEX.fullmatch(read.attrs["creation_date"]).string
             == read.attrs["creation_date"]

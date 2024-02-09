@@ -19,6 +19,20 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.2.0 (2024-02-09)
+
+
+### Features
+
+- Add structure required to support basic command-line interface.
+
+  The command-line interface provides the command `input4mips-validation validate-file`. ([#2](https://github.com/climate-resource/input4mips_validation/pulls/2))
+
+### Bug Fixes
+
+- Added LICENCE to the project ([#3](https://github.com/climate-resource/input4mips_validation/pulls/3))
+
+
 ## input4mips-validation v0.1.1 (2024-02-06)
 
 

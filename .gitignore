@@ -1,3 +1,7 @@
+# Big test data. Not sure whether to add this or just store in a separate
+# test data repo or something (or just download every time...)
+tests/test-data/input4MIPs/CMIP6Plus/CMIP/PCMDI
+
 # Notebooks
 *.ipynb
 

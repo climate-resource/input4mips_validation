@@ -10,21 +10,21 @@ include = ["LICENCE"]  # poetry uses US English so assumes it will be spelt LICE
 
 [tool.poetry.dependencies]
 python = "^3.9"
-matplotlib = { version = "^3.7.1", optional = true }
-notebook = { version = "^6.5.3", optional = true }
-click = "^8.1.7"
-loguru = "^0.7.2"
-cf-xarray = "^0.8.9"
-xarray = "^2024.1.1"
-pint-xarray = "^0.3"
-numpy = "^1.26.4"
-cftime = "^1.6.3"
-typing-extensions = "^4.9.0"
-pooch = "^1.8.0"
+matplotlib = { version = ">=3.0", optional = true }
+notebook = { version = ">=6.0", optional = true }
+click = ">=8.0"
+loguru = ">=0.7"
+cf-xarray = ">=0.8"
+xarray = ">=2022.0"
+pint-xarray = ">=0.3"
+numpy = ">=1.23"
+cftime = ">=1.6"
+typing-extensions = ">=4.0"
+pooch = ">=1.0"
 # Pooch is a dependency of cf-xarray but not included in cf-xarray's dependencies.
 # TODO: PR into cf-xarray
-netcdf4 = "^1.6.5"
-attrs = "^23.2.0"
+netcdf4 = ">=1.0"
+attrs = ">=22.0"
 
 [tool.poetry.extras]
 plots = ["matplotlib"]

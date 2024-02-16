@@ -39,11 +39,18 @@ def get_controlled_vocabulary_raw_default(key: str, timeout: int = 10) -> Any:
     """
     # TODO: remove this huge hack once we work out where this is meant to come from
     if key == "institution_id":
-        return ("PCMDI",)
+        return ("PCMDI", "CR")
 
     # TODO: remove this huge hack once we work out where this is meant to come from
     if key == "grid_label":
-        return ("placeholder",)
+        return ("placeholder", "gr", "gr1")
+
+    if key == "source_id":
+        return {
+            "source_id": {
+                "CR-CMIP-0-2-0": "To discuss further with Paul how this should be"
+            }
+        }
 
     url_template = "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/main/input4MIPs_{key}.json"
     url_to_hit = url_template.format(key=key)

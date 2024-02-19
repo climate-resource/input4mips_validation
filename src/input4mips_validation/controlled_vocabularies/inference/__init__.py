@@ -70,18 +70,40 @@ def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
     -------
         Inferred frequency
     """
-    timestep_size = (
-        ds["time_bounds"].sel(bounds=1) - ds["time_bounds"].sel(bounds=0)
-    ).dt.days
+    # # Urgh this doesn't work because October 5 to October 15 1582
+    # # don't exist in the mixed Julian/Gregorian calendar,
+    # # so you don't get the right number of days for October 1582
+    # # if you do it like this.
+    # # Hence have to use the hack below instead.
+    # timestep_size = (
+    #     ds["time_bounds"].sel(bounds=1) - ds["time_bounds"].sel(bounds=0)
+    # ).dt.days
+    #
+    # MIN_DAYS_IN_MONTH = 28
+    # MAX_DAYS_IN_MONTH = 31
+    # if (
+    #     (timestep_size >= MIN_DAYS_IN_MONTH) & (timestep_size <= MAX_DAYS_IN_MONTH)
+    # ).all():
+    #     return "mon"
 
-    MIN_DAYS_IN_MONTH = 28
-    MAX_DAYS_IN_MONTH = 31
+    start_years = ds["time_bounds"].sel(bounds=0).dt.year
+    start_months = ds["time_bounds"].sel(bounds=0).dt.month
+    end_years = ds["time_bounds"].sel(bounds=1).dt.year
+    end_months = ds["time_bounds"].sel(bounds=1).dt.month
+
+    month_diff = end_months - start_months
+    year_diff = end_years - start_years
+    MONTH_DIFF_IF_END_OF_YEAR = -11
     if (
-        (timestep_size >= MIN_DAYS_IN_MONTH) & (timestep_size <= MAX_DAYS_IN_MONTH)
+        (month_diff == 1)
+        | ((month_diff == MONTH_DIFF_IF_END_OF_YEAR) & (year_diff == 1))
     ).all():
         return "mon"
 
-    raise NotImplementedError(timestep_size)
+    if ((month_diff == 0) & (year_diff == 1)).all():
+        return "yr"
+
+    raise NotImplementedError(ds)
 
 
 def infer_realm(ds: xr.Dataset) -> str:

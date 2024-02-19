@@ -45,6 +45,7 @@ def get_ds_variable(dataset: xr.Dataset) -> str:
 def add_time_bounds(
     ds: xr.Dataset,
     monthly_time_bounds: bool = False,
+    yearly_time_bounds: bool = False,
     output_dim: str = "bounds",
 ) -> xr.Dataset:
     """
@@ -62,9 +63,19 @@ def add_time_bounds(
         the start of one month to the next (which isn't regular spacing but is
         most often what is desired/required)
 
+    yearly_time_bounds
+        Are we looking at yearly data i.e. should the time bounds run from
+        the start of one year to the next (which isn't regular spacing but is
+        sometimes what is desired/required)
+
     Returns
     -------
         Dataset with time bounds
+
+    Raises
+    ------
+    ValueError
+        Both ``monthly_time_bounds`` and ``yearly_time_bounds`` are ``True``.
 
     Notes
     -----
@@ -85,6 +96,12 @@ def add_time_bounds(
         )
 
     if monthly_time_bounds:
+        if yearly_time_bounds:
+            msg = (
+                "Only one of monthly_time_bounds and yearly_time_bounds should be true"
+            )
+            raise ValueError(msg)
+
         ds_ym = split_time_to_year_month(ds, time_axis=variable)
 
         # This may need to be refactored to allow the cftime_converter to be
@@ -97,7 +114,22 @@ def add_time_bounds(
             dims=(variable, "bounds"),
             coords={variable: ds[variable], "bounds": [0, 1]},
         ).transpose(..., "bounds")
+
+    elif yearly_time_bounds:
+        # Hacks hacks hacks :)
+        # This may need to be refactored to allow the cftime_converter to be
+        # injected, same idea as `convert_to_time`
+        bounds = xr.DataArray(
+            [
+                [cftime.datetime(y, 1, 1), cftime.datetime(y + 1, 1, 1)]
+                for y in ds["time"].dt.year
+            ],
+            dims=(variable, "bounds"),
+            coords={variable: ds[variable], "bounds": [0, 1]},
+        ).transpose(..., "bounds")
+
     else:
+        # TODO: fix this, quite annoying now.
         # This will require some thinking because `ds.cf.add_bounds(dim)`
         # doesn't work with cftime.datetime objects. Probably needs an issue upstream
         # and then a monkey patch or custom function here as a workaround.

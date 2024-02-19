@@ -100,6 +100,9 @@ def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
     ).all():
         return "mon"
 
+    if ((month_diff == 0) & (year_diff == 1)).all():
+        return "yr"
+
     raise NotImplementedError(ds)
 
 

@@ -22,3 +22,17 @@ def test_subcommand_validate_file_help():
     result = runner.invoke(app, ["validate-file", "--help"])
     assert result.exit_code == 0
     assert re.match(r"Usage: ", result.output)
+
+
+def test_subcommand_validate_file_invalid_if_input_does_not_exist():
+    runner = CliRunner()
+    result = runner.invoke(app, ["validate-file", "junk.py"])
+    assert result.exit_code == 2
+    assert re.search(r"Invalid value for 'FILEPATH'.*does not exist", result.output)
+
+
+def test_subcommand_validate_file_invalid_if_input_is_directory(tmpdir):
+    runner = CliRunner()
+    result = runner.invoke(app, ["validate-file", str(tmpdir)])
+    assert result.exit_code == 2
+    assert re.search(r"Invalid value for 'FILEPATH'.*is a directory", result.output)

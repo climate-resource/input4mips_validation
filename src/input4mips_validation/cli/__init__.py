@@ -37,3 +37,12 @@ def validate_file_command(
     FILEPATH is the path to the file to validate.
     """
     assert_file_is_valid(filepath)
+
+
+_typer_click_object = typer.main.get_command(app)
+"""
+Click object, only created so we can use sphinx-click for documentation.
+
+May be removed if there is a better answer to this,
+see https://github.com/tiangolo/typer/issues/200.
+"""

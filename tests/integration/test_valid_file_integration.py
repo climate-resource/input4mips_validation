@@ -6,9 +6,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from click.testing import CliRunner
+from typer.testing import CliRunner
 
-from input4mips_validation.cli import root_cli
+from input4mips_validation.cli import app
 
 TEST_DATA_DIR = Path(__file__).parent.parent / "test-data"
 
@@ -104,7 +104,7 @@ xfail_paul_file = pytest.mark.xfail(
 def test_valid_file_passes(valid_file):
     runner = CliRunner()
 
-    result = runner.invoke(root_cli, ["validate-file", valid_file])
+    result = runner.invoke(app, ["validate-file", valid_file])
     assert not result.exception
     expected_stdout = (
         "TBD, could confirm that the file is valid "

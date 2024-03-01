@@ -7,19 +7,20 @@ Validate a single file
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Annotated
 
-import click
+import typer
 
-from input4mips_validation.cli.root import root_cli
+from input4mips_validation.cli.root import app
 from input4mips_validation.validation import assert_file_is_valid
 
 
-@root_cli.command(name="validate-file")
-@click.argument(
-    "filepath",
-    type=click.Path(exists=True, dir_okay=False, file_okay=True),
-)
-def validate_file_command(filepath: str) -> None:
+@app.command(name="validate-file")
+def validate_file_command(
+    filepath: Annotated[
+        Path, typer.Option(exists=True, dir_okay=False, file_okay=True)
+    ],
+) -> None:
     """
     Validate a single file
 
@@ -30,4 +31,4 @@ def validate_file_command(filepath: str) -> None:
 
     FILEPATH is the path to the file to validate.
     """
-    assert_file_is_valid(Path(filepath))
+    assert_file_is_valid(filepath)

@@ -5,20 +5,20 @@ from __future__ import annotations
 
 import re
 
-from click.testing import CliRunner
+from typer.testing import CliRunner
 
-from input4mips_validation.cli import root_cli
+from input4mips_validation.cli import app
 
 
 def test_cli_help():
     runner = CliRunner()
-    result = runner.invoke(root_cli, ["--help"])
+    result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
     assert re.match(r"Usage: ", result.output)
 
 
 def test_subcommand_validate_file_help():
     runner = CliRunner()
-    result = runner.invoke(root_cli, ["validate-file", "--help"])
+    result = runner.invoke(app, ["validate-file", "--help"])
     assert result.exit_code == 0
     assert re.match(r"Usage: ", result.output)

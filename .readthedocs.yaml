@@ -20,6 +20,7 @@ build:
       - poetry export -f requirements.txt --output requirements.txt --with docs --extras plots -E notebooks
       - python -m pip install -r requirements.txt
       - python -m pip list
+      - python -m pip install .
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:

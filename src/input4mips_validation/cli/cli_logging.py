@@ -45,11 +45,3 @@ def setup_logging(config: dict[str, Any] | None = None) -> None:
 
     logger.configure(**config)
     logger.enable("fgen")
-
-
-@app.callback()
-def main() -> None:
-    """
-    Entrypoint for the command-line interface
-    """
-    setup_logging()

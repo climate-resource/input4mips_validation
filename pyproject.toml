@@ -53,7 +53,7 @@ liccheck = "^0.9.1"
 types-requests = "^2.31.0.20240125"
 
 [tool.poetry.scripts]
-input4mips-validation = "input4mips_validation.main:app"
+input4mips-validation = "input4mips_validation.cli:app"
 
 [build-system]
 requires = ["poetry-core"]

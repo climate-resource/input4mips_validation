@@ -6,8 +6,10 @@ from __future__ import annotations
 import sys
 from typing import Any
 
-import click
+import typer
 from loguru import logger
+
+app = typer.Typer()
 
 DEFAULT_LOGGING_CONFIG = dict(
     handlers=[
@@ -43,11 +45,3 @@ def setup_logging(config: dict[str, Any] | None = None) -> None:
 
     logger.configure(**config)
     logger.enable("fgen")
-
-
-@click.group()
-def root_cli() -> None:
-    """
-    Entrypoint for the command-line interface
-    """
-    setup_logging()

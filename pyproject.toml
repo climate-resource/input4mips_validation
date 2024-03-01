@@ -12,7 +12,6 @@ include = ["LICENCE"]  # poetry uses US English so assumes it will be spelt LICE
 python = "^3.9"
 matplotlib = { version = ">=3.0", optional = true }
 notebook = { version = ">=6.0", optional = true }
-click = ">=8.0"
 loguru = ">=0.7"
 cf-xarray = ">=0.8"
 xarray = ">=2022.0"
@@ -25,6 +24,7 @@ pooch = ">=1.0"
 # TODO: PR into cf-xarray
 netcdf4 = ">=1.0"
 attrs = ">=22.0"
+typer = "^0.9.0"
 
 [tool.poetry.extras]
 plots = ["matplotlib"]
@@ -53,7 +53,7 @@ liccheck = "^0.9.1"
 types-requests = "^2.31.0.20240125"
 
 [tool.poetry.scripts]
-input4mips-validation = "input4mips_validation.main:root_cli"
+input4mips-validation = "input4mips_validation.cli:app"
 
 [build-system]
 requires = ["poetry-core"]

@@ -19,6 +19,14 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.3.1 (2024-04-23)
+
+
+### Improvements
+
+- Disabled grid validation while we wait to work out what it means ([#9](https://github.com/climate-resource/input4mips_validation/pulls/9))
+
+
 ## input4mips-validation v0.3.0 (2024-04-23)
 
 

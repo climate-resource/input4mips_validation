@@ -40,3 +40,35 @@ def test_add_time_bounds_monthly():
         res["time_bounds"],
         exp_time_bounds,
     )
+
+
+def test_add_time_bounds_yearly():
+    time = [cftime.datetime(y, 7, 15) for y in range(2020, 2024)]
+    ds = xr.DataArray(
+        name="test_add_time_bounds_monthly",
+        data=np.arange(8).reshape(4, 2),
+        dims=["time", "lat"],
+        coords=dict(
+            time=time,
+            lat=[-45, 45],
+        ),
+    ).to_dataset()
+
+    start_bounds = [cftime.datetime(y, 1, 1) for y in range(2020, 2024)]
+    stop_bounds = np.hstack([start_bounds[1:], cftime.datetime(2024, 1, 1)])
+    exp_time_bounds = xr.DataArray(
+        name="time_bounds",
+        data=np.column_stack([start_bounds, stop_bounds]),
+        dims=["time", "bounds"],
+        coords=dict(time=time, bounds=[0, 1]),
+    )
+    exp_time_bounds = exp_time_bounds.assign_coords(time_bounds=exp_time_bounds)
+
+    res = add_time_bounds(ds, yearly_time_bounds=True)
+
+    assert res["time"].attrs["bounds"] == "time_bounds"
+
+    xr.testing.assert_equal(
+        res["time_bounds"],
+        exp_time_bounds,
+    )

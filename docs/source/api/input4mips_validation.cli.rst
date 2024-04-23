@@ -9,5 +9,15 @@ input4mips\_validation.cli
 .. autosummary::
   :toctree: ./
 
-  input4mips_validation.cli.root
-  input4mips_validation.cli.validate_file
+  input4mips_validation.cli.cli_logging
+
+main
+====
+
+.. autofunction:: main
+
+
+validate\_file\_command
+=======================
+
+.. autofunction:: validate_file_command

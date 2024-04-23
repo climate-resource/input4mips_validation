@@ -5,6 +5,9 @@ tests/test-data/input4MIPs/CMIP6Plus/CMIP/PCMDI
 # Notebooks
 *.ipynb
 
+# Lock file
+poetry.lock
+
 # Databases
 *.db
 

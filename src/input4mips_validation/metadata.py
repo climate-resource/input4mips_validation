@@ -56,6 +56,7 @@ class Input4MIPsMetadata:
     """Institution ID for the dataset"""
 
     source_id: str = field(
+        # TODO: turn this back on once we work out how it works
         # validator=make_attrs_validator_compatible_attribute_value_input(
         #     assert_attribute_being_set_matches_controlled_vocabulary
         #     # TODO: check if there are actually more restrictions on this e.g.
@@ -65,12 +66,13 @@ class Input4MIPsMetadata:
     """Source ID for the dataset"""
 
     grid_label: str = field(
-        validator=make_attrs_validator_compatible_attribute_value_input(
-            assert_attribute_being_set_matches_controlled_vocabulary
-            # TODO: check if there are actually more restrictions on this e.g.
-            # consistency with data
-            # (such checks should then go into validate_ds_metadata_consistency)
-        )
+        # TODO: turn this back on once we work out how it works
+        # validator=make_attrs_validator_compatible_attribute_value_input(
+        #     assert_attribute_being_set_matches_controlled_vocabulary
+        #     # TODO: check if there are actually more restrictions on this e.g.
+        #     # consistency with data
+        #     # (such checks should then go into validate_ds_metadata_consistency)
+        # )
     )
     """Grid label for the dataset"""
 

@@ -56,11 +56,11 @@ class Input4MIPsMetadata:
     """Institution ID for the dataset"""
 
     source_id: str = field(
-        validator=make_attrs_validator_compatible_attribute_value_input(
-            assert_attribute_being_set_matches_controlled_vocabulary
-            # TODO: check if there are actually more restrictions on this e.g.
-            # consistency with institution_id
-        )
+        # validator=make_attrs_validator_compatible_attribute_value_input(
+        #     assert_attribute_being_set_matches_controlled_vocabulary
+        #     # TODO: check if there are actually more restrictions on this e.g.
+        #     # consistency with institution_id
+        # )
     )
     """Source ID for the dataset"""
 

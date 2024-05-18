@@ -139,3 +139,22 @@ def validate_ds_metadata_consistency(
             # Could do something much more fancy here,
             # can update as we start to see use cases
             raise ValueError(metadata_key) from exc
+
+
+def validate_variables_metadata(
+    dataset: xr.Dataset,
+    validators=None,
+    # validators: VariableMetadataValidators | None = None,
+) -> None:
+    # Need to be careful that we don't re-implement cfchecker here...
+    for variable, varray in dataset.variables.items():
+        if "bounds" in variable:
+            if "standard_name" in varray.attrs:
+                msg = "bounds should not contain standard_name"
+                raise AssertionError(msg)
+
+            continue
+
+        if varray.attrs["standard_name"] != variable:
+            msg = "Make your life easier"
+            raise AssertionError(msg)

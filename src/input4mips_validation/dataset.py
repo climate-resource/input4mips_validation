@@ -7,6 +7,7 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Callable
 
+import numpy as np
 import xarray as xr
 from attrs import define, field
 
@@ -26,6 +27,7 @@ from input4mips_validation.controlled_vocabularies.inference import (
 from input4mips_validation.controlled_vocabularies.validators import (
     validate_ds_metadata,
     validate_ds_metadata_consistency,
+    validate_variables_metadata,
 )
 from input4mips_validation.metadata import (
     Input4MIPsMetadata,
@@ -100,6 +102,7 @@ class Input4MIPsDataset:
             make_attrs_validator_compatible_input_only(
                 validate_ds_metadata_consistency
             ),
+            make_attrs_validator_compatible_input_only(validate_variables_metadata),
         ]
     )
     """
@@ -208,12 +211,16 @@ class Input4MIPsDataset:
         # know more than we do
         ds = ds.cf.guess_coord_axis().cf.add_canonical_attributes()
 
-        # add bounds to dimensions
+        # add bounds to numeric dimensions
         for dim in dimensions:
             if dim == time_dimension:
                 ds = add_time_bounds(ds)
-            else:
-                ds = ds.cf.add_bounds(dim)
+                continue
+
+            if not np.issubdtype(ds[dim].values.dtype, np.number):
+                continue
+
+            ds = ds.cf.add_bounds(dim)
 
         # transpose to match dimensions
         ds = ds.transpose(*dimensions, ...)
@@ -223,7 +230,22 @@ class Input4MIPsDataset:
         if metadata_optional is not None:
             attributes.update(metadata_optional.to_dataset_attributes())
 
+        # TODO: use cfchecker and then this can be set with certainty
+        attributes["Conventions"] = "CF-1.8"
         ds.attrs = attributes
+
+        for variable, varray in ds.variables.items():
+            if "bounds" in variable:
+                continue
+
+            if "standard_name" in varray.attrs:
+                if varray.attrs["standard_name"] != variable:
+                    msg = f"{varray.attrs['standard_name']}, {variable}"
+                    raise AssertionError(msg)
+
+            varray.attrs["standard_name"] = variable
+
+        ds = ds.cf.add_canonical_attributes(override=False, verbose=True)
 
         return cls(ds, **kwargs)
 

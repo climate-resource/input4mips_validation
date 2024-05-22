@@ -15,6 +15,8 @@ VARIABLE_DATASET_MAP = {
     "mole_fraction_of_carbon_dioxide_in_air": "GHGConcentrations",
     "mole_fraction_of_methane_in_air": "GHGConcentrations",
     "mole_fraction_of_nitrous_oxide_in_air": "GHGConcentrations",
+    "mole_fraction_of_sulfur_hexafluoride_in_air": "GHGConcentrations",
+    "mole_fraction_of_cfc11_in_air": "GHGConcentrations",
 }
 
 # TODO: remove this hard-coding based on some logic/map held elsewhere,
@@ -27,6 +29,8 @@ VARIABLE_REALM_MAP = {
     "mole_fraction_of_carbon_dioxide_in_air": "atmos",
     "mole_fraction_of_methane_in_air": "atmos",
     "mole_fraction_of_nitrous_oxide_in_air": "atmos",
+    "mole_fraction_of_sulfur_hexafluoride_in_air": "atmos",
+    "mole_fraction_of_cfc11_in_air": "atmos",
 }
 
 CREATION_DATE_REGEX: re.Pattern[str] = re.compile(

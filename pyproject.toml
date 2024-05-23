@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "input4mips-validation"
-version = "0.3.3"
+version = "0.3.4a0"
 description = "Validation of input4MIPs data (checking file formats, metadata etc.)."
 authors = ["Zebedee Nicholls <zebedee.nicholls@climate-resource.com>"]
 readme = "README.md"

@@ -19,6 +19,17 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.4.0 (2024-06-20)
+
+
+### Bug Fixes
+
+- * Pinned input4MIPs CVs source files to avoid unexpected breaking changes
+  * Pinned numpy < 2 to fix up install
+
+  ([#13](https://github.com/climate-resource/input4mips_validation/pulls/13))
+
+
 ## input4mips-validation v0.3.4 (2024-05-24)
 
 

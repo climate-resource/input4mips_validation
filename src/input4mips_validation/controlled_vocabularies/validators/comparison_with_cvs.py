@@ -52,7 +52,8 @@ def get_controlled_vocabulary_raw_default(key: str, timeout: int = 10) -> Any:
             }
         }
 
-    url_template = "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/main/input4MIPs_{key}.json"
+    # TODO: better approach to locking the exact commit to use from input4MIPs_CVs
+    url_template = "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/blob/903ec2bd1c5e925a3fa5e610a4414f131a95e2bc/input4MIPs_{key}.json"
     url_to_hit = url_template.format(key=key)
     res = requests.get(url_to_hit, timeout=timeout)
     res.raise_for_status()

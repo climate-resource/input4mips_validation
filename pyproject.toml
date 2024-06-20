@@ -16,7 +16,7 @@ loguru = ">=0.7"
 cf-xarray = ">=0.8"
 xarray = ">=2022.0"
 pint-xarray = ">=0.3"
-numpy = ">=1.23"
+numpy = ">=1.23,<2.0"  # Pin numpy 2.0 while pint is broken
 cftime = ">=1.6"
 typing-extensions = ">=4.0"
 pooch = ">=1.0"

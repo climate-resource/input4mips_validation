@@ -30,7 +30,8 @@ DS_METADATA_VALIDATORS: MetadataValidators = {
     **{
         k: partial(assert_value_matches_controlled_vocabulary, key=k)
         for k in [
-            "dataset_category",
+            # Uncomment once we work out how to handle the CVs properly
+            # "dataset_category",
             # uncomment once I work out what source of truth should be
             # (currently not clear what comes from where and institution id
             # is not in input4MIPs_CVs)

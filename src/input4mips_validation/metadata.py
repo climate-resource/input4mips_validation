@@ -6,15 +6,8 @@ from __future__ import annotations
 import attrs.validators as av
 from attrs import asdict, define, field
 
-from input4mips_validation.attrs_helpers import (
-    make_attrs_validator_compatible_attribute_value_input,
-)
 from input4mips_validation.controlled_vocabularies.constants import (
     INCLUDES_EMAIL_REGEX,
-)
-from input4mips_validation.controlled_vocabularies.validators.comparison_with_cvs import (  # noqa: E501
-    assert_attribute_being_set_matches_controlled_vocabulary,
-    assert_target_mip_attribute_matches_controlled_vocabulary,
 )
 
 
@@ -27,31 +20,36 @@ class Input4MIPsMetadata:
     """
 
     activity_id: str = field(
-        validator=make_attrs_validator_compatible_attribute_value_input(
-            assert_attribute_being_set_matches_controlled_vocabulary
-        )
+        # TODO: fix this validator, should be based on source ID value
+        # validator=make_attrs_validator_compatible_attribute_value_input(
+        #     assert_attribute_being_set_matches_controlled_vocabulary
+        # )
     )
     """Activity ID for the dataset"""
 
     contact: str = field(validator=av.matches_re(INCLUDES_EMAIL_REGEX))
+    # TODO: add validation based on source ID too
     """Contact for the dataset"""
 
     mip_era: str = field(
-        validator=make_attrs_validator_compatible_attribute_value_input(
-            assert_attribute_being_set_matches_controlled_vocabulary
-        )
+        # TODO: fix this validator, should be based on source ID value
+        # validator=make_attrs_validator_compatible_attribute_value_input(
+        #     assert_attribute_being_set_matches_controlled_vocabulary
+        # )
     )
     """MIP era for the dataset"""
 
     target_mip: str = field(
-        validator=assert_target_mip_attribute_matches_controlled_vocabulary
+        # TODO: add validator back in once we've worked out the logic
+        # validator=assert_target_mip_attribute_matches_controlled_vocabulary
     )
     """Target MIP for the dataset"""
 
     institution_id: str = field(
-        validator=make_attrs_validator_compatible_attribute_value_input(
-            assert_attribute_being_set_matches_controlled_vocabulary
-        )
+        # TODO: fix this validator, should be based on source ID value
+        # validator=make_attrs_validator_compatible_attribute_value_input(
+        #     assert_attribute_being_set_matches_controlled_vocabulary
+        # )
     )
     """Institution ID for the dataset"""
 

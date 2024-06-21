@@ -25,6 +25,8 @@ pooch = ">=1.0"
 netcdf4 = ">=1.0"
 attrs = ">=22.0"
 typer = "^0.9.0"
+validators = "^0.28.3"
+cattrs = "^23.2.3"
 
 [tool.poetry.extras]
 plots = ["matplotlib"]

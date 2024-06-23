@@ -7,8 +7,6 @@ from functools import partial
 from typing import Any, Callable, TypeVar
 
 import xarray as xr
-from typing_extensions import TypeAlias
-
 from input4mips_validation.controlled_vocabularies.validators.comparison_with_cvs import (  # noqa: E501
     assert_value_matches_controlled_vocabulary,
 )
@@ -19,6 +17,7 @@ from input4mips_validation.controlled_vocabularies.validators.ds_metadata_consis
 from input4mips_validation.controlled_vocabularies.validators.email import (
     assert_includes_email,
 )
+from typing_extensions import TypeAlias
 
 T = TypeVar("T")
 

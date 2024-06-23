@@ -7,10 +7,9 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Callable
 
+import input4mips_validation.xarray_helpers
 import xarray as xr
 from attrs import define, field
-
-import input4mips_validation.xarray_helpers
 from input4mips_validation.attrs_helpers import (
     make_attrs_validator_compatible_input_only,
 )

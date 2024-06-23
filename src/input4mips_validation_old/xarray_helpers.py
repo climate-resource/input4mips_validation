@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import cftime
 import xarray as xr
-
 from input4mips_validation.time import get_start_of_next_month, split_time_to_year_month
 
 

@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from attrs import evolve
 
 from input4mips_validation.cvs_handling.exceptions import (
     InconsistentWithCVsError,
@@ -126,48 +127,90 @@ def test_source_id_not_in_cv(cv_source, source_id):
 
 
 @pytest.mark.parametrize(
-    "cv_source, source_id, key_to_test, value_according_to_cv, value_to_apply",
+    "cv_source, source_id, key_to_test, value_to_apply",
     (
         (
             DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
             "CR-CMIP-0-2-0",
             "activity_id",
-            "input4MIPs",
             "inpt",
+        ),
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "CR-CMIP-0-2-0",
+            "contact",
+            "zeb@cr.com",
+        ),
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "CR-CMIP-0-2-0",
+            "further_info_url",
+            "http://www.tbd.com/elsewhere",
+        ),
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "CR-CMIP-0-2-0",
+            "institution",
+            "CR name here",
+        ),
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "CR-CMIP-0-2-0",
+            "institution_id",
+            "Cr",
+        ),
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "CR-CMIP-0-2-0",
+            "license",
+            "license text",
+        ),
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "CR-CMIP-0-2-0",
+            "mip_era",
+            "CMIP7",
+        ),
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "CR-CMIP-0-2-0",
+            "version",
+            "0.2.1",
         ),
     ),
 )
-def test_value_conflict_with_source_id_implied_value(
-    cv_source, source_id, key_to_test, value_according_to_cv, value_to_apply
+def test_value_conflict_with_source_id_inferred_value(
+    cv_source, source_id, key_to_test, value_to_apply
 ):
     """
-    Test that an error is raised if we try and set a value that is inconsistent with
-    the value implied by the source_id and the CV
+    Test that an error is raised if we try and set a value
+    that is inconsistent with the value we can infer from the source_id and the CV
     """
-    if value_according_to_cv == value_to_apply:
-        msg = "The test won't work if the CV's value and the applied value are the same"
-        raise AssertionError(msg)
-
-    base_values = dict(
-        activity_id="placeholder",
-        contact="placeholder",
-        further_info_url="placeholder",
-        institution="placeholder",
-        institution_id="placeholder",
-        license="placeholder",
-        mip_era="placeholder",
-        version="placeholder",
-    )
-    base_values[key_to_test] = value_to_apply
     with patch.dict(os.environ, {"INPUT4MIPS_VALIDATION_CV_SOURCE": cv_source}):
         raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
+        valid_source_id_entry = convert_raw_cv_to_source_id_entries(
+            raw_cvs_loader.load_raw(filename=SOURCE_ID_FILENAME)
+        )[0]
+
+        value_according_to_cv = getattr(valid_source_id_entry.values, key_to_test)
+        if value_according_to_cv == value_to_apply:
+            msg = (
+                "The test won't work if the CV's value "
+                "and the applied value are the same"
+            )
+            raise AssertionError(msg)
+
+        values_incorrect = evolve(
+            valid_source_id_entry.values, **{key_to_test: value_to_apply}
+        )
+
         error_msg = re.escape(
             f"For source_id={source_id!r}, "
-            f"we should have activity_id={value_according_to_cv!r}. "
+            f"we should have {key_to_test}={value_according_to_cv!r}. "
             f"Received {key_to_test}={value_to_apply!r}. "
             f"Raw CVs loader: {raw_cvs_loader!r}"
         )
         with pytest.raises(InconsistentWithCVsError, match=error_msg):
             assert_source_id_entry_is_valid(
-                SourceIDEntry(source_id=source_id, values=SourceIDValues(**base_values))
+                SourceIDEntry(source_id=source_id, values=values_incorrect)
             )

@@ -1,5 +1,11 @@
 """
 Source ID CV handling
+
+Where possible, we include data validation in here.
+However, some of this is not possible as we have to load the CVs
+before performing the validation.
+As a result, for complete validation,
+also see {py:mod}`input4mips_validation.cvs_handling.input4MIPs.validation`.
 """
 from __future__ import annotations
 
@@ -92,18 +98,21 @@ class SourceIDEntries:
                 values=source_ids,
             )
 
-    def __getitem__(self, key: str) -> SourceIDEntry:
+    def __getitem__(self, key: str | int) -> SourceIDEntry:
         """
-        Get {py:obj}`SourceIDEntry` by its name
+        Get {py:obj}`SourceIDEntry` by its name or position in ``self.entries``
 
         We return the {py:obj}`SourceIDEntry` whose source_id
         matches ``key``.
         """
+        if isinstance(key, int):
+            return self.entries[key]
+
         matching = [v for v in self.entries if v.source_id == key]
         if not matching:
             raise KeyError(key)
 
-        if len(matching) > 1:
+        if len(matching) > 1:  # pragma: no cover
             msg = "source IDs should be validated as being unique at initialisation"
             raise AssertionError(msg)
 

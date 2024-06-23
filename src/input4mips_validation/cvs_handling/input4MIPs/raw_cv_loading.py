@@ -173,19 +173,19 @@ def get_full_path_no_known_registry(
     )
 
 
-def load_raw_cv(
+def load_raw_cv_definition(
     filename: str, root: CVsRoot, force_download: bool | None = None
 ) -> str:
     """
-    Load raw CV data
+    Load raw CV definition
 
     Parameters
     ----------
     filename
-        Filename of the data to load
+        Name of the file to load
 
     root
-        Root from which the file should be loaded
+        Root from which ``filename`` should be loaded
 
     force_download
         If we are downloading from a remote source,

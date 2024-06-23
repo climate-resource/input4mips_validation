@@ -4,10 +4,12 @@ Source ID CV handling
 from __future__ import annotations
 
 import json
-from typing import TypeAlias
+from typing import Any, TypeAlias
 
-from attrs import define
+import attr
+from attrs import define, field
 
+from input4mips_validation.cvs_handling.exceptions import NonUniqueError
 from input4mips_validation.cvs_handling.input4MIPs.serialisation import converter_json
 
 SOURCE_ID_FILENAME: str = "input4MIPs_source_id.json"
@@ -74,9 +76,21 @@ class SourceIDEntries:
     Helper container for handling source ID entries
     """
 
-    entries: tuple[SourceIDEntry, ...]
+    entries: tuple[SourceIDEntry, ...] = field()
     """Source ID entries"""
-    # TODO: Add validation that all entries have unique names
+
+    @entries.validator
+    def _entry_source_ids_are_unique(
+        self, attribute: attr.Attribute[Any], value: tuple[SourceIDEntry, ...]
+    ) -> None:
+        source_ids = self.source_ids
+        if len(source_ids) != len(set(source_ids)):
+            raise NonUniqueError(
+                description=(
+                    "The source_id's of the entries in ``entries`` are not unique"
+                ),
+                values=source_ids,
+            )
 
     def __getitem__(self, key: str) -> SourceIDEntry:
         """
@@ -100,6 +114,17 @@ class SourceIDEntries:
         Get length of ``self.entries``
         """
         return len(self.entries)
+
+    @property
+    def source_ids(self) -> tuple[str, ...]:
+        """
+        Source IDs found in the list of entries
+
+        Returns
+        -------
+            The source IDs found in the list of entries
+        """
+        return tuple(v.source_id for v in self.entries)
 
 
 def convert_raw_cv_to_source_id_entries(

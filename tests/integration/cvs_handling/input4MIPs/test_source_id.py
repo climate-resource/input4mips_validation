@@ -50,6 +50,8 @@ from input4mips_validation.cvs_handling.input4MIPs.source_id import (
     ),
 )
 def test_load_source_ids_from_cv(input4mips_cv_source, checks):
+    # May want to abstract this further later,
+    # but I'm not sure what the pattern will be so not doing this just yet.
     cvs_root = get_cvs_root(cv_source=input4mips_cv_source)
     raw = load_raw_cv(filename=SOURCE_ID_FILENAME, root=cvs_root)
     res = convert_raw_cv_to_source_id_entries(raw=raw)

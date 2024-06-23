@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import attrs.validators as av
 from attrs import asdict, define, field
+
 from input4mips_validation.controlled_vocabularies.constants import (
     INCLUDES_EMAIL_REGEX,
 )

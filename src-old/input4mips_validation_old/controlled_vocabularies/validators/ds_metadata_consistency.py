@@ -4,6 +4,7 @@ Checks of consistency between datasets and their metadata
 from __future__ import annotations
 
 import xarray as xr
+
 from input4mips_validation.controlled_vocabularies.constants import VARIABLE_DATASET_MAP
 from input4mips_validation.xarray_helpers import get_ds_variable
 

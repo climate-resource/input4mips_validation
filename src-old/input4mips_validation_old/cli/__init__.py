@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+
 from input4mips_validation.cli.cli_logging import setup_logging
 from input4mips_validation.validation import assert_file_is_valid
 

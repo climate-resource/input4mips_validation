@@ -13,6 +13,7 @@ from typing import Any, Protocol
 import attr
 import attrs
 import pooch
+import pooch.utils
 import validators
 from attrs import define, field
 
@@ -160,7 +161,9 @@ class RawCVLoaderBaseURL:
     """
 
     @base_url.validator
-    def ends_with_forward_slash(self, attribute: attr.Attribute[Any], value: str):
+    def ends_with_forward_slash(
+        self, attribute: attr.Attribute[Any], value: str
+    ) -> None:
         """
         Assert that the value ends with a forward slash
         """
@@ -272,7 +275,7 @@ def get_raw_cvs_loader(
         cv_source = f"https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/{source}/"
 
     if not validators.url(cv_source):
-        res = RawCVLoaderLocal(Path(cv_source))
+        res: RawCVLoader = RawCVLoaderLocal(Path(cv_source))
 
     else:
         try:

@@ -3,6 +3,7 @@ Integration tests of handling of the source ID CV
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 from pathlib import Path
@@ -25,7 +26,7 @@ from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
     get_raw_cvs_loader,
 )
 from input4mips_validation.cvs_handling.input4MIPs.source_id import (
-    convert_raw_cv_to_source_id_entries,
+    convert_unstructured_cv_to_source_id_entries,
 )
 from input4mips_validation.cvs_handling.input4MIPs.validation import (
     assert_source_id_entry_is_valid,
@@ -67,7 +68,7 @@ def test_load_source_ids_from_cv(input4mips_cv_source, checks):
     # but I'm not sure what the pattern will be so not doing this just yet.
     raw_cvs_loader = get_raw_cvs_loader(cv_source=input4mips_cv_source)
     raw = raw_cvs_loader.load_raw(filename=SOURCE_ID_FILENAME)
-    res = convert_raw_cv_to_source_id_entries(raw=raw)
+    res = convert_unstructured_cv_to_source_id_entries(unstructured=json.loads(raw))
 
     assert isinstance(res, SourceIDEntries)
     assert all(isinstance(v, SourceIDEntry) for v in res.entries)
@@ -111,8 +112,8 @@ def test_source_id_not_in_cv(cv_source, source_id):
     )
     with patch.dict(os.environ, {"INPUT4MIPS_VALIDATION_CV_SOURCE": cv_source}):
         raw_cvs_loader = get_raw_cvs_loader()
-        source_ids = convert_raw_cv_to_source_id_entries(
-            raw_cvs_loader.load_raw(filename=SOURCE_ID_FILENAME)
+        source_ids = convert_unstructured_cv_to_source_id_entries(
+            json.loads(raw_cvs_loader.load_raw(filename=SOURCE_ID_FILENAME))
         ).source_ids
 
         error_msg = re.escape(
@@ -188,8 +189,8 @@ def test_value_conflict_with_source_id_inferred_value(
     """
     with patch.dict(os.environ, {"INPUT4MIPS_VALIDATION_CV_SOURCE": cv_source}):
         raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
-        valid_source_id_entry = convert_raw_cv_to_source_id_entries(
-            raw_cvs_loader.load_raw(filename=SOURCE_ID_FILENAME)
+        valid_source_id_entry = convert_unstructured_cv_to_source_id_entries(
+            json.loads(raw_cvs_loader.load_raw(filename=SOURCE_ID_FILENAME))
         )[0]
 
         value_according_to_cv = getattr(valid_source_id_entry.values, key_to_test)

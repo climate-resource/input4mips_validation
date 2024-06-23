@@ -137,7 +137,12 @@ docstring-code-format = true
     "S101",  # Use of `assert` detected
 ]
 "scripts/*" = [
-    "S101" # S101 Use of `assert` detected
+    "S101",# S101 Use of `assert` detected
+]
+# TODO: add this into copier
+# Stubs out of control as we have to match what is done by others
+"stubs/*" = [
+    "PLR0913",
 ]
 
 [tool.ruff.isort]

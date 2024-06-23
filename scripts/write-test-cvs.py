@@ -15,7 +15,7 @@ from input4mips_validation.cvs_handling.input4MIPs import (
     SourceIDValues,
 )
 from input4mips_validation.cvs_handling.input4MIPs.source_id import (
-    convert_source_id_entries_to_raw_cv,
+    convert_source_id_entries_to_unstructured_cv,
 )
 from input4mips_validation.cvs_handling.serialisation import json_dumps_cv_style
 
@@ -67,5 +67,7 @@ source_id_entries = SourceIDEntries(
 test_input4mips_cvs_dir.mkdir(parents=True, exist_ok=True)
 with open(test_input4mips_cvs_dir / SOURCE_ID_FILENAME, "w") as fh:
     fh.write(
-        json_dumps_cv_style(convert_source_id_entries_to_raw_cv(source_id_entries))
+        json_dumps_cv_style(
+            convert_source_id_entries_to_unstructured_cv(source_id_entries)
+        )
     )

@@ -1,6 +1,8 @@
 """Tools for getting values from the CVs"""
 from __future__ import annotations
 
+import json
+
 from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
     RawCVLoader,
     get_raw_cvs_loader,
@@ -8,7 +10,7 @@ from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
 from input4mips_validation.cvs_handling.input4MIPs.source_id import (
     SOURCE_ID_FILENAME,
     SourceIDEntries,
-    convert_raw_cv_to_source_id_entries,
+    convert_unstructured_cv_to_source_id_entries,
 )
 
 
@@ -62,6 +64,6 @@ def load_source_id_entries(
     if raw_cvs_loader is None:
         raw_cvs_loader = get_raw_cvs_loader()
 
-    return convert_raw_cv_to_source_id_entries(
-        raw_cvs_loader.load_raw(filename=SOURCE_ID_FILENAME)
+    return convert_unstructured_cv_to_source_id_entries(
+        json.loads(raw_cvs_loader.load_raw(filename=SOURCE_ID_FILENAME))
     )

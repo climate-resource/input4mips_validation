@@ -9,7 +9,6 @@ see {py:mod}`input4mips_validation.cvs_handling.input4MIPs.validation`.
 """
 from __future__ import annotations
 
-import json
 from typing import Any, TypeAlias
 
 import attr
@@ -21,7 +20,7 @@ from input4mips_validation.cvs_handling.input4MIPs.serialisation import converte
 SOURCE_ID_FILENAME: str = "input4MIPs_source_id.json"
 """Default name of the file in which the source ID CV is saved"""
 
-SourceIDEntriesSerialised: TypeAlias = dict[str, dict[str, dict[str, str]]]
+SourceIDEntriesUnstructured: TypeAlias = dict[str, dict[str, dict[str, str]]]
 """Form into which source ID entries are serialised for the CVs"""
 
 
@@ -130,35 +129,34 @@ class SourceIDEntries:
         return tuple(v.source_id for v in self.entries)
 
 
-def convert_raw_cv_to_source_id_entries(
-    raw: SourceIDEntriesSerialised,
+def convert_unstructured_cv_to_source_id_entries(
+    unstructured: SourceIDEntriesUnstructured,
 ) -> SourceIDEntries:
     """
     Convert the raw CV data to a {py:obj}`SourceIDEntries`
 
     Parameters
     ----------
-    raw
-        Raw CV data
+    unstructured
+        Unstructured CV data
 
     Returns
     -------
         Source ID entries
     """
-    raw_json = json.loads(raw)
     restructured = {
         "entries": [
             dict(source_id=key, values=value)
-            for key, value in raw_json["source_id"].items()
+            for key, value in unstructured["source_id"].items()
         ]
     }
 
     return converter_json.structure(restructured, SourceIDEntries)
 
 
-def convert_source_id_entries_to_raw_cv(
+def convert_source_id_entries_to_unstructured_cv(
     source_id_entries: SourceIDEntries,
-) -> SourceIDEntriesSerialised:
+) -> SourceIDEntriesUnstructured:
     """
     Convert a {py:obj}`SourceIDEntries` to the raw CV form
 

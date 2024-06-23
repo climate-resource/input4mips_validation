@@ -5,7 +5,7 @@ Where possible, we include data validation in here.
 However, some of this is not possible as we have to load the CVs
 before performing the validation.
 As a result, for complete validation,
-also see {py:mod}`input4mips_validation.cvs_handling.input4MIPs.validation`.
+see {py:mod}`input4mips_validation.cvs_handling.input4MIPs.validation`.
 """
 from __future__ import annotations
 
@@ -33,30 +33,24 @@ class SourceIDValues:
 
     activity_id: str
     """ID of the activity to which this source is contributing"""
-    # TODO: add validation from activity ID JSON
 
     contact: str
     """Email addresses to contact in case of questions"""
-    # TODO: add email validation
 
     further_info_url: str
     """URL where further information about this source can be found"""
-    # TODO: add validation
 
     institution: str
     """Institution which provides this source"""
 
     institution_id: str
     """ID of the institution which provides this source"""
-    # TODO: add validation
 
     license: str
     """License information for data coming from this source"""
-    # TODO: add validation
 
     mip_era: str
     """MIP era to which this source is contributing"""
-    # TODO: add validation
 
     version: str
     """Version identifier for data associated with this source"""

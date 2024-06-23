@@ -99,6 +99,19 @@ def get_cvs_root(cv_source: None | str = None) -> CVsRoot:
     return CVsRoot(location=cv_source, remote=remote)
 
 
+def remove_file(filepath: Path) -> None:
+    """
+    Remove a file path
+
+    Parameters
+    ----------
+    filepath
+        Filepath to remove
+    """
+    if filepath.exists():
+        filepath.unlink()
+
+
 def get_full_path_from_known_registry(
     filename: str, registry: pooch.Pooch, force_download: bool
 ) -> Path:

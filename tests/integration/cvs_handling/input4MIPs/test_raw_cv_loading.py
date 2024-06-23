@@ -6,129 +6,240 @@ This includes testing how loading from different sources will be handled.
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
+import pooch
 import pytest
 
-import input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading
 from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
-    CVsRoot,
-    get_cvs_root,
-    load_raw_cv_definition,
+    RawCVLoaderBaseURL,
+    RawCVLoaderKnownRemoteRegistry,
+    # KNOWN_REGISTRIES,
+    RawCVLoaderLocal,
+    get_raw_cvs_loader,
 )
 
 
 @pytest.mark.parametrize(
-    "input4mips_cv_source, exp_root",
+    "input4mips_cv_source, force_download, exp",
     [
         pytest.param(
             "gh:main",
-            CVsRoot(
-                location="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/main/",
-                remote=True,
+            None,
+            RawCVLoaderBaseURL(
+                base_url="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/main/",
             ),
             id="github_main",
         ),
         pytest.param(
+            "gh:main",
+            False,
+            RawCVLoaderBaseURL(
+                base_url="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/main/",
+            ),
+            id="github_main_no_force_download",
+        ),
+        pytest.param(
+            "gh:main",
+            True,
+            RawCVLoaderBaseURL(
+                base_url="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/main/",
+            ),
+            id="github_main_force_download",
+        ),
+        pytest.param(
             "gh:branch-name",
-            CVsRoot(
-                location="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/branch-name/",
-                remote=True,
+            None,
+            RawCVLoaderBaseURL(
+                base_url="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/branch-name/",
             ),
             id="github_branch",
         ),
         pytest.param(
             "gh:commitae84110",
-            CVsRoot(
-                location="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/commitae84110/",
-                remote=True,
+            None,
+            RawCVLoaderBaseURL(
+                base_url="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/commitae84110/",
             ),
             id="github_commit",
         ),
         pytest.param(
-            "https://raw.githubusercontent.com/znichollscr/input4MIPs_CVs/commitae84109/",
-            CVsRoot(
-                location="https://raw.githubusercontent.com/znichollscr/input4MIPs_CVs/commitae84109/",
-                remote=True,
+            "gh:v1.0.0",
+            None,
+            RawCVLoaderKnownRemoteRegistry(
+                registry="junk",
+                # # In future, this will have something like the below
+                # registry=KNOWN_REGISTRIES["https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v1.0.0/"],
             ),
-            id="github_commit_fork",
+            id="github_known_version",
+            marks=pytest.mark.xfail(reason="No known version release on GitHub yet"),
+        ),
+        pytest.param(
+            "gh:v1.0.0",
+            False,
+            RawCVLoaderKnownRemoteRegistry(
+                registry="junk",
+                # # In future, this will have something like the below
+                # registry=KNOWN_REGISTRIES["https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v1.0.0/"],
+            ),
+            id="github_known_version_no_force_download",
+            marks=pytest.mark.xfail(reason="No known version release on GitHub yet"),
+        ),
+        pytest.param(
+            "gh:v1.0.0",
+            True,
+            RawCVLoaderKnownRemoteRegistry(
+                registry="junk",
+                # # In future, this will have something like the below
+                # registry=KNOWN_REGISTRIES["https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v1.0.0/"],
+                force_download=True,
+            ),
+            id="github_known_version_force_download",
+            marks=pytest.mark.xfail(reason="No known version release on GitHub yet"),
         ),
         pytest.param(
             "../path/to/somewhere",
-            CVsRoot(
-                location="../path/to/somewhere",
-                remote=False,
+            None,
+            RawCVLoaderLocal(
+                root_dir=Path("../path/to/somewhere"),
             ),
             id="no_gh_prefix_hence_path",
         ),
+        pytest.param(
+            "../path/to/somewhere",
+            True,
+            RawCVLoaderLocal(
+                root_dir=Path("../path/to/somewhere"),
+            ),
+            id="no_gh_prefix_hence_path_force_passed_too",
+        ),
     ],
 )
-def test_get_cvs_root(input4mips_cv_source, exp_root):
-    with patch.dict(
-        os.environ, {"INPUT4MIPS_VALIDATION_INPUT4MIPS_CV_SOURCE": input4mips_cv_source}
-    ):
-        res = get_cvs_root()
-
-    assert res == exp_root
-
-
-def test_load_raw_cv_path():
-    filename = "filename_cv.json"
-    root = CVsRoot(location="path/to/somewhere", remote=False)
-    exp = "Some data\nprobably json\nis expected"
-
-    with patch("builtins.open", mock_open(read_data=exp)) as mock_open_func:
-        res = load_raw_cv_definition(filename=filename, root=root)
-
-    assert res == exp
-    mock_open_func.assert_called_once_with(Path(root.location) / filename)
-
-
-# TODO: add test of force download here
-@pytest.mark.parametrize(
-    "force_download, force_download_exp",
-    (
-        (None, False),
-        (False, False),
-        (True, True),
-    ),
-)
-@patch("input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading.remove_file")
-def test_load_raw_cv_gh_known_registry(
-    mock_remove_file, force_download, force_download_exp
-):
-    filename = "filename_cv.json"
-    known_url = "http://known/url"
-    root = CVsRoot(location=known_url, remote=True)
-
-    exp = "Some data\nprobably json\nis expected"
-
-    mock_full_path = "path/to/some/pooch/location.txt"
-    mock_pooch_registry = MagicMock()
-    mock_pooch_registry.fetch = MagicMock(return_value=mock_full_path)
-    mock_registries = {known_url: mock_pooch_registry}
-
+def test_get_raw_cvs_loader(input4mips_cv_source, force_download, exp):
     call_kwargs = {}
     if force_download is not None:
         call_kwargs["force_download"] = force_download
 
-    with patch.dict(
-        input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading.KNOWN_REGISTRIES,
-        mock_registries,
-    ):
-        with patch("builtins.open", mock_open(read_data=exp)) as mock_open_func:
-            res = load_raw_cv_definition(filename=filename, root=root, **call_kwargs)
+    res = get_raw_cvs_loader(cv_source=input4mips_cv_source, **call_kwargs)
 
     assert res == exp
 
-    if force_download_exp:
-        mock_remove_file.assert_called_once_with(mock_pooch_registry.path / filename)
+    # Also test setting through environment variables
+    environ_patches = {
+        "INPUT4MIPS_VALIDATION_CV_SOURCE": input4mips_cv_source,
+    }
 
-    # Check that pooch would be called correctly
-    mock_pooch_registry.fetch.assert_called_once_with(
-        filename,
+    if force_download is not None:
+        environ_patches[
+            "INPUT4MIPS_VALIDATION_CV_SOURCE_force_download_DOWNLOAD"
+        ] = str(force_download)
+
+    with patch.dict(os.environ, environ_patches):
+        res = get_raw_cvs_loader()
+
+    assert res == exp
+
+
+def test_load_raw_local():
+    root_dir = Path("/test/root/dir")
+    filename = "input4MIPs_cv_file.json"
+    exp = "Some data\nprobably json\nis expected"
+
+    with patch("builtins.open", mock_open(read_data=exp)) as mock_open_func:
+        res = RawCVLoaderLocal(root_dir=root_dir).load_raw(filename)
+
+    assert res == exp
+
+    # Check the filepath that would have been opened
+    mock_open_func.assert_called_once_with(root_dir / filename)
+
+
+@pytest.mark.parametrize("force_download", (True, False))
+def test_load_raw_known_remote_registry(force_download, tmp_path):
+    registry_path = tmp_path / "cache-dir"
+    filename = "input4MIPs_cv_file.json"
+
+    mock_fetch_return_value = str(Path(registry_path) / filename)
+
+    exp = "Some data\nprobably json\nis expected"
+
+    if force_download:
+        # Actually create a file, so we can check it is deleted later
+        Path(mock_fetch_return_value).parent.mkdir(parents=True, exist_ok=True)
+        with open(mock_fetch_return_value, "w") as fh:
+            fh.write(exp)
+
+    mock_registry = MagicMock()
+    mock_registry.path = registry_path
+    mock_registry.fetch = MagicMock(return_value=mock_fetch_return_value)
+
+    with patch("builtins.open", mock_open(read_data=exp)) as mock_open_func:
+        res = RawCVLoaderKnownRemoteRegistry(
+            registry=mock_registry, force_download=force_download
+        ).load_raw(filename)
+
+    assert res == exp
+
+    # Check the filepath that would have been opened
+    mock_open_func.assert_called_once_with(Path(mock_fetch_return_value))
+
+    if force_download:
+        # Check that the file was removed.
+        # No file should have been downloaded in its place because our registry
+        # is just a mock registry.
+        assert not Path(mock_fetch_return_value).exists()
+
+
+def test_load_raw_base_url_no_slash_ending():
+    bad_url = "http://www.domain.com/incorrect/ending"
+    error_msg = re.escape(f"base_url must end with a '/', received: value={bad_url!r}")
+    with pytest.raises(ValueError, match=error_msg):
+        RawCVLoaderBaseURL(base_url=bad_url)
+
+
+@pytest.mark.parametrize("force_download", (True, False))
+@patch("input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading.pooch.retrieve")
+def test_load_raw_base_url(mock_pooch_retrieve, force_download, tmp_path):
+    base_url = "http://path-to-somewhere.com/folder/here/something/"
+    download_path = tmp_path / "cache-dir"
+    filename = "input4MIPs_cv_file.json"
+
+    expected_url = f"{base_url}{filename}"
+    filename_pooch = pooch.utils.unique_file_name(expected_url)
+
+    mock_pooch_retrieve.return_value = str(Path(download_path) / filename_pooch)
+
+    exp = "Some data\nprobably json\nis expected"
+
+    if force_download:
+        # Actually create a file, so we can check it is deleted later
+        Path(mock_pooch_retrieve.return_value).parent.mkdir(parents=True, exist_ok=True)
+        with open(mock_pooch_retrieve.return_value, "w") as fh:
+            fh.write(exp)
+
+    with patch("builtins.open", mock_open(read_data=exp)) as mock_open_func:
+        res = RawCVLoaderBaseURL(
+            base_url=base_url,
+            download_path=download_path,
+            force_download=force_download,
+        ).load_raw(filename)
+
+    assert res == exp
+
+    # Check that pooch was called correctly
+    mock_pooch_retrieve.assert_called_once_with(
+        url=expected_url,
+        fname=filename_pooch,
+        path=download_path,
+        known_hash=None,
     )
+    # Check the filepath that would have been opened
+    mock_open_func.assert_called_once_with(Path(mock_pooch_retrieve.return_value))
 
-    # Check that the filepath would have been opened
-    mock_open_func.assert_called_once_with(mock_full_path)
+    if force_download:
+        # Check that the file was removed.
+        # No file should have been downloaded in its place because our registry
+        # is just a mock registry.
+        assert not Path(mock_pooch_retrieve.return_value).exists()

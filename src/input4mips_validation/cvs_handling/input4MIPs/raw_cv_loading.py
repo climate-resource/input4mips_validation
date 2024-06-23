@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Any, Protocol
 
+import attr
+import attrs
 import pooch
 import validators
-from attrs import define
+from attrs import define, field
 
 HERE = Path(__file__).parent
 
@@ -33,22 +36,180 @@ KNOWN_REGISTRIES: dict[str, pooch.Pooch] = {
 }
 
 
+class RawCVLoader(Protocol):
+    """Loader of raw CV data"""
+
+    def load_raw(self, filename: str) -> str:
+        """
+        Load raw CV data
+
+        Parameters
+        ----------
+        filename
+            Filename from which to load raw CV data
+
+        Returns
+        -------
+            Raw CV data
+        """
+        ...
+
+
 @define
-class CVsRoot:
-    """CVs root information"""
-
-    location: str
-    """Location"""
-
-    remote: bool
+class RawCVLoaderLocal:
     """
-    Whether the root CVs information needs to be retrieved from a remote source or not
+    Loader of raw CV data from local data
+
+    Known remote registries are assumed to be represented as {py:obj}`pooch.Pooch`.
     """
 
-
-def get_cvs_root(cv_source: None | str = None) -> CVsRoot:
+    root_dir: Path
     """
-    Get the root of the CVs
+    Root directory in which the raw CV data is stored
+    """
+
+    def load_raw(self, filename: str) -> str:
+        """
+        Load raw CV data
+
+        Parameters
+        ----------
+        filename
+            Filename from which to load raw CV data
+
+        Returns
+        -------
+            Raw CV data
+        """
+        with open(self.root_dir / filename) as fh:
+            raw = fh.read()
+
+        return raw
+
+
+@define
+class RawCVLoaderKnownRemoteRegistry:
+    """
+    Loader of raw CV data from a known remote registry
+
+    Known remote registries are assumed to be represented as {py:obj}`pooch.Pooch`.
+    """
+
+    registry: pooch.Pooch
+    """
+    Pooch registry to use for retrieving and managing files
+    """
+
+    force_download: bool = False
+    """
+    Whether to force a new download of the file if it already exists
+    """
+
+    def load_raw(self, filename: str) -> str:
+        """
+        Load raw CV data
+
+        Parameters
+        ----------
+        filename
+            Filename from which to load raw CV data
+
+        Returns
+        -------
+            Raw CV data
+        """
+        if self.force_download:
+            expected_out_file = Path(self.registry.path) / filename
+            if expected_out_file.exists():
+                expected_out_file.unlink()
+
+        with open(Path(self.registry.fetch(filename))) as fh:
+            raw = fh.read()
+
+        return raw
+
+
+@define
+class RawCVLoaderBaseURL:
+    """
+    Loader of raw CV data from some base URL
+
+    Uses {py:func}`pooch.retrieve` to manage downloading and storage of files.
+    """
+
+    base_url: str = field(validator=attrs.validators.instance_of(str))
+    """
+    Base URL from which to load files
+
+    The filename is simply appended to the end of the base URL
+    to create the URL from which to request the file.
+    """
+
+    download_path: Path = HERE / "user_cvs"
+    """
+    Path in which to save downloaded files
+
+    Passed to {py:func}`pooch.retrieve`.
+
+    Defaults to being inside the package so that downloaded files
+    are removed when the package is removed.
+    """
+
+    force_download: bool = False
+    """
+    Whether to force a new download of the file if it already exists
+    """
+
+    @base_url.validator
+    def ends_with_forward_slash(self, attribute: attr.Attribute[Any], value: str):
+        """
+        Assert that the value ends with a forward slash
+        """
+        if not value.endswith("/"):
+            msg = f"{attribute.name} must end with a '/', received: {value=!r}"
+            raise ValueError(msg)
+
+    def load_raw(self, filename: str) -> str:
+        """
+        Load raw CV data
+
+        Parameters
+        ----------
+        filename
+            Filename from which to load raw CV data
+
+        Returns
+        -------
+            Raw CV data
+        """
+        url = f"{self.base_url}{filename}"
+        fname_pooch = pooch.utils.unique_file_name(url)
+
+        if self.force_download:
+            expected_out_file = self.download_path / fname_pooch
+            if expected_out_file.exists():
+                expected_out_file.unlink()
+
+        with open(
+            Path(
+                pooch.retrieve(
+                    url=url,
+                    fname=fname_pooch,
+                    path=self.download_path,
+                    known_hash=None,
+                )
+            )
+        ) as fh:
+            raw = fh.read()
+
+        return raw
+
+
+def get_raw_cvs_loader(
+    cv_source: None | str = None, force_download: bool | None = None
+) -> RawCVLoader:
+    """
+    Get the raw CVs loader
 
     Parameters
     ----------
@@ -56,189 +217,65 @@ def get_cvs_root(cv_source: None | str = None) -> CVsRoot:
         String identifying the source of the CVs.
 
         If not supplied, this is retrieved from the environment variable
-        `INPUT4MIPS_VALIDATION_INPUT4MIPS_CV_SOURCE`.
+        ``INPUT4MIPS_VALIDATION_CV_SOURCE``.
 
         If this environment variable is also not set,
-        we raise a `NotImplementedError`.
+        we raise a ``NotImplementedError``.
 
-        If this starts with "gh:", we retrieve the data from PCMD's GitHub.
+        If this starts with "gh:", we retrieve the data from PCMD's GitHub,
+        using everything after the colon as the ID for the Git commit to use
+        (where the ID can be a branch name, a tag or a commit ID).
 
         Otherwise we simply return the path as provided
         and use the {py:mod}`validators` package
-        to decide if the source is remote or not.
-
-    Returns
-    -------
-        Root of the CVs
-
-    Raises
-    ------
-    NotImplementedError
-        ``cv_source`` is not supplied and
-        ``INPUT4MIPS_VALIDATION_INPUT4MIPS_CV_SOURCE`` is also not set.
-    """
-    if cv_source is None:
-        cv_source = os.environ.get("INPUT4MIPS_VALIDATION_INPUT4MIPS_CV_SOURCE", None)
-
-    if cv_source is None:
-        msg = "Default source has not been decided yet"
-        raise NotImplementedError(msg)
-
-    if cv_source.startswith("gh:"):
-        source = cv_source.split("gh:")[1]
-        return CVsRoot(
-            location=f"https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/{source}/",
-            remote=True,
-        )
-
-    if validators.url(cv_source):
-        remote = True
-    else:
-        remote = False
-
-    return CVsRoot(location=cv_source, remote=remote)
-
-
-def remove_file(filepath: Path) -> None:
-    """
-    Remove a file path
-
-    Parameters
-    ----------
-    filepath
-        Filepath to remove
-    """
-    if filepath.exists():
-        filepath.unlink()
-
-
-def get_full_path_from_known_registry(
-    filename: str, registry: pooch.Pooch, force_download: bool
-) -> Path:
-    """
-    Get the full path to a local file from a known {py:mod}`pooch` registry
-
-    Parameters
-    ----------
-    filename
-        Filename to retrieve
-
-    registry
-        {py:mod}`pooch` registry to use to retrieve the file
-
-    force_download
-        Should the download of this file be forced?
-
-    Returns
-    -------
-        Full path to the local file
-    """
-    if force_download:
-        expected_out_file = registry.path / filename
-        if expected_out_file.exists():
-            expected_out_file.unlink()
-
-    return Path(registry.fetch(filename))
-
-
-def get_full_path_no_known_registry(
-    filename: str, root_url: str, force_download: bool
-) -> Path:
-    """
-    Get the full path to a local file without a known {py:mod}`pooch` registry
-
-    Parameters
-    ----------
-    filename
-        Filename to retrieve
-
-    root_url
-        Root URL from which to retrieve the file.
-        It is assumed that the path to the file can be created by simply
-        joining ``root_url`` and ``filename``.
-
-    force_download
-        Should the download of this file be forced?
-
-    Returns
-    -------
-        Full path to the local file
-    """
-    url = f"{root_url}{filename}"
-
-    # Cache inside the package so that downloaded files are removed
-    # when the package is removed.
-    path = HERE / "user_cvs"
-    fname_pooch = pooch.utils.unique_file_name(url)
-
-    if force_download:
-        expected_out_file = path / fname_pooch
-        if expected_out_file.exists():
-            expected_out_file.unlink()
-
-    return Path(
-        pooch.retrieve(
-            url=url,
-            fname=fname_pooch,
-            path=path,
-            known_hash=None,
-        )
-    )
-
-
-def load_raw_cv_definition(
-    filename: str, root: CVsRoot, force_download: bool | None = None
-) -> str:
-    """
-    Load raw CV definition
-
-    Parameters
-    ----------
-    filename
-        Name of the file to load
-
-    root
-        Root from which ``filename`` should be loaded
+        to decide if the source points to a URL or not.
 
     force_download
         If we are downloading from a remote source,
-        should the download be forced.
+        should the raw CV loader be configured so that downloads are forced.
 
         If not supplied, this is retrieved from the environment variable
-        ``INPUT4MIPS_VALIDATION_INPUT4MIPS_CV_SOURCE_FORCE_DOWNLOAD``.
+        ``INPUT4MIPS_VALIDATION_CV_SOURCE_FORCE_DOWNLOAD``.
 
         If this environment variable is also not set,
         we use ``False``.
 
     Returns
     -------
-        Raw data contained in the file
+        Raw CV loader
+
+    Raises
+    ------
+    NotImplementedError
+        ``cv_source`` is not supplied and
+        ``INPUT4MIPS_VALIDATION_CV_SOURCE`` is also not set.
     """
+    if cv_source is None:
+        cv_source = os.environ.get("INPUT4MIPS_VALIDATION_CV_SOURCE", None)
+
+    if cv_source is None:
+        msg = "Default source has not been decided yet"
+        raise NotImplementedError(msg)
+
     if force_download is None:
         force_download = bool(
-            os.environ.get(
-                "INPUT4MIPS_VALIDATION_INPUT4MIPS_CV_SOURCE_FORCE_DOWNLOAD", None
-            )
+            os.environ.get("INPUT4MIPS_VALIDATION_CV_SOURCE_FORCE_DOWNLOAD", None)
         )
         if force_download is None:
             force_download = False
 
-    if not root.remote:
-        full_path = Path(root.location) / filename
+    if cv_source.startswith("gh:"):
+        # Expand out the given value
+        source = cv_source.split("gh:")[1]
+        cv_source = f"https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/{source}/"
 
-    elif root.location in KNOWN_REGISTRIES:
-        full_path = get_full_path_from_known_registry(
-            filename=filename,
-            registry=KNOWN_REGISTRIES[root.location],
-            force_download=force_download,
-        )
+    if not validators.url(cv_source):
+        res = RawCVLoaderLocal(Path(cv_source))
 
     else:
-        full_path = get_full_path_no_known_registry(
-            filename=filename, root_url=root.location, force_download=force_download
-        )
-
-    with open(full_path) as fh:
-        res = fh.read()
+        try:
+            res = RawCVLoaderKnownRemoteRegistry(KNOWN_REGISTRIES[cv_source])
+        except KeyError:
+            res = RawCVLoaderBaseURL(base_url=cv_source)
 
     return res

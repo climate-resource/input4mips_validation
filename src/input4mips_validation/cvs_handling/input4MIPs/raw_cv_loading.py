@@ -52,7 +52,6 @@ class RawCVLoader(Protocol):
         -------
             Raw CV data
         """
-        ...
 
 
 @define
@@ -258,10 +257,13 @@ def get_raw_cvs_loader(
         raise NotImplementedError(msg)
 
     if force_download is None:
-        force_download = bool(
-            os.environ.get("INPUT4MIPS_VALIDATION_CV_SOURCE_FORCE_DOWNLOAD", None)
-        )
-        if force_download is None:
+        try:
+            force_download = bool(
+                os.environ["INPUT4MIPS_VALIDATION_CV_SOURCE_FORCE_DOWNLOAD"]
+            )
+
+        except KeyError:
+            # Nothing provided as environment variable
             force_download = False
 
     if cv_source.startswith("gh:"):

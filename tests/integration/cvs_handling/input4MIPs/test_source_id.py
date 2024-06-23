@@ -21,8 +21,7 @@ from input4mips_validation.cvs_handling.input4MIPs import (
     SourceIDValues,
 )
 from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
-    get_cvs_root,
-    load_raw_cv_definition,
+    get_raw_cvs_loader,
 )
 from input4mips_validation.cvs_handling.input4MIPs.source_id import (
     convert_raw_cv_to_source_id_entries,
@@ -65,15 +64,15 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
 def test_load_source_ids_from_cv(input4mips_cv_source, checks):
     # May want to abstract this further later,
     # but I'm not sure what the pattern will be so not doing this just yet.
-    cvs_root = get_cvs_root(cv_source=input4mips_cv_source)
-    raw = load_raw_cv_definition(filename=SOURCE_ID_FILENAME, root=cvs_root)
+    raw_cvs_loader = get_raw_cvs_loader(cv_source=input4mips_cv_source)
+    raw = raw_cvs_loader.load_raw(filename=SOURCE_ID_FILENAME)
     res = convert_raw_cv_to_source_id_entries(raw=raw)
 
     assert isinstance(res, SourceIDEntries)
     assert all(isinstance(v, SourceIDEntry) for v in res.entries)
 
     for entry in res:
-        assert_source_id_entry_is_valid(entry, cv_source=input4mips_cv_source)
+        assert_source_id_entry_is_valid(entry, raw_cvs_loader=raw_cvs_loader)
 
     for source_id, source_id_checks in checks.items():
         matching = res[source_id]
@@ -109,18 +108,16 @@ def test_source_id_not_in_cv(cv_source, source_id):
         mip_era="placeholder",
         version="placeholder",
     )
-    with patch.dict(
-        os.environ, {"INPUT4MIPS_VALIDATION_INPUT4MIPS_CV_SOURCE": cv_source}
-    ):
-        cvs_root = get_cvs_root(cv_source=cv_source)
+    with patch.dict(os.environ, {"INPUT4MIPS_VALIDATION_CV_SOURCE": cv_source}):
+        raw_cvs_loader = get_raw_cvs_loader()
         source_ids = convert_raw_cv_to_source_id_entries(
-            load_raw_cv_definition(filename=SOURCE_ID_FILENAME, root=cvs_root)
+            raw_cvs_loader.load_raw(filename=SOURCE_ID_FILENAME)
         ).source_ids
 
         error_msg = re.escape(
             f"Received source_id={source_id!r}. "
             f"This is not in the available CV values: {source_ids!r}. "
-            f"CVs path: {cvs_root.location!r}"
+            f"Raw CVs loader: {raw_cvs_loader!r}"
         )
         with pytest.raises(NotInCVsError, match=error_msg):
             assert_source_id_entry_is_valid(
@@ -162,15 +159,13 @@ def test_value_conflict_with_source_id_implied_value(
         version="placeholder",
     )
     base_values[key_to_test] = value_to_apply
-    with patch.dict(
-        os.environ, {"INPUT4MIPS_VALIDATION_INPUT4MIPS_CV_SOURCE": cv_source}
-    ):
-        cvs_root = get_cvs_root(cv_source=cv_source)
-        error_msg = (
+    with patch.dict(os.environ, {"INPUT4MIPS_VALIDATION_CV_SOURCE": cv_source}):
+        raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
+        error_msg = re.escape(
             f"For source_id={source_id!r}, "
             f"we should have activity_id={value_according_to_cv!r}. "
             f"Received {key_to_test}={value_to_apply!r}. "
-            f"CVs path: {cvs_root.location!r}"
+            f"Raw CVs loader: {raw_cvs_loader!r}"
         )
         with pytest.raises(InconsistentWithCVsError, match=error_msg):
             assert_source_id_entry_is_valid(

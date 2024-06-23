@@ -156,8 +156,15 @@ def test_load_raw_local():
     mock_open_func.assert_called_once_with(root_dir / filename)
 
 
-@pytest.mark.parametrize("force_download", (True, False))
-def test_load_raw_known_remote_registry(force_download, tmp_path):
+@pytest.mark.parametrize(
+    "force_download, file_already_exists",
+    (
+        (True, True),
+        (True, False),
+        (False, None),
+    ),
+)
+def test_load_raw_known_remote_registry(force_download, file_already_exists, tmp_path):
     registry_path = tmp_path / "cache-dir"
     filename = "input4MIPs_cv_file.json"
 
@@ -165,7 +172,7 @@ def test_load_raw_known_remote_registry(force_download, tmp_path):
 
     exp = "Some data\nprobably json\nis expected"
 
-    if force_download:
+    if force_download and file_already_exists:
         # Actually create a file, so we can check it is deleted later
         Path(mock_fetch_return_value).parent.mkdir(parents=True, exist_ok=True)
         with open(mock_fetch_return_value, "w") as fh:
@@ -186,7 +193,7 @@ def test_load_raw_known_remote_registry(force_download, tmp_path):
     mock_open_func.assert_called_once_with(Path(mock_fetch_return_value))
 
     if force_download:
-        # Check that the file was removed.
+        # Check that the file was removed or never existed.
         # No file should have been downloaded in its place because our registry
         # is just a mock registry.
         assert not Path(mock_fetch_return_value).exists()
@@ -199,9 +206,18 @@ def test_load_raw_base_url_no_slash_ending():
         RawCVLoaderBaseURL(base_url=bad_url)
 
 
-@pytest.mark.parametrize("force_download", (True, False))
+@pytest.mark.parametrize(
+    "force_download, file_already_exists",
+    (
+        (True, True),
+        (True, False),
+        (False, None),
+    ),
+)
 @patch("input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading.pooch.retrieve")
-def test_load_raw_base_url(mock_pooch_retrieve, force_download, tmp_path):
+def test_load_raw_base_url(
+    mock_pooch_retrieve, force_download, file_already_exists, tmp_path
+):
     base_url = "http://path-to-somewhere.com/folder/here/something/"
     download_path = tmp_path / "cache-dir"
     filename = "input4MIPs_cv_file.json"
@@ -213,7 +229,7 @@ def test_load_raw_base_url(mock_pooch_retrieve, force_download, tmp_path):
 
     exp = "Some data\nprobably json\nis expected"
 
-    if force_download:
+    if force_download and file_already_exists:
         # Actually create a file, so we can check it is deleted later
         Path(mock_pooch_retrieve.return_value).parent.mkdir(parents=True, exist_ok=True)
         with open(mock_pooch_retrieve.return_value, "w") as fh:
@@ -239,7 +255,7 @@ def test_load_raw_base_url(mock_pooch_retrieve, force_download, tmp_path):
     mock_open_func.assert_called_once_with(Path(mock_pooch_retrieve.return_value))
 
     if force_download:
-        # Check that the file was removed.
+        # Check that the file was removed or never existed.
         # No file should have been downloaded in its place because our registry
         # is just a mock registry.
         assert not Path(mock_pooch_retrieve.return_value).exists()

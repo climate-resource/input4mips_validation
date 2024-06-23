@@ -20,11 +20,16 @@ from input4mips_validation.cvs_handling.input4MIPs.cv_loading import (
     load_source_id_entries,
     load_valid_cv_values,
 )
-from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import get_cvs_root
+from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
+    RawCVLoader,
+    get_raw_cvs_loader,
+)
 from input4mips_validation.cvs_handling.input4MIPs.source_id import SourceIDEntry
 
 
-def assert_in_cvs(value: Any, cvs_key: str, cv_source: None | str = None) -> None:
+def assert_in_cvs(
+    value: Any, cvs_key: str, raw_cvs_loader: None | RawCVLoader = None
+) -> None:
     """
     Assert that a given value is in the CVs
 
@@ -36,31 +41,33 @@ def assert_in_cvs(value: Any, cvs_key: str, cv_source: None | str = None) -> Non
     cvs_key
         CV's key, e.g. "source_id", "activity_id"
 
-    cv_source
-        String identifying the source of the CVs.
+    raw_cvs_loader
+        Loader of raw CVs data.
 
-        For futher options, see the docstring of
-        {py:func}`input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading.get_cvs_root`.
+        If not supplied, this will be retrieved with
+        {py:func}`input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading.get_raw_cvs_loader`.
 
     Raises
     ------
     NotInCVsError
         ``value`` is not in the CVs for ``cvs_key``
     """
-    cvs_root = get_cvs_root(cv_source=cv_source)
-    cv_values = load_valid_cv_values(cvs_key, cvs_root=cvs_root)
+    if raw_cvs_loader is None:
+        raw_cvs_loader = get_raw_cvs_loader()
+
+    cv_values = load_valid_cv_values(cvs_key, raw_cvs_loader=raw_cvs_loader)
 
     if value not in cv_values:
         raise NotInCVsError(
             cvs_key=cvs_key,
             cvs_key_value=value,
             cv_values_for_key=cv_values,
-            cv_path=cvs_root.location,
+            raw_cvs_loader=raw_cvs_loader,
         )
 
 
 def assert_source_id_entry_is_valid(
-    entry: SourceIDEntry, cv_source: None | str = None
+    entry: SourceIDEntry, raw_cvs_loader: None | RawCVLoader = None
 ) -> None:
     """
     Assert that a {py:obj}`SourceIDEntry` is valid
@@ -70,16 +77,45 @@ def assert_source_id_entry_is_valid(
     entry
         {py:obj}`SourceIDEntry` to validate
 
-    cv_source
-        String identifying the source of the CVs.
+    raw_cvs_loader
+        Loader of raw CVs data.
 
-        For futher options, see the docstring of
-        {py:func}`input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading.get_cvs_root`.
+        If not supplied, this will be retrieved with
+        {py:func}`input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading.get_raw_cvs_loader`.
     """
-    assert_in_cvs(value=entry.source_id, cvs_key="source_id", cv_source=cv_source)
+    if raw_cvs_loader is None:
+        raw_cvs_loader = get_raw_cvs_loader()
 
-    cvs_root = get_cvs_root(cv_source=cv_source)
-    source_id_entry_from_cvs = load_source_id_entries(cvs_root=cvs_root)[
+    assert_in_cvs(
+        value=entry.source_id, cvs_key="source_id", raw_cvs_loader=raw_cvs_loader
+    )
+    #
+    # key = "activity_id"
+    # assert_in_cvs(
+    #     value=getattr(entry.values, key), cvs_key=key, raw_cvs_loader=raw_cvs_loader
+    # )
+    #
+    # assert_is_email_like(entry.values.contact)
+    #
+    # assert_is_url_like(entry.values.further_info_url)
+    #
+    # # institution can be any string, no validation right now
+    #
+    # key = "institution_id"
+    # assert_in_cvs(
+    #     value=getattr(entry.values, key), cvs_key=key, raw_cvs_loader=raw_cvs_loader
+    # )
+    #
+    # assert_license_entry_is_valid(entry.values.license, other_values=entry.values)
+    #
+    # key = "mip_era"
+    # assert_in_cvs(
+    #     value=getattr(entry.values, key), cvs_key=key, raw_cvs_loader=raw_cvs_loader
+    # )
+    #
+    # # version can be any string, no validation right now
+
+    source_id_entry_from_cvs = load_source_id_entries(raw_cvs_loader=raw_cvs_loader)[
         entry.source_id
     ]
 
@@ -93,5 +129,5 @@ def assert_source_id_entry_is_valid(
                 cvs_key_dependent_value_cvs=value_cvs,
                 cvs_key_determinant="source_id",
                 cvs_key_determinant_value=entry.source_id,
-                cv_path=cvs_root.location,
+                raw_cvs_loader=raw_cvs_loader,
             )

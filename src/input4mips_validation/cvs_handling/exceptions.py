@@ -3,8 +3,11 @@ Custom exceptions
 """
 import collections
 from collections.abc import Collection
-from pathlib import Path
 from typing import Any
+
+from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
+    RawCVLoader,
+)
 
 
 class NonUniqueError(ValueError):
@@ -46,7 +49,7 @@ class NotInCVsError(ValueError):
         cvs_key: str,
         cvs_key_value: Any,
         cv_values_for_key: Collection[Any],
-        cv_path: str | Path,
+        raw_cvs_loader: RawCVLoader,
     ) -> None:
         """
         Initialise the error
@@ -59,18 +62,18 @@ class NotInCVsError(ValueError):
            E.g. "source_id", "activity_id", "mip_era"
 
         cvs_key_value
-            Value that was used for ``key``
+            Value that was used for ``cvs_key``
 
         cv_values_for_key
-            The values that ``key`` can take according to the CVs
+            The values that ``cvs_key`` can take according to the CVs
 
-        cv_path
-            The path from which the CVs were loaded
+        raw_cvs_loader
+            Loader of raw CVs data
         """
         error_msg = (
             f"Received {cvs_key}={cvs_key_value!r}. "
             f"This is not in the available CV values: {cv_values_for_key!r}. "
-            f"CVs path: {cv_path!r}"
+            f"Raw CVs loader: {raw_cvs_loader!r}"
         )
 
         super().__init__(error_msg)
@@ -88,32 +91,37 @@ class InconsistentWithCVsError(ValueError):
         cvs_key_dependent_value_cvs: Any,
         cvs_key_determinant: str,
         cvs_key_determinant_value: Any,
-        cv_path: str | Path,
+        raw_cvs_loader: RawCVLoader,
     ) -> None:
         """
         Initialise the error
 
         Parameters
         ----------
-        cvs_key
-            Key from the CVs we're looking at
+        cvs_key_dependent
+            The key in the CVs we're validating.
 
-           E.g. "source_id", "activity_id", "mip_era"
+        cvs_key_dependent_value_user
+            Value that was provided by the user for ``cvs_key_dependent_value_user``
 
-        cvs_key_value
-            Value that was used for ``key``
+        cvs_key_dependent_value_cvs
+            The value that ``cvs_key_dependent`` should have according to the CVs.
 
-        cv_values_for_key
-            The values that ``key`` can take according to the CVs
+        cvs_key_determinant
+            The key in the CVs which allows us
+            to uniquely determine the expected value of ``cvs_key_dependent``
 
-        cv_path
-            The path from which the CVs were loaded
+        cvs_key_determinant_value
+            The value of ``cvs_key_determinant`` that we're considering
+
+        raw_cvs_loader
+            Loader of raw CVs data
         """
         error_msg = (
             f"For {cvs_key_determinant}={cvs_key_determinant_value!r}, "
             f"we should have {cvs_key_dependent}={cvs_key_dependent_value_cvs!r}. "
             f"Received {cvs_key_dependent}={cvs_key_dependent_value_user!r}. "
-            f"CVs path: {cv_path!r}"
+            f"Raw CVs loader: {raw_cvs_loader!r}"
         )
 
         super().__init__(error_msg)

@@ -45,7 +45,6 @@ class SourceIDValues:
 
     institution: str
     """Institution which provides this source"""
-    # No validation, can be any string
 
     institution_id: str
     """ID of the institution which provides this source"""
@@ -110,7 +109,8 @@ class SourceIDEntries:
 
         matching = [v for v in self.entries if v.source_id == key]
         if not matching:
-            raise KeyError(key)
+            msg = f"{key!r}. {self.source_ids=!r}"
+            raise KeyError(msg)
 
         if len(matching) > 1:  # pragma: no cover
             msg = "source IDs should be validated as being unique at initialisation"

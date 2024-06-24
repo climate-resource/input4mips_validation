@@ -7,6 +7,7 @@ see {py:mod}`input4mips_validation.cvs_handling.input4MIPs.validation`.
 """
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any, TypeAlias
 
 import attr
@@ -72,16 +73,12 @@ class ActivityIDEntries:
                 values=activity_ids,
             )
 
-    def __getitem__(self, key: str | int) -> ActivityIDEntry:
+    def __getitem__(self, key: str) -> ActivityIDEntry:
         """
-        Get {py:obj}`ActivityIDEntry` by its name or position in ``self.entries``
+        Get {py:obj}`ActivityIDEntry` by its name
 
-        We return the {py:obj}`ActivityIDEntry` whose activity_id
-        matches ``key``.
+        We return the {py:obj}`ActivityIDEntry` whose activity_id matches ``key``.
         """
-        if isinstance(key, int):
-            return self.entries[key]
-
         matching = [v for v in self.entries if v.activity_id == key]
         if not matching:
             msg = f"{key!r}. {self.activity_ids=!r}"
@@ -92,6 +89,12 @@ class ActivityIDEntries:
             raise AssertionError(msg)
 
         return matching[0]
+
+    def __iter__(self) -> Iterable[ActivityIDEntry]:
+        """
+        Iterate over ``self.entries``
+        """
+        yield from self.entries
 
     def __len__(self) -> int:
         """

@@ -8,6 +8,7 @@ between values in one hit.
 """
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any, TypeAlias
 
 import attr
@@ -89,16 +90,12 @@ class SourceIDEntries:
                 values=source_ids,
             )
 
-    def __getitem__(self, key: str | int) -> SourceIDEntry:
+    def __getitem__(self, key: str) -> SourceIDEntry:
         """
-        Get {py:obj}`SourceIDEntry` by its name or position in ``self.entries``
+        Get {py:obj}`SourceIDEntry` by its name
 
-        We return the {py:obj}`SourceIDEntry` whose source_id
-        matches ``key``.
+        We return the {py:obj}`SourceIDEntry` whose source_id matches ``key``.
         """
-        if isinstance(key, int):
-            return self.entries[key]
-
         matching = [v for v in self.entries if v.source_id == key]
         if not matching:
             msg = f"{key!r}. {self.source_ids=!r}"
@@ -109,6 +106,12 @@ class SourceIDEntries:
             raise AssertionError(msg)
 
         return matching[0]
+
+    def __iter__(self) -> Iterable[SourceIDEntry]:
+        """
+        Iterate over ``self.entries``
+        """
+        yield from self.entries
 
     def __len__(self) -> int:
         """

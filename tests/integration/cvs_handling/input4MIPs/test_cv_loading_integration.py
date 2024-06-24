@@ -25,6 +25,9 @@ from input4mips_validation.cvs_handling.input4MIPs.cv_loading import (
     load_cvs,
 )
 from input4mips_validation.cvs_handling.input4MIPs.cvs import CVsInput4MIPs
+from input4mips_validation.cvs_handling.input4MIPs.cvs_validation import (
+    assert_cvs_are_valid,
+)
 from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
     get_raw_cvs_loader,
 )
@@ -32,9 +35,6 @@ from input4mips_validation.cvs_handling.input4MIPs.source_id import (
     SourceIDEntries,
     SourceIDEntry,
     SourceIDValues,
-)
-from input4mips_validation.cvs_handling.input4MIPs.validation import (
-    assert_cvs_are_valid,
 )
 
 DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(

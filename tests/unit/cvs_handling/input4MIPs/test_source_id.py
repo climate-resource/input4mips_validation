@@ -72,10 +72,6 @@ def test_source_id_entries_convenience_methods():
     # Check that we can iterate
     assert [v for v in source_id_entries] == source_id_entries.entries
 
-    # Check access via indexes
-    assert source_id_entries[0].source_id == "source_id_0"
-    assert source_id_entries[2].source_id == "source_id_2"
-
     # Check access via source_id
     assert source_id_entries["source_id_1"].source_id == "source_id_1"
     assert source_id_entries["source_id_2"].source_id == "source_id_2"

@@ -1,5 +1,5 @@
 """
-Integration tests of handling of the source ID CV
+Integration tests of dataset validation
 """
 from __future__ import annotations
 
@@ -19,11 +19,11 @@ from input4mips_validation.cvs_handling.input4MIPs import (
     SourceIDEntry,
 )
 from input4mips_validation.cvs_handling.input4MIPs.cv_loading import load_cvs
+from input4mips_validation.cvs_handling.input4MIPs.dataset_validation import (
+    assert_source_id_entry_is_valid,
+)
 from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
     get_raw_cvs_loader,
-)
-from input4mips_validation.cvs_handling.input4MIPs.validation import (
-    assert_source_id_entry_is_valid,
 )
 
 DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
@@ -63,7 +63,7 @@ def test_source_id_not_in_cv_error(cv_source, source_id):
     with patch.dict(os.environ, {"INPUT4MIPS_VALIDATION_CV_SOURCE": cv_source}):
         cvs_exp = load_cvs(get_raw_cvs_loader())
 
-        valid_source_id_entry = cvs_exp.source_id_entries[0]
+        valid_source_id_entry = cvs_exp.source_id_entries.entries[0]
         if bad_source_id == valid_source_id_entry.source_id:
             msg = (
                 "The test won't work if the CV's value "
@@ -148,7 +148,7 @@ def test_value_conflict_with_source_id_inferred_value(
     with patch.dict(os.environ, {"INPUT4MIPS_VALIDATION_CV_SOURCE": cv_source}):
         cvs_exp = load_cvs(get_raw_cvs_loader())
 
-        valid_source_id_entry = cvs_exp.source_id_entries[0]
+        valid_source_id_entry = cvs_exp.source_id_entries.entries[0]
 
         value_according_to_cv = getattr(valid_source_id_entry.values, key_to_test)
         if value_according_to_cv == value_to_apply:

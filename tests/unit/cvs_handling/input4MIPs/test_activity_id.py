@@ -60,10 +60,6 @@ def test_activity_id_entries_convenience_methods():
     # Check that we can iterate
     assert [v for v in activity_id_entries] == activity_id_entries.entries
 
-    # Check access via indexes
-    assert activity_id_entries[0].activity_id == "activity_id_0"
-    assert activity_id_entries[2].activity_id == "activity_id_2"
-
     # Check access via activity_id
     assert activity_id_entries["activity_id_1"].activity_id == "activity_id_1"
     assert activity_id_entries["activity_id_2"].activity_id == "activity_id_2"

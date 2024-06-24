@@ -9,10 +9,17 @@ from __future__ import annotations
 from pathlib import Path
 
 from input4mips_validation.cvs_handling.input4MIPs import (
+    ACTIVITY_ID_FILENAME,
     SOURCE_ID_FILENAME,
+    ActivityIDEntries,
+    ActivityIDEntry,
+    ActivityIDValues,
     SourceIDEntries,
     SourceIDEntry,
     SourceIDValues,
+)
+from input4mips_validation.cvs_handling.input4MIPs.activity_id import (
+    convert_activity_id_entries_to_unstructured_cv,
 )
 from input4mips_validation.cvs_handling.input4MIPs.source_id import (
     convert_source_id_entries_to_unstructured_cv,
@@ -29,6 +36,18 @@ test_input4mips_cvs_dir = (
     / "default"
 )
 
+activity_id_entries = ActivityIDEntries(
+    (
+        ActivityIDEntry(
+            activity_id="input4MIPs",
+            values=ActivityIDValues(
+                long_name="input forcing datasets for Model Intercomparison Projects",
+                url="https://pcmdi.llnl.gov/mips/input4MIPs/",
+            ),
+        ),
+    )
+)
+
 source_id_entries = SourceIDEntries(
     (
         SourceIDEntry(
@@ -36,7 +55,7 @@ source_id_entries = SourceIDEntries(
             values=SourceIDValues(
                 activity_id="input4MIPs",
                 contact="zebedee.nicholls@climate-resource.com;malte.meinshausen@climate-resource.com",
-                further_info_url="http://www.tbd.com",
+                further_info_url="http://www.tbd.invalid",
                 institution="Climate Resource",
                 institution_id="CR",
                 license=(
@@ -65,6 +84,14 @@ source_id_entries = SourceIDEntries(
 )
 
 test_input4mips_cvs_dir.mkdir(parents=True, exist_ok=True)
+
+with open(test_input4mips_cvs_dir / ACTIVITY_ID_FILENAME, "w") as fh:
+    fh.write(
+        json_dumps_cv_style(
+            convert_activity_id_entries_to_unstructured_cv(activity_id_entries)
+        )
+    )
+
 with open(test_input4mips_cvs_dir / SOURCE_ID_FILENAME, "w") as fh:
     fh.write(
         json_dumps_cv_style(

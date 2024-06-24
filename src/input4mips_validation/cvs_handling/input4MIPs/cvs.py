@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from attrs import define
 
+from input4mips_validation.cvs_handling.input4MIPs.activity_id import ActivityIDEntries
 from input4mips_validation.cvs_handling.input4MIPs.source_id import SourceIDEntries
 
 
@@ -12,8 +13,8 @@ class CVsInput4MIPs:
     Data model of input4MIPs' CVs
     """
 
-    # activity_id_entries: ActivityIDEntries
-    # """Activity ID entries"""
+    activity_id_entries: ActivityIDEntries
+    """Activity ID entries"""
 
     # data_reference_syntax: DataReferenceSyntax
     # """Data reference syntax (drs) specification"""

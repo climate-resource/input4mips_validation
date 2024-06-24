@@ -1,11 +1,10 @@
 """
 Source ID CV handling
 
-Where possible, we include data validation in here.
-However, some of this is not possible as we have to load the CVs
-before performing the validation.
-As a result, for complete validation,
-see {py:mod}`input4mips_validation.cvs_handling.input4MIPs.validation`.
+To keep things in one place, all validation is handled in
+{py:mod}`input4mips_validation.cvs_handling.input4MIPs.validation`.
+This allows us to validate individual values as well as relationships
+between values in one hit.
 """
 from __future__ import annotations
 

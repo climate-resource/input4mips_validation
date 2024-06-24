@@ -12,6 +12,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from attrs import evolve
 
 from input4mips_validation.cvs_handling.input4MIPs.activity_id import (
     ActivityIDEntries,
@@ -46,13 +47,25 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
 
 
 @pytest.mark.parametrize(
-    "input4mips_cv_source, exp",
+    "input4mips_cv_source, exp_except_source",
     [
         pytest.param(
             DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
             CVsInput4MIPs(
+                raw_loader="auto_filled_in_test",  # type: ignore
                 activity_id_entries=ActivityIDEntries(
                     (
+                        ActivityIDEntry(
+                            activity_id="CMIP",
+                            values=ActivityIDValues(
+                                long_name=(
+                                    "CMIP DECK: 1pctCO2, abrupt4xCO2, amip, "
+                                    "esm-piControl, esm-historical, historical, "
+                                    "and piControl experiments"
+                                ),
+                                url="https://gmd.copernicus.org/articles/9/1937/2016/gmd-9-1937-2016.pdf",
+                            ),
+                        ),
                         ActivityIDEntry(
                             activity_id="input4MIPs",
                             values=ActivityIDValues(
@@ -101,10 +114,11 @@ are excluded to the fullest extent permitted by law.""".replace("\n", " "),
         ),
     ],
 )
-def test_load_cvs(input4mips_cv_source, exp):
+def test_load_cvs(input4mips_cv_source, exp_except_source):
     raw_cvs_loader = get_raw_cvs_loader(cv_source=input4mips_cv_source)
     res = load_cvs(raw_cvs_loader=raw_cvs_loader)
 
+    exp = evolve(exp_except_source, raw_loader=raw_cvs_loader)
     assert res == exp
 
     # Also test setting through environment variables

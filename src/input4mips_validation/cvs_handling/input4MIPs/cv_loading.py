@@ -94,38 +94,7 @@ def load_cvs(
     source_id_entries = load_source_id_entries(raw_cvs_loader=raw_cvs_loader)
 
     return CVsInput4MIPs(
+        raw_loader=raw_cvs_loader,
         activity_id_entries=activity_id_entries,
         source_id_entries=source_id_entries,
     )
-
-
-# TODO: delete
-def load_valid_cv_values(
-    cvs_key: str,
-    raw_cvs_loader: None | RawCVLoader = None,
-) -> tuple[str, ...]:
-    """
-    Load valid values according to the CVs
-
-    Parameters
-    ----------
-    cvs_key
-        CVs key for which to load the valid values
-
-    raw_cvs_loader
-        Loader of raw CVs data.
-
-        If not supplied, this will be retrieved with
-        {py:func}`input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading.get_raw_cvs_loader`.
-
-    Returns
-    -------
-        Valid values for ``cvs_key`` according to the  CVs defined in ``cvs_root``
-    """
-    match cvs_key:
-        case "activity_id":
-            return load_activity_id_entries(raw_cvs_loader=raw_cvs_loader).activity_ids
-        case "source_id":
-            return load_source_id_entries(raw_cvs_loader=raw_cvs_loader).source_ids
-        case _:
-            raise NotImplementedError(cvs_key)

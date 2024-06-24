@@ -4,6 +4,7 @@ from __future__ import annotations
 from attrs import define
 
 from input4mips_validation.cvs_handling.input4MIPs.activity_id import ActivityIDEntries
+from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import RawCVLoader
 from input4mips_validation.cvs_handling.input4MIPs.source_id import SourceIDEntries
 
 
@@ -12,6 +13,9 @@ class CVsInput4MIPs:
     """
     Data model of input4MIPs' CVs
     """
+
+    raw_loader: RawCVLoader
+    """Object used to load the raw CVs"""
 
     activity_id_entries: ActivityIDEntries
     """Activity ID entries"""

@@ -1,13 +1,13 @@
 """
 Custom exceptions
 """
+from __future__ import annotations
+
 import collections
 from collections.abc import Collection
-from typing import Any
+from typing import Any, Protocol
 
-from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
-    RawCVLoader,
-)
+from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import RawCVLoader
 
 
 class NonUniqueError(ValueError):
@@ -39,6 +39,17 @@ class NonUniqueError(ValueError):
         super().__init__(error_msg)
 
 
+class CVsLike(Protocol):
+    """Assumed shape of CVs when raising errors"""
+
+    @property
+    def raw_loader(self) -> RawCVLoader:
+        """
+        Object used to load the raw CVs
+        """
+        ...  # pragma: no cover
+
+
 class NotInCVsError(ValueError):
     """
     Raised when a value is not in the CVs
@@ -49,7 +60,7 @@ class NotInCVsError(ValueError):
         cvs_key: str,
         cvs_key_value: Any,
         cv_values_for_key: Collection[Any],
-        raw_cvs_loader: RawCVLoader,
+        cvs: CVsLike,
     ) -> None:
         """
         Initialise the error
@@ -67,13 +78,13 @@ class NotInCVsError(ValueError):
         cv_values_for_key
             The values that ``cvs_key`` can take according to the CVs
 
-        raw_cvs_loader
-            Loader of raw CVs data
+        cvs
+            CVs from which the valid values were retrieved
         """
         error_msg = (
             f"Received {cvs_key}={cvs_key_value!r}. "
             f"This is not in the available CV values: {cv_values_for_key!r}. "
-            f"Raw CVs loader: {raw_cvs_loader!r}"
+            f"CVs raw data loaded with: {cvs.raw_loader!r}. "
         )
 
         super().__init__(error_msg)
@@ -91,7 +102,7 @@ class InconsistentWithCVsError(ValueError):
         cvs_key_dependent_value_cvs: Any,
         cvs_key_determinant: str,
         cvs_key_determinant_value: Any,
-        raw_cvs_loader: RawCVLoader,
+        cvs: CVsLike,
     ) -> None:
         """
         Initialise the error
@@ -114,14 +125,14 @@ class InconsistentWithCVsError(ValueError):
         cvs_key_determinant_value
             The value of ``cvs_key_determinant`` that we're considering
 
-        raw_cvs_loader
-            Loader of raw CVs data
+        cvs
+            CVs from which the valid values were retrieved
         """
         error_msg = (
             f"For {cvs_key_determinant}={cvs_key_determinant_value!r}, "
             f"we should have {cvs_key_dependent}={cvs_key_dependent_value_cvs!r}. "
             f"Received {cvs_key_dependent}={cvs_key_dependent_value_user!r}. "
-            f"Raw CVs loader: {raw_cvs_loader!r}"
+            f"CVs raw data loaded with: {cvs.raw_loader!r}. "
         )
 
         super().__init__(error_msg)

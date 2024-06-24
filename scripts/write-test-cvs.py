@@ -45,6 +45,16 @@ activity_id_entries = ActivityIDEntries(
                 url="https://pcmdi.llnl.gov/mips/input4MIPs/",
             ),
         ),
+        ActivityIDEntry(
+            activity_id="CMIP",
+            values=ActivityIDValues(
+                long_name=(
+                    "CMIP DECK: 1pctCO2, abrupt4xCO2, amip, esm-piControl, "
+                    "esm-historical, historical, and piControl experiments"
+                ),
+                url="https://gmd.copernicus.org/articles/9/1937/2016/gmd-9-1937-2016.pdf",
+            ),
+        ),
     )
 )
 

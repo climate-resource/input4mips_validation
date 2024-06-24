@@ -11,12 +11,15 @@ from __future__ import annotations
 from collections.abc import Collection
 from typing import Any
 
+import validators
 from attrs import asdict
 
 from input4mips_validation.cvs_handling.exceptions import (
     InconsistentWithCVsError,
     NotInCVsError,
+    NotURLError,
 )
+from input4mips_validation.cvs_handling.input4MIPs.activity_id import ActivityIDEntry
 from input4mips_validation.cvs_handling.input4MIPs.cv_loading import (
     load_cvs,
 )
@@ -55,6 +58,33 @@ def assert_in_cvs(
             cvs_key_value=value,
             cv_values_for_key=cv_values,
             cvs=cvs,
+        )
+
+
+def assert_activity_id_entry_is_valid(entry: ActivityIDEntry) -> None:
+    """
+    Assert that a {py:obj}`ActivityIDEntry` is valid
+
+    Parameters
+    ----------
+    entry
+        {py:obj}`ActivityIDEntry` to validate
+
+    Raises
+    ------
+    NotURLError
+        ``entry.url`` is not a URL
+    """
+    # TODO:
+    # - work out whether this should also be consistent
+    #   with some global source from the multiverse
+    # - work out whether there are any restrictions on long_name
+    if not validators.url(entry.values.url):
+        raise NotURLError(
+            bad_value=entry.values.url,
+            cv_location_description=(
+                f"url for activity_id entry {entry.activity_id!r}"
+            ),
         )
 
 
@@ -142,12 +172,8 @@ def assert_cvs_are_valid(cvs: CVsInput4MIPs) -> None:
     cvs
         {py:obj}`CVsInput4MIPs` to check
     """
-    # Activity ID
-    # Validate against some global source?
-    # for activity_id in cvs.activity_id_entries:
-    #     validate_activity_id_entry(activity_id)
-    # URL in each entry should be a URL
-    # long name can be any string
+    for activity_id in cvs.activity_id_entries:
+        assert_activity_id_entry_is_valid(activity_id)
 
     # Dataset categories
     # Validate against some global source?

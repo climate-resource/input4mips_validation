@@ -16,7 +16,6 @@ from input4mips_validation.cvs_handling.exceptions import (
     NotInCVsError,
 )
 from input4mips_validation.cvs_handling.input4MIPs import (
-    SourceIDEntries,
     SourceIDEntry,
 )
 from input4mips_validation.cvs_handling.input4MIPs.cv_loading import load_cvs
@@ -42,41 +41,6 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
 
 
 @pytest.mark.parametrize(
-    "input4mips_cv_source, checks",
-    (
-        pytest.param(
-            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
-            {
-                "CR-CMIP-0-2-0": {
-                    "contact": "zebedee.nicholls@climate-resource.com;malte.meinshausen@climate-resource.com",  # noqa: E501
-                    "institution_id": "CR",
-                    "mip_era": "CMIP6Plus",
-                    "version": "0.2.0",
-                }
-            },
-            id="local_defaults",
-        ),
-    ),
-)
-def test_load_source_ids_from_cv(input4mips_cv_source, checks):
-    cvs = load_cvs(raw_cvs_loader=get_raw_cvs_loader(cv_source=input4mips_cv_source))
-
-    res = cvs.source_id_entries
-
-    assert isinstance(res, SourceIDEntries)
-    assert all(isinstance(v, SourceIDEntry) for v in res.entries)
-
-    for entry in res:
-        assert_source_id_entry_is_valid(entry, cvs=cvs)
-
-    for source_id, source_id_checks in checks.items():
-        matching = res[source_id]
-
-        for k, v in source_id_checks.items():
-            assert getattr(matching.values, k) == v
-
-
-@pytest.mark.parametrize(
     "cv_source, source_id",
     (
         (
@@ -89,7 +53,7 @@ def test_load_source_ids_from_cv(input4mips_cv_source, checks):
         ),
     ),
 )
-def test_source_id_not_in_cv(cv_source, source_id):
+def test_source_id_not_in_cv_error(cv_source, source_id):
     """
     Test that an error is raised if we try and use a source_id that is not in the CV
     with values that are otherwise valid

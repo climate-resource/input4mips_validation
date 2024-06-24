@@ -5,9 +5,10 @@ from __future__ import annotations
 
 import collections
 from collections.abc import Collection
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
-from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import RawCVLoader
+if TYPE_CHECKING:
+    from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import RawCVLoader
 
 
 class NonUniqueError(ValueError):
@@ -35,6 +36,39 @@ class NonUniqueError(ValueError):
         """
         occurence_counts = collections.Counter(values).most_common()
         error_msg = f"{description}. {occurence_counts=}"
+
+        super().__init__(error_msg)
+
+
+class NotURLError(ValueError):
+    """
+    Raised when a value should be a URL, but isn't
+    """
+
+    def __init__(
+        self,
+        cv_location_description: str,
+        bad_value: Any,
+    ) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        cv_location_description
+            Description of the location in the CVs at which the bad value occured.
+
+           E.g. "url property of activity ID entry 'CMIP'",
+           "further_info_url for source_id 'CR-CMIP-0-2-0'"
+
+        cvs_key_value
+            Value that was used for ``cvs_key``
+        """
+        error_msg = (
+            f"{cv_location_description} has a value of {bad_value!r}. "
+            "This should be a URL "
+            "(use `www.tbd.invalid` as a placeholder if you need)."
+        )
 
         super().__init__(error_msg)
 

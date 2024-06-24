@@ -71,12 +71,12 @@ def assert_activity_id_entry_is_valid(entry: ActivityIDEntry) -> None:
     NotURLError
         ``entry.url`` is not a URL
     """
-    # TODO:
+    # TODO: work out
     #
-    # - work out whether this should also be consistent with
+    # - whether this should also be consistent with
     #   some global source from the multiverse
     #
-    # - work out whether there are any restrictions on long_name
+    # - whether there are any restrictions on long_name
 
     if not validators.url(entry.values.url):
         raise NotURLError(

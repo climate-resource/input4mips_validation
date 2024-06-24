@@ -41,6 +41,48 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
             "activity_id",
             "CMIP",
         ),
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "CR-CMIP-0-2-0",
+        #     "contact",
+        #     "zeb@cr.com",
+        # ),
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "CR-CMIP-0-2-0",
+        #     "further_info_url",
+        #     "http://www.tbd.com/elsewhere",
+        # ),
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "CR-CMIP-0-2-0",
+        #     "institution",
+        #     "CR name here",
+        # ),
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "CR-CMIP-0-2-0",
+        #     "institution_id",
+        #     "Cr",
+        # ),
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "CR-CMIP-0-2-0",
+        #     "license",
+        #     "license text",
+        # ),
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "CR-CMIP-0-2-0",
+        #     "mip_era",
+        #     "CMIP7",
+        # ),
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "CR-CMIP-0-2-0",
+        #     "version",
+        #     "0.2.1",
+        # ),
     ),
 )
 def test_value_conflict_with_source_id_inferred_value(

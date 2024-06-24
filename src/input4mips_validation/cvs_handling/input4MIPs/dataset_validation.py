@@ -6,8 +6,6 @@ from __future__ import annotations
 from collections.abc import Collection
 from typing import Any
 
-from attrs import asdict
-
 from input4mips_validation.cvs_handling.exceptions import (
     InconsistentWithCVsError,
     NotInCVsError,
@@ -16,7 +14,6 @@ from input4mips_validation.cvs_handling.input4MIPs.cv_loading import (
     load_cvs,
 )
 from input4mips_validation.cvs_handling.input4MIPs.cvs import CVsInput4MIPs
-from input4mips_validation.cvs_handling.input4MIPs.source_id import SourceIDEntry
 
 
 def assert_in_cvs(
@@ -92,49 +89,5 @@ def assert_consistency_between_source_id_and_other_values(
                 cvs_key_dependent_value_cvs=value_cvs,
                 cvs_key_determinant="source_id",
                 cvs_key_determinant_value=source_id,
-                cvs=cvs,
-            )
-
-
-# TODO: delete
-def assert_source_id_entry_is_valid(
-    entry: SourceIDEntry, cvs: None | CVsInput4MIPs = None
-) -> None:
-    """
-    Assert that a {py:obj}`SourceIDEntry` is valid
-
-    Parameters
-    ----------
-    entry
-        {py:obj}`SourceIDEntry` to validate
-
-    cvs
-        CVs to use for validation
-
-        If not supplied, this will be retrieved with
-        {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
-    """
-    if cvs is None:
-        cvs = load_cvs()
-
-    assert_in_cvs(
-        value=entry.source_id,
-        cvs_key="source_id",
-        cv_values=cvs.source_id_entries.source_ids,
-        cvs=cvs,
-    )
-
-    source_id_entry_from_cvs = cvs.source_id_entries[entry.source_id]
-
-    for key in asdict(source_id_entry_from_cvs.values):
-        value_user = getattr(entry.values, key)
-        value_cvs = getattr(source_id_entry_from_cvs.values, key)
-        if value_user != value_cvs:
-            raise InconsistentWithCVsError(
-                cvs_key_dependent=key,
-                cvs_key_dependent_value_user=value_user,
-                cvs_key_dependent_value_cvs=value_cvs,
-                cvs_key_determinant="source_id",
-                cvs_key_determinant_value=entry.source_id,
                 cvs=cvs,
             )

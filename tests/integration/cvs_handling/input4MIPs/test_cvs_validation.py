@@ -9,7 +9,10 @@ from pathlib import Path
 import pytest
 from attrs import evolve
 
-from input4mips_validation.cvs_handling.exceptions import NotURLError
+from input4mips_validation.cvs_handling.exceptions import (
+    InternallyInconsistentCVsError,
+    NotURLError,
+)
 from input4mips_validation.cvs_handling.input4MIPs.activity_id import (
     ActivityIDEntries,
     ActivityIDEntry,
@@ -23,6 +26,10 @@ from input4mips_validation.cvs_handling.input4MIPs.cvs_validation import (
 )
 from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
     get_raw_cvs_loader,
+)
+from input4mips_validation.cvs_handling.input4MIPs.source_id import (
+    SourceIDEntries,
+    SourceIDEntry,
 )
 
 DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
@@ -64,4 +71,80 @@ def test_activity_id_is_not_url_error():
         "This should be a URL (use `www.tbd.invalid` as a placeholder if you need)."
     )
     with pytest.raises(NotURLError, match=error_msg):
+        assert_cvs_are_valid(inp)
+
+
+@pytest.mark.parametrize(
+    "cv_source, source_id, key_to_test, value_to_apply, exp_cv_valid_values_source",
+    (
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "CR-CMIP-0-2-0",
+            "activity_id",
+            "junk",
+            "cvs.activity_id_entries.activity_ids",
+        ),
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "CR-CMIP-0-2-0",
+        #     "institution_id",
+        #     "Cr",
+        # ),
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "CR-CMIP-0-2-0",
+        #     "license",
+        #     "license text",
+        # ),
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "CR-CMIP-0-2-0",
+        #     "mip_era",
+        #     "CMIP7",
+        # ),
+    ),
+)
+def test_source_id_value_element_inconsistent_with_cv_source_of_truth(
+    cv_source, source_id, key_to_test, value_to_apply, exp_cv_valid_values_source
+):
+    """
+    Test that an error is raised if a source ID entry contains a value
+    that isn't in the rest of the CVs
+    """
+    start = load_cvs(
+        raw_cvs_loader=get_raw_cvs_loader(cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
+    )
+
+    start_source_id_values = start.source_id_entries.entries[0].values
+    if getattr(start_source_id_values, key_to_test) == value_to_apply:
+        msg = (
+            "The test won't work if the starting value "
+            "and the bad value are the same"
+        )
+        raise AssertionError(msg)
+
+    bad_source_id_values = evolve(
+        start_source_id_values, **{key_to_test: value_to_apply}
+    )
+    bad_source_id_entry = SourceIDEntry(
+        source_id="bad",
+        values=bad_source_id_values,
+    )
+
+    inp = evolve(
+        start,
+        source_id_entries=SourceIDEntries(
+            (
+                *start.source_id_entries.entries,
+                bad_source_id_entry,
+            ),
+        ),
+    )
+
+    error_msg = re.escape(
+        f"For source_id 'bad', {key_to_test}={value_to_apply!r}. "
+        "However, it must take a value from the collection specified by "
+        f"{exp_cv_valid_values_source}, i.e. "
+    )
+    with pytest.raises(InternallyInconsistentCVsError, match=error_msg):
         assert_cvs_are_valid(inp)

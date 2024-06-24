@@ -84,46 +84,6 @@ class CVsLike(Protocol):
         ...  # pragma: no cover
 
 
-class NotInCVsError(ValueError):
-    """
-    Raised when a value is not in the CVs
-    """
-
-    def __init__(
-        self,
-        cvs_key: str,
-        cvs_key_value: Any,
-        cv_values_for_key: Collection[Any],
-        cvs: CVsLike,
-    ) -> None:
-        """
-        Initialise the error
-
-        Parameters
-        ----------
-        cvs_key
-            Key from the CVs we're looking at
-
-           E.g. "source_id", "activity_id", "mip_era"
-
-        cvs_key_value
-            Value that was used for ``cvs_key``
-
-        cv_values_for_key
-            The values that ``cvs_key`` can take according to the CVs
-
-        cvs
-            CVs from which the valid values were retrieved
-        """
-        error_msg = (
-            f"Received {cvs_key}={cvs_key_value!r}. "
-            f"This is not in the available CV values: {cv_values_for_key!r}. "
-            f"CVs raw data loaded with: {cvs.raw_loader!r}. "
-        )
-
-        super().__init__(error_msg)
-
-
 class InconsistentWithCVsError(ValueError):
     """
     Raised when a value is inconsistent with the CVs
@@ -166,6 +126,88 @@ class InconsistentWithCVsError(ValueError):
             f"For {cvs_key_determinant}={cvs_key_determinant_value!r}, "
             f"we should have {cvs_key_dependent}={cvs_key_dependent_value_cvs!r}. "
             f"Received {cvs_key_dependent}={cvs_key_dependent_value_user!r}. "
+            f"CVs raw data loaded with: {cvs.raw_loader!r}. "
+        )
+
+        super().__init__(error_msg)
+
+
+class InternallyInconsistentCVsError(ValueError):
+    """
+    Raised when the CVs are internally inconsistent
+
+    For example, one part of the CVs has a value that is outside
+    the range specified elsewhere in the CVs.
+    """
+
+    def __init__(
+        self,
+        cvs_key: str,
+        cvs_key_value: Any,
+        cvs_valid_values: Any,
+        cvs_valid_values_source_key: str,
+    ) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        cvs_key
+            The key in the CVs we're validating.
+
+        cvs_key_value
+            Value in the CVs for ``cvs_key``
+
+        cvs_valid_values
+            The value that ``cvs_key`` should have according to the
+            source of truth in the CVs.
+
+        cvs_valid_values_source_key
+            The key in the CVs which determines the allowed values of ``cvs_key``
+        """
+        error_msg = (
+            f"{cvs_key}={cvs_key_value!r}. "
+            "However, it must take a value from the collection specified by "
+            f"{cvs_valid_values_source_key}, i.e. {cvs_valid_values!r}"
+        )
+
+        super().__init__(error_msg)
+
+
+class NotInCVsError(ValueError):
+    """
+    Raised when a value is not in the CVs
+    """
+
+    def __init__(
+        self,
+        cvs_key: str,
+        cvs_key_value: Any,
+        cv_values_for_key: Collection[Any],
+        cvs: CVsLike,
+    ) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        cvs_key
+            Key from the CVs we're looking at
+
+           E.g. "source_id", "activity_id", "mip_era"
+
+        cvs_key_value
+            Value that was used for ``cvs_key``
+
+        cv_values_for_key
+            The values that ``cvs_key`` can take according to the CVs
+
+        cvs
+            CVs from which the valid values were retrieved
+        """
+        error_msg = (
+            f"Received {cvs_key}={cvs_key_value!r}. "
+            f"This is not in the available CV values: {cv_values_for_key!r}. "
             f"CVs raw data loaded with: {cvs.raw_loader!r}. "
         )
 

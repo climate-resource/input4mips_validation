@@ -74,38 +74,6 @@ def assert_source_id_entry_is_valid(
         cvs = load_cvs()
 
     assert_in_cvs(
-        value=entry.values.activity_id,
-        cvs_key="activity_id",
-        cv_values=cvs.activity_id_entries.activity_ids,
-        cvs=cvs,
-    )
-    #
-    # key = "activity_id"
-    # assert_in_cvs(
-    #     value=getattr(entry.values, key), cvs_key=key, raw_cvs_loader=raw_cvs_loader
-    # )
-    #
-    # assert_is_email_like(entry.values.contact)
-    #
-    # assert_is_url_like(entry.values.further_info_url)
-    #
-    # # institution can be any string, no validation right now
-    #
-    # key = "institution_id"
-    # assert_in_cvs(
-    #     value=getattr(entry.values, key), cvs_key=key, raw_cvs_loader=raw_cvs_loader
-    # )
-    #
-    # assert_license_entry_is_valid(entry.values.license, other_values=entry.values)
-    #
-    # key = "mip_era"
-    # assert_in_cvs(
-    #     value=getattr(entry.values, key), cvs_key=key, raw_cvs_loader=raw_cvs_loader
-    # )
-    #
-    # # version can be any string, no validation right now
-
-    assert_in_cvs(
         value=entry.source_id,
         cvs_key="source_id",
         cv_values=cvs.source_id_entries.source_ids,

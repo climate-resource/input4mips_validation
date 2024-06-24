@@ -10,6 +10,9 @@ import attr
 import xarray as xr
 from attrs import asdict, define, field
 
+from input4mips_validation.attrs_helpers import (
+    make_attrs_validator_compatible_input_only,
+)
 from input4mips_validation.cvs_handling.input4MIPs.cv_loading import load_cvs
 from input4mips_validation.cvs_handling.input4MIPs.cvs import CVsInput4MIPs
 from input4mips_validation.cvs_handling.input4MIPs.dataset_validation import (
@@ -33,10 +36,10 @@ class Input4MIPsDatasetMetadata:
     source_id: str
     """Source ID that applies to the dataset"""
 
-    non_cvs_metadata: dict[str, Any] | None = field(default=None)
+    metadata_non_cvs: dict[str, Any] | None = field(default=None)
     """Other metadata fields that aren't covered by the CVs"""
 
-    @non_cvs_metadata.validator
+    @metadata_non_cvs.validator
     def _no_clash_with_other_attributes(
         self, attribute: attr.Attribute[Any], value: dict[str, Any] | None
     ) -> None:
@@ -61,7 +64,8 @@ class Input4MIPsDatasetMetadataDataProducerMinimum:
     Minimum metadata required from an input4MIPs dataset producer
     """
 
-    # Required fields as attributes
+    source_id: str
+    """Source ID that applies to the dataset"""
 
 
 def validate_ds_metadata(
@@ -112,6 +116,20 @@ def validate_ds_metadata(
     )
 
 
+def validate_ds(ds: xr.Dataset) -> None:
+    """
+    Validate that a {py:obj}`xr.Dataset` confirms to the required form
+
+    Currently this is a no-op
+
+    Parameters
+    ----------
+    ds
+        Dataset to validate
+    """
+    ...
+
+
 @define
 class Input4MIPsDataset:
     """
@@ -119,9 +137,9 @@ class Input4MIPsDataset:
     """
 
     ds: xr.Dataset = field(
-        # validator=[
-        #     make_attrs_validator_compatible_input_only(validate_ds),
-        # ]
+        validator=[
+            make_attrs_validator_compatible_input_only(validate_ds),
+        ]
     )
     """
     Dataset
@@ -130,9 +148,7 @@ class Input4MIPsDataset:
     metadata: Input4MIPsDatasetMetadata = field(
         validator=[
             validate_ds_metadata,
-            # make_attrs_validator_compatible_input_only(
-            # validate_ds_metadata_consistency
-            # ),
+            # validate_ds_metadata_consistency,
         ]
     )
     """
@@ -145,8 +161,8 @@ class Input4MIPsDataset:
         ds: xr.Dataset,
         dimensions: tuple[str, ...],
         time_dimension: str,
-        metadata: Input4MIPsDatasetMetadataDataProducerMinimum,
-        metadata_optional: dict[str, Any] | None = None,
+        metadata_minimum: Input4MIPsDatasetMetadataDataProducerMinimum,
+        metadata_non_cvs: dict[str, Any] | None = None,
         add_time_bounds: Callable[[xr.Dataset], xr.Dataset] | None = None,
         copy: bool = True,
     ) -> Input4MIPsDataset:
@@ -167,10 +183,10 @@ class Input4MIPsDataset:
             Time dimension of the dataset.
             This is singled out because handling time bounds is often a special case.
 
-        metadata
-            Metadata required from the data producer
+        metadata_minimum
+            Minimum metadata required from the data producer
 
-        metadata_optional
+        metadata_non_cvs
             Any other metadata the data producer would like to provider
 
             This must not clash with any of our inferred metadata.
@@ -191,9 +207,20 @@ class Input4MIPsDataset:
         AssertionError
             There is a clash between ``metadata_optional`` and the inferred metadata
         """
-        # Only check on metadata_optional, no clash with
-        # keys we can infer/create
-        ...
+        if CVS is not None:
+            cvs_h = CVS
+        else:
+            cvs_h = load_cvs()
+
+        cvs_source_id_entry = cvs_h.source_id_entries[metadata_minimum.source_id]
+
+        metadata = Input4MIPsDatasetMetadata(
+            source_id=metadata_minimum.source_id,
+            activity_id=cvs_source_id_entry.values.activity_id,
+            metadata_non_cvs=metadata_non_cvs,
+        )
+
+        return cls(ds=ds, metadata=metadata)
 
     def write(
         self,

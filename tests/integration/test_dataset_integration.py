@@ -18,7 +18,11 @@ from input4mips_validation.cvs_handling.input4MIPs.cv_loading import (
 from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
     get_raw_cvs_loader,
 )
-from input4mips_validation.dataset import Input4MIPsDataset, Input4MIPsDatasetMetadata
+from input4mips_validation.dataset import (
+    Input4MIPsDataset,
+    Input4MIPsDatasetMetadata,
+    Input4MIPsDatasetMetadataDataProducerMinimum,
+)
 
 DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
     (
@@ -79,3 +83,32 @@ def test_value_conflict_with_source_id_inferred_value(
                     source_id=source_id, **other_metadata_values
                 ),
             )
+
+
+def test_from_data_producer_minimum_information():
+    ds = "to_be_replaced_with_valid_ds"
+    source_id = "CR-CMIP-0-2-0"
+
+    with patch.dict(
+        os.environ,
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+    ):
+        exp = Input4MIPsDataset(
+            ds=ds,
+            metadata=Input4MIPsDatasetMetadata(
+                activity_id="input4MIPs",
+                source_id=source_id,
+                metadata_non_cvs=None,
+            ),
+        )
+
+        res = Input4MIPsDataset.from_data_producer_minimum_information(
+            ds=ds,
+            dimensions=(),
+            time_dimension="time",
+            metadata_minimum=Input4MIPsDatasetMetadataDataProducerMinimum(
+                source_id=source_id
+            ),
+        )
+
+    assert exp == res

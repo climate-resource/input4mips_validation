@@ -1,11 +1,11 @@
-- change assert_source_id_entry_is_valid so that it takes in a CVsInput4MIPs object rather than loading itself
-- add a validate CVsInput4MIPs method
+- add a validate CVsInput4MIPs function
+- test validate CVsInput4MIPs function
 
 - split the ds and the metadata in Input4MIPsDataset
     - the metadta is sufficiently complex and structured that it should be in its own class, not just a dictionary
 
 - test of metadata class
-    - test that the metadata is validated on initialisation, e.g.
+    - test that the metadata is validated on initialisation, e.g. `assert_input4mips_ds_metadata_is_valid`
         - test fail in source ID and activity ID consistency
         - test activity ID inference
 

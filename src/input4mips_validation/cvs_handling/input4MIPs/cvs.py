@@ -20,13 +20,18 @@ class CVsInput4MIPs:
     activity_id_entries: ActivityIDEntries
     """Activity ID entries"""
 
-    # data_reference_syntax: DataReferenceSyntax
-    # """Data reference syntax (drs) specification"""
-
     # dataset_categories: tuple[str, ...]
     # """Recognised dataset categories"""
     # Would make sense for this to actually be entries,
     # and to specify the variables in each category here
+
+    # data_file_required_global_attributes: tuple[str, ...]
+    # """Global attributes that must be in data files"""
+    # Not sure if these can be linked back to global CVs/should somehow be split.
+    # Having this seems like duplication to me...
+
+    # data_reference_syntax: DataReferenceSyntax
+    # """Data reference syntax (drs) specification"""
 
     # instutition_ids: tuple[str, ...]
     # """Recognised institution IDs"""
@@ -45,11 +50,6 @@ class CVsInput4MIPs:
     # """Recognised product types"""
     # These should be linked back to the global CVs somehow I assume (?)
     # (probably as part of validation)
-
-    # data_file_required_global_attributes: tuple[str, ...]
-    # """Global attributes that must be in data files"""
-    # Not sure if these can be linked back to global CVs/should somehow be split.
-    # Having this seems like duplication to me...
 
     source_id_entries: SourceIDEntries
     """Source ID entries"""

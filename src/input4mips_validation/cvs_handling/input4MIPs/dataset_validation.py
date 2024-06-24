@@ -53,6 +53,50 @@ def assert_in_cvs(
         )
 
 
+def assert_consistency_between_source_id_and_other_values(
+    source_id: str, activity_id: str, cvs: None | CVsInput4MIPs = None
+) -> None:
+    """
+    Assert that there is consistency between source ID and values that it determines
+
+    Parameters
+    ----------
+    source_id
+        Source ID
+
+    activity_id
+        Activity ID
+
+    cvs
+        CVs to use for validation
+
+        If not supplied, this will be retrieved with
+        {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
+
+    """
+    if cvs is None:
+        cvs = load_cvs()
+
+    values_to_check = {
+        "activity_id": activity_id,
+    }
+
+    source_id_entry_from_cvs = cvs.source_id_entries[source_id]
+
+    for key, value_user in values_to_check.items():
+        value_cvs = getattr(source_id_entry_from_cvs.values, key)
+        if value_user != value_cvs:
+            raise InconsistentWithCVsError(
+                cvs_key_dependent=key,
+                cvs_key_dependent_value_user=value_user,
+                cvs_key_dependent_value_cvs=value_cvs,
+                cvs_key_determinant="source_id",
+                cvs_key_determinant_value=source_id,
+                cvs=cvs,
+            )
+
+
+# TODO: delete
 def assert_source_id_entry_is_valid(
     entry: SourceIDEntry, cvs: None | CVsInput4MIPs = None
 ) -> None:

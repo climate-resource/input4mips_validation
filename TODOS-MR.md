@@ -1,3 +1,6 @@
+- change assert_source_id_entry_is_valid so that it takes in a CVsInput4MIPs object rather than loading itself
+- add a validate CVsInput4MIPs method
+
 - split the ds and the metadata in Input4MIPsDataset
     - the metadta is sufficiently complex and structured that it should be in its own class, not just a dictionary
 

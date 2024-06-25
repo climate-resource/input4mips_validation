@@ -12,7 +12,7 @@ import xarray as xr
 from attrs import asdict, define, field
 
 from input4mips_validation.attrs_helpers import (
-    make_attrs_validator_compatible_input_only,
+    make_attrs_validator_compatible_attribute_value_input,
 )
 from input4mips_validation.cvs_handling.input4MIPs.cv_loading import load_cvs
 from input4mips_validation.cvs_handling.input4MIPs.cvs import CVsInput4MIPs
@@ -126,8 +126,30 @@ def validate_ds_metadata(
     )
 
 
+def get_ds_var_assert_single(ds: xr.Dataset) -> str:
+    """
+    Get a {py:obj}`xr.Dataset`'s variable, asserting that there is only one
+
+    Parameters
+    ----------
+    ds
+        {py:obj}`xr.Dataset` from which to retrieve the variable
+
+    Returns
+    -------
+        ``ds``'s variable
+    """
+    ds_var_l = list(ds.data_vars)
+    if len(ds_var_l) != 1:
+        msg = f"``ds`` must only have one variable. Received: {ds_var_l!r}"
+        raise AssertionError(msg)
+
+    return ds_var_l[0]
+
+
 def validate_ds(
-    ds: xr.Dataset,
+    attribute: attr.Attribute[Any],
+    value: xr.Dataset,
     cvs: CVsInput4MIPs | None = None,
 ) -> None:
     """
@@ -137,8 +159,11 @@ def validate_ds(
 
     Parameters
     ----------
-    ds
-        Dataset to validate
+    attribute
+        Attribute being set
+
+    value
+        Value being used to set ``attribute``
 
     cvs
         CVs to use for validation
@@ -149,10 +174,11 @@ def validate_ds(
     if cvs is None:
         cvs = load_cvs()
 
-    dataset_variable = list(ds.data_vars)
-    if len(dataset_variable) != 1:
-        msg = f"``ds`` must only have one variable. Received: {dataset_variable!r}"
-        raise AssertionError(msg)
+    try:
+        get_ds_var_assert_single(value)
+    except AssertionError as exc:
+        msg = f"The value used for {attribute.name} must only contain a single variable"
+        raise AssertionError(msg) from exc
 
 
 def validate_ds_metadata_consistency(
@@ -206,7 +232,9 @@ class Input4MIPsDataset:
 
     ds: xr.Dataset = field(
         validator=[
-            make_attrs_validator_compatible_input_only(partial(validate_ds, cvs=CVS)),
+            make_attrs_validator_compatible_attribute_value_input(
+                partial(validate_ds, cvs=CVS)
+            ),
         ]
     )
     """
@@ -251,6 +279,7 @@ class Input4MIPsDataset:
         metadata_non_cvs: dict[str, Any] | None = None,
         add_time_bounds: Callable[[xr.Dataset], xr.Dataset] | None = None,
         copy: bool = True,
+        cvs: CVsInput4MIPs | None = None,
     ) -> Input4MIPsDataset:
         """
         Initialise from the minimum required information from the data producer
@@ -284,6 +313,12 @@ class Input4MIPsDataset:
             If not supplied, uses
             :func:`input4mips_validation.xarray_helpers.add_time_bounds`.
 
+        cvs
+            CVs to use for validation
+
+            If not supplied, this will be retrieved with
+            {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
+
         Returns
         -------
             Initialised instance
@@ -293,16 +328,15 @@ class Input4MIPsDataset:
         AssertionError
             There is a clash between ``metadata_optional`` and the inferred metadata
         """
-        if CVS is not None:
-            cvs_h = CVS
-        else:
-            cvs_h = load_cvs()
+        if cvs is None:
+            cvs = load_cvs()
 
-        cvs_source_id_entry = cvs_h.source_id_entries[metadata_minimum.source_id]
+        cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]
 
         metadata = Input4MIPsDatasetMetadata(
             source_id=metadata_minimum.source_id,
             activity_id=cvs_source_id_entry.values.activity_id,
+            variable_id=get_ds_var_assert_single(ds),
             metadata_non_cvs=metadata_non_cvs,
         )
 

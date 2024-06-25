@@ -3,7 +3,6 @@ Input4MIPs dataset model
 """
 from __future__ import annotations
 
-from functools import partial
 from pathlib import Path
 from typing import Any, Callable
 
@@ -11,9 +10,6 @@ import attr
 import xarray as xr
 from attrs import asdict, define, field, frozen
 
-from input4mips_validation.attrs_helpers import (
-    make_attrs_validator_compatible_attribute_value_input,
-)
 from input4mips_validation.cvs_handling.input4MIPs.cv_loading import load_cvs
 from input4mips_validation.cvs_handling.input4MIPs.cvs import CVsInput4MIPs
 from input4mips_validation.cvs_handling.input4MIPs.dataset_validation import (
@@ -21,9 +17,6 @@ from input4mips_validation.cvs_handling.input4MIPs.dataset_validation import (
     assert_in_cvs,
 )
 from input4mips_validation.exceptions import DatasetMetadataInconsistencyError
-
-CVS: CVsInput4MIPs | None = None
-"""Controlled vocabularies to use throughout"""
 
 
 @define
@@ -123,7 +116,6 @@ def validate_ds_metadata(
     instance: Input4MIPsDataset,
     attribute: attr.Attribute[Any],
     value: Input4MIPsDatasetMetadata,
-    cvs: CVsInput4MIPs | None = None,
 ) -> None:
     """
     Validate the metadata of an {py:obj}`Input4MIPsDataset`
@@ -138,15 +130,8 @@ def validate_ds_metadata(
 
     value
         Value being set
-
-    cvs
-        CVs to use for validation
-
-        If not supplied, this will be retrieved with
-        {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
     """
-    if cvs is None:
-        cvs = load_cvs()
+    cvs = instance.cvs
 
     # Activity ID
     assert_in_cvs(
@@ -194,9 +179,9 @@ def get_ds_var_assert_single(ds: xr.Dataset) -> str:
 
 
 def validate_ds(
+    instance: Input4MIPsDataset,
     attribute: attr.Attribute[Any],
     value: xr.Dataset,
-    cvs: CVsInput4MIPs | None = None,
 ) -> None:
     """
     Validate that a {py:obj}`xr.Dataset` confirms to the required form
@@ -205,25 +190,22 @@ def validate_ds(
 
     Parameters
     ----------
+    instance
+        Instance being validated
     attribute
         Attribute being set
 
     value
         Value being used to set ``attribute``
-
-    cvs
-        CVs to use for validation
-
-        If not supplied, this will be retrieved with
-        {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
     """
-    if cvs is None:
-        cvs = load_cvs()
+    # cvs = instance.cvs
 
     try:
         get_ds_var_assert_single(value)
     except AssertionError as exc:
-        msg = f"The value used for {attribute.name} must only contain a single variable"
+        msg = (
+            f"The value used for `{attribute.name}` must only contain a single variable"
+        )
         raise AssertionError(msg) from exc
 
 
@@ -231,7 +213,6 @@ def validate_ds_metadata_consistency(
     instance: Input4MIPsDataset,
     attribute: attr.Attribute[Any],
     value: Input4MIPsDatasetMetadata,
-    cvs: CVsInput4MIPs | None = None,
 ) -> None:
     """
     Check consistency between the dataset and metadata of an {py:obj}`Input4MIPsDataset`
@@ -246,15 +227,8 @@ def validate_ds_metadata_consistency(
 
     value
         Value being set
-
-    cvs
-        CVs to use for validation
-
-        If not supplied, this will be retrieved with
-        {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
     """
-    if cvs is None:
-        cvs = load_cvs()
+    # cvs = instance.cvs
 
     metadata = value
 
@@ -276,28 +250,32 @@ class Input4MIPsDataset:
     Representation of an input4MIPs dataset
     """
 
-    ds: xr.Dataset = field(
-        validator=[
-            make_attrs_validator_compatible_attribute_value_input(
-                partial(validate_ds, cvs=CVS)
-            ),
-        ]
-    )
+    ds: xr.Dataset = field(validator=[validate_ds])
     """
     Dataset
     """
 
     metadata: Input4MIPsDatasetMetadata = field(
         validator=[
-            partial(validate_ds_metadata, cvs=CVS),
-            partial(validate_ds_metadata_consistency, cvs=CVS),
+            validate_ds_metadata,
+            validate_ds_metadata_consistency,
         ]
     )
     """
     Metadata about the dataset
     """
 
-    # Might be worth adding CVs as an attribute of the dataset...
+    cvs: CVsInput4MIPs = field()
+    """
+    Controlled vocabularies to use with this dataset
+
+    If not supplied, we create these with
+    {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`
+    """
+
+    @cvs.default
+    def _load_default_cvs(self):
+        return load_cvs()
 
     @property
     def ds_var(self) -> str:
@@ -357,7 +335,7 @@ class Input4MIPsDataset:
             :func:`input4mips_validation.xarray_helpers.add_time_bounds`.
 
         cvs
-            CVs to use for validation
+            CVs to use for inference and validation
 
             If not supplied, this will be retrieved with
             {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
@@ -383,14 +361,13 @@ class Input4MIPsDataset:
             metadata_non_cvs=metadata_non_cvs,
         )
 
-        return cls(ds=ds, metadata=metadata)
+        return cls(ds=ds, metadata=metadata, cvs=cvs)
 
     def write(
         self,
         root_data_dir: Path,
         unlimited_dims: tuple[str, ...] = ("time",),
         encoding_kwargs: dict[str, Any] | None = None,
-        cvs: CVsInput4MIPs | None = None,
     ) -> Path:
         """
         Write to disk
@@ -408,18 +385,11 @@ class Input4MIPsDataset:
             These are passed to :meth:`xr.Dataset.to_netcdf`.
             If not supplied, we use :const:`DEFAULT_ENCODING_KWARGS`
 
-        cvs
-            CVs to use for validation
-
-            If not supplied, this will be retrieved with
-            {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
-
         Returns
         -------
             Path in which the file was written
         """
-        if cvs is None:
-            cvs = load_cvs()
+        cvs = self.cvs
 
         if encoding_kwargs is None:
             encoding_kwargs = DEFAULT_ENCODING_KWARGS

@@ -17,7 +17,6 @@ import pytest
 import xarray as xr
 from attrs import asdict
 
-from input4mips_validation.attrs_helpers import AttributeInitialisationError
 from input4mips_validation.cvs_handling.exceptions import (
     InconsistentWithCVsError,
     NotInCVsError,
@@ -151,8 +150,8 @@ def test_ds_more_than_one_var_error():
 
         ds = ds.merge(second)
 
-        error_msg = "Error raised while initialising attribute ``ds``"
-        with pytest.raises(AttributeInitialisationError, match=error_msg):
+        error_msg = "The value used for `ds` must only contain a single variable"
+        with pytest.raises(AssertionError, match=error_msg):
             Input4MIPsDataset(
                 ds=ds,
                 metadata=metadata,

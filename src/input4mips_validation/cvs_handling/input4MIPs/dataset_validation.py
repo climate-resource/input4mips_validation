@@ -51,7 +51,7 @@ def assert_in_cvs(
 
 
 def assert_consistency_between_source_id_and_other_values(
-    source_id: str, activity_id: str, cvs: None | CVsInput4MIPs = None
+    source_id: str, activity_id: str, cvs: CVsInput4MIPs | None = None
 ) -> None:
     """
     Assert that there is consistency between source ID and values that it determines

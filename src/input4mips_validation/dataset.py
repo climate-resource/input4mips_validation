@@ -3,6 +3,7 @@ Input4MIPs dataset model
 """
 from __future__ import annotations
 
+from functools import partial
 from pathlib import Path
 from typing import Any, Callable
 
@@ -19,6 +20,7 @@ from input4mips_validation.cvs_handling.input4MIPs.dataset_validation import (
     assert_consistency_between_source_id_and_other_values,
     assert_in_cvs,
 )
+from input4mips_validation.exceptions import DatasetMetadataInconsistencyError
 
 CVS: CVsInput4MIPs | None = None
 """Controlled vocabularies to use throughout"""
@@ -35,6 +37,9 @@ class Input4MIPsDatasetMetadata:
 
     source_id: str
     """Source ID that applies to the dataset"""
+
+    variable_id: str
+    """The ID of the variable contained in the dataset"""
 
     metadata_non_cvs: dict[str, Any] | None = field(default=None)
     """Other metadata fields that aren't covered by the CVs"""
@@ -72,6 +77,7 @@ def validate_ds_metadata(
     instance: Input4MIPsDataset,
     attribute: attr.Attribute[Any],
     value: Input4MIPsDatasetMetadata,
+    cvs: CVsInput4MIPs | None = None,
 ) -> None:
     """
     Validate the metadata of an {py:obj}`Input4MIPsDataset`
@@ -86,37 +92,44 @@ def validate_ds_metadata(
 
     value
         Value being set
+
+    cvs
+        CVs to use for validation
+
+        If not supplied, this will be retrieved with
+        {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
     """
-    if CVS is not None:
-        cvs_h = CVS
-    else:
-        cvs_h = load_cvs()
+    if cvs is None:
+        cvs = load_cvs()
 
     # Activity ID
     assert_in_cvs(
         value=value.activity_id,
         cvs_key="activity_id",
-        cv_values=cvs_h.activity_id_entries.activity_ids,
-        cvs=cvs_h,
+        cv_values=cvs.activity_id_entries.activity_ids,
+        cvs=cvs,
     )
 
     # Source ID
     assert_in_cvs(
         value=value.source_id,
         cvs_key="source_id",
-        cv_values=cvs_h.source_id_entries.source_ids,
-        cvs=cvs_h,
+        cv_values=cvs.source_id_entries.source_ids,
+        cvs=cvs,
     )
 
     # Consistency with source ID
     assert_consistency_between_source_id_and_other_values(
         source_id=value.source_id,
         activity_id=value.activity_id,
-        cvs=cvs_h,
+        cvs=cvs,
     )
 
 
-def validate_ds(ds: xr.Dataset) -> None:
+def validate_ds(
+    ds: xr.Dataset,
+    cvs: CVsInput4MIPs | None = None,
+) -> None:
     """
     Validate that a {py:obj}`xr.Dataset` confirms to the required form
 
@@ -126,8 +139,63 @@ def validate_ds(ds: xr.Dataset) -> None:
     ----------
     ds
         Dataset to validate
+
+    cvs
+        CVs to use for validation
+
+        If not supplied, this will be retrieved with
+        {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
     """
-    ...
+    # if cvs is None:
+    #     cvs = load_cvs()
+
+
+def validate_ds_metadata_consistency(
+    instance: Input4MIPsDataset,
+    attribute: attr.Attribute[Any],
+    value: Input4MIPsDatasetMetadata,
+    cvs: CVsInput4MIPs | None = None,
+) -> None:
+    """
+    Check consistency between the dataset and metadata of an {py:obj}`Input4MIPsDataset`
+
+    Parameters
+    ----------
+    instance
+        Instance being validated
+
+    attribute
+        Attribute being initialised
+
+    value
+        Value being set
+
+    cvs
+        CVs to use for validation
+
+        If not supplied, this will be retrieved with
+        {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
+    """
+    if cvs is None:
+        cvs = load_cvs()
+
+    metadata = value
+    ds = instance.ds
+
+    # Variable ID
+    # TODO: move check of only one data var into ds validation
+    dataset_variable = list(ds.data_vars)
+    if len(dataset_variable) != 1:
+        raise AssertionError
+    dataset_variable = dataset_variable[0]
+
+    if dataset_variable != metadata.variable_id:
+        raise DatasetMetadataInconsistencyError(
+            ds_key="The dataset's variable",
+            ds_key_value=f"{dataset_variable=}",
+            metadata_key="metadata.variable_id",
+            metadata_key_value=f"{metadata.variable_id=!r}",
+        )
 
 
 @define
@@ -138,7 +206,7 @@ class Input4MIPsDataset:
 
     ds: xr.Dataset = field(
         validator=[
-            make_attrs_validator_compatible_input_only(validate_ds),
+            make_attrs_validator_compatible_input_only(partial(validate_ds, cvs=CVS)),
         ]
     )
     """
@@ -147,8 +215,8 @@ class Input4MIPsDataset:
 
     metadata: Input4MIPsDatasetMetadata = field(
         validator=[
-            validate_ds_metadata,
-            # validate_ds_metadata_consistency,
+            partial(validate_ds_metadata, cvs=CVS),
+            partial(validate_ds_metadata_consistency, cvs=CVS),
         ]
     )
     """

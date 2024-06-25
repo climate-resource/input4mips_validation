@@ -1,7 +1,3 @@
-- in the data set class, test the data <-> metadata consistency
-    - test that variable name matches the metadata
-    - etc. ...
-
 - switch to getting directory and filename from the CVs
     - update the DRS so that version comes from the metadata, rather than being a date string
     - add a check that the path only contains [a-zA-Z0-9-] before writing

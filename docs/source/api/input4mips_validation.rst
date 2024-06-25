@@ -10,6 +10,8 @@ API Reference
   :toctree: ./
 
   input4mips_validation.attrs_helpers
+  input4mips_validation.cli
   input4mips_validation.cvs_handling
   input4mips_validation.dataset
   input4mips_validation.exceptions
+  input4mips_validation.xarray_helpers

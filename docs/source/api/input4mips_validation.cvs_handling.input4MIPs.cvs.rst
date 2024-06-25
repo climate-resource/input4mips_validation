@@ -31,3 +31,9 @@ assert\_all\_valid\_filepath\_characters
 ========================================
 
 .. autofunction:: assert_all_valid_filepath_characters
+
+
+assert\_only\_valid\_chars
+==========================
+
+.. autofunction:: assert_only_valid_chars

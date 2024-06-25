@@ -7,10 +7,16 @@ input4mips\_validation.dataset
 
 
 
-CVS
-===
+PINT\_DEQUANTIFY\_FORMAT
+========================
 
-.. autodata:: CVS
+.. autodata:: PINT_DEQUANTIFY_FORMAT
+
+
+DEFAULT\_ENCODING\_KWARGS
+=========================
+
+.. autodata:: DEFAULT_ENCODING_KWARGS
 
 
 Input4MIPsDatasetMetadata
@@ -56,3 +62,9 @@ validate\_ds\_metadata\_consistency
 ===================================
 
 .. autofunction:: validate_ds_metadata_consistency
+
+
+write
+=====
+
+.. autofunction:: write

@@ -12,6 +12,7 @@ input4mips\_validation.cvs\_handling.input4MIPs
   input4mips_validation.cvs_handling.input4MIPs.activity_id
   input4mips_validation.cvs_handling.input4MIPs.cv_loading
   input4mips_validation.cvs_handling.input4MIPs.cvs
+  input4mips_validation.cvs_handling.input4MIPs.cvs_inference
   input4mips_validation.cvs_handling.input4MIPs.cvs_validation
   input4mips_validation.cvs_handling.input4MIPs.dataset_validation
   input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading

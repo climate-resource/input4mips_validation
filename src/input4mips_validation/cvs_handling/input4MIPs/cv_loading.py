@@ -73,10 +73,38 @@ def load_source_id_entries(
 
 
 def load_cvs(
-    raw_cvs_loader: None | RawCVLoader = None,
+    raw_cvs_loader: RawCVLoader | None = None,
 ) -> CVsInput4MIPs:
     """
     Load CVs
+
+    Parameters
+    ----------
+    raw_cvs_loader
+        Loader of the raw CVs data
+
+        If not supplied, this will be retrieved with
+        {py:func}`input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading.get_raw_cvs_loader`.
+
+    Returns
+    -------
+        Loaded CVs
+    """
+    if raw_cvs_loader is None:
+        raw_cvs_loader = get_raw_cvs_loader()
+
+    return load_cvs_known_loader(raw_cvs_loader=raw_cvs_loader)
+
+
+# @functools.cache
+def load_cvs_known_loader(raw_cvs_loader: RawCVLoader) -> CVsInput4MIPs:
+    """
+    Load CVs
+
+    This requires the raw CVs loader to be known,
+    so the results can be cached
+    (although there may be subtle bugs in this related to forcing downloads
+    and this may be the wrong pattern anyway, so we haven't turned it on yet).
 
     Parameters
     ----------
@@ -87,9 +115,6 @@ def load_cvs(
     -------
         Loaded CVs
     """
-    if raw_cvs_loader is None:
-        raw_cvs_loader = get_raw_cvs_loader()
-
     activity_id_entries = load_activity_id_entries(raw_cvs_loader=raw_cvs_loader)
     source_id_entries = load_source_id_entries(raw_cvs_loader=raw_cvs_loader)
 

@@ -146,8 +146,13 @@ def validate_ds(
         If not supplied, this will be retrieved with
         {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
     """
-    # if cvs is None:
-    #     cvs = load_cvs()
+    if cvs is None:
+        cvs = load_cvs()
+
+    dataset_variable = list(ds.data_vars)
+    if len(dataset_variable) != 1:
+        msg = f"``ds`` must only have one variable. Received: {dataset_variable!r}"
+        raise AssertionError(msg)
 
 
 def validate_ds_metadata_consistency(
@@ -180,14 +185,9 @@ def validate_ds_metadata_consistency(
         cvs = load_cvs()
 
     metadata = value
-    ds = instance.ds
 
     # Variable ID
-    # TODO: move check of only one data var into ds validation
-    dataset_variable = list(ds.data_vars)
-    if len(dataset_variable) != 1:
-        raise AssertionError
-    dataset_variable = dataset_variable[0]
+    dataset_variable = instance.ds_var
 
     if dataset_variable != metadata.variable_id:
         raise DatasetMetadataInconsistencyError(
@@ -222,6 +222,24 @@ class Input4MIPsDataset:
     """
     Metadata about the dataset
     """
+
+    @property
+    def ds_var(self) -> str:
+        """
+        Get the name of the variable in ``self.ds``
+
+        If xarray has a better way to do this, PRs welcome :)
+
+        Returns
+        -------
+            Name of the variable in ``self.ds``
+        """
+        ds_var_l = list(self.ds.data_vars)
+        if len(ds_var_l) != 1:  # pragma: no cover
+            msg = "Should have been caught at initialisation"
+            raise AssertionError(msg)
+
+        return ds_var_l[0]
 
     @classmethod
     def from_data_producer_minimum_information(  # noqa: PLR0913

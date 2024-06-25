@@ -15,7 +15,7 @@ import attrs
 import pooch
 import pooch.utils
 import validators
-from attrs import define, field
+from attrs import field, frozen
 
 HERE = Path(__file__).parent
 
@@ -55,7 +55,7 @@ class RawCVLoader(Protocol):
         """
 
 
-@define
+@frozen
 class RawCVLoaderLocal:
     """
     Loader of raw CV data from local data
@@ -87,7 +87,7 @@ class RawCVLoaderLocal:
         return raw
 
 
-@define
+@frozen
 class RawCVLoaderKnownRemoteRegistry:
     """
     Loader of raw CV data from a known remote registry
@@ -129,7 +129,7 @@ class RawCVLoaderKnownRemoteRegistry:
         return raw
 
 
-@define
+@frozen
 class RawCVLoaderBaseURL:
     """
     Loader of raw CV data from some base URL

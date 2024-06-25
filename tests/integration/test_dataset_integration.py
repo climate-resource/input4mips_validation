@@ -6,6 +6,7 @@ from __future__ import annotations
 import os
 import re
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import numpy as np
@@ -33,6 +34,66 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
         Path(__file__).parent / ".." / "test-data" / "cvs" / "input4MIPs" / "default"
     ).absolute()
 )
+
+
+def get_test_ds_metadata(
+    ds_variable: str = "mole-fraction-of-carbon-dioxide-in-air",
+    ds_attrs: dict[str, Any] | None = None,
+    metadata_overrides: dict[str, Any] | None = None,
+) -> tuple[xr.Dataset, Input4MIPsDatasetMetadata]:
+    if ds_attrs is None:
+        ds_attrs = {}
+
+    if metadata_overrides is None:
+        metadata_overrides = {}
+
+    lon = np.arange(-165, 180, 30)
+    lat = np.arange(-82.5, 90, 15)
+    time = pd.date_range("2000-01-01", periods=120, freq="MS")
+
+    rng = np.random.default_rng()
+    ds_data = rng.random((lon.size, lat.size, time.size))
+
+    ds = xr.Dataset(
+        data_vars={
+            ds_variable: (["lat", "lon", "time"], ds_data),
+        },
+        coords=dict(
+            lon=("lon", lon),
+            lat=("lat", lat),
+            time=time,
+        ),
+        attrs=ds_attrs,
+    )
+
+    cvs_valid = load_cvs(get_raw_cvs_loader())
+    valid_source_id_entry = cvs_valid.source_id_entries.entries[0]
+    metadata_valid_from_cvs = {
+        k: v
+        for k, v in asdict(valid_source_id_entry.values).items()
+        if k in ["activity_id"]
+    }
+    metadata_valid = {
+        **metadata_valid_from_cvs,
+        "source_id": valid_source_id_entry.source_id,
+        "variable_id": ds_variable,
+    }
+    metadata = Input4MIPsDatasetMetadata(**(metadata_valid | metadata_overrides))
+
+    return ds, metadata
+
+
+def test_valid_passes():
+    with patch.dict(
+        os.environ,
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+    ):
+        ds, metadata = get_test_ds_metadata()
+        # This should initialise without an issue
+        Input4MIPsDataset(
+            ds=ds,
+            metadata=metadata,
+        )
 
 
 def test_from_data_producer_minimum_information():

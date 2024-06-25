@@ -96,6 +96,25 @@ def test_valid_passes():
         )
 
 
+def test_ds_var_property():
+    with patch.dict(
+        os.environ,
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+    ):
+        ds, metadata = get_test_ds_metadata()
+        inst = Input4MIPsDataset(
+            ds=ds,
+            metadata=metadata,
+        )
+
+    res = inst.ds_var
+
+    # Assert this is just a plain string, same as we'd get if we look at metadata
+    # (which is same as what is in the data because metadata and data are
+    # checked as being consistent at initialisation time)
+    assert res == metadata.variable_id
+
+
 @pytest.mark.xfail(reason="write not implemented yet")
 def test_valid_writing_path(tmp_path):
     with patch.dict(

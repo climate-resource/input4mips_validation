@@ -9,7 +9,7 @@ from typing import Any, Callable
 
 import attr
 import xarray as xr
-from attrs import asdict, define, field
+from attrs import asdict, define, field, frozen
 
 from input4mips_validation.attrs_helpers import (
     make_attrs_validator_compatible_attribute_value_input,
@@ -224,7 +224,7 @@ def validate_ds_metadata_consistency(
         )
 
 
-@define
+@frozen
 class Input4MIPsDataset:
     """
     Representation of an input4MIPs dataset

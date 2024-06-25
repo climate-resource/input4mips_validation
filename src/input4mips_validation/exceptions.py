@@ -1,29 +1,43 @@
 """
-Exceptions used throughout
+Exceptions used in the top-level modules
 """
-import re
+from __future__ import annotations
 
 
-class DoesNotMatchRegexpError(AssertionError):
+class DatasetMetadataInconsistencyError(ValueError):
     """
-    Raised when metadata does not match some expected regular expression
+    Raised when there is an inconsistency between a dataset and the metadata
     """
 
-    def __init__(self, high_level_msg: str, regexp: re.Pattern[str]):
+    def __init__(
+        self,
+        ds_key: str,
+        ds_key_value: str,
+        metadata_key: str,
+        metadata_key_value: str,
+    ) -> None:
         """
         Initialise the error
 
         Parameters
         ----------
-        high_level_msg
-            High-level message which describes the issue.
+        ds_key
+            Key/identifier for the source of the value in the dataset
 
-        regexp
-            Regular expression we expected the value to meet.
+        ds_key_value
+            Value of ``ds_key`` (often best to pre-format this so
+            that the original variable name is included in the output)
+
+        metadata_key
+            Key/identifier for the source of the value in the metadata
+
+        metadata_key_value
+            Value of ``metadata_key`` (often best to pre-format this so
+            that the original variable name is included in the output)
         """
-        msg = (
-            f"{high_level_msg}. "
-            f"(Specifically, the value does not match this regexp: {regexp})"
+        error_msg = (
+            f"{ds_key} must match {metadata_key}. "
+            f"{ds_key_value}, {metadata_key_value}"
         )
 
-        super().__init__(msg)
+        super().__init__(error_msg)

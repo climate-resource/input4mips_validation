@@ -7,8 +7,8 @@ input4mips\_validation.exceptions
 
 
 
-DoesNotMatchRegexpError
-=======================
+DatasetMetadataInconsistencyError
+=================================
 
-.. autoclass:: DoesNotMatchRegexpError
+.. autoclass:: DatasetMetadataInconsistencyError
    :members:

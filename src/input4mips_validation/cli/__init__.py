@@ -7,7 +7,6 @@ from typing import Annotated
 import typer
 
 from input4mips_validation.cli.cli_logging import setup_logging
-from input4mips_validation.validation import assert_file_is_valid
 
 app = typer.Typer()
 
@@ -36,7 +35,8 @@ def validate_file_command(
 
     FILEPATH is the path to the file to validate.
     """
-    assert_file_is_valid(filepath)
+    raise NotImplementedError()
+    # assert_file_is_valid(filepath)
 
 
 _typer_click_object = typer.main.get_command(app)

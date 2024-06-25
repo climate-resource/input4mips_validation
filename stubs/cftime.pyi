@@ -1,5 +1,5 @@
 class datetime:
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         year: int,
         month: int,

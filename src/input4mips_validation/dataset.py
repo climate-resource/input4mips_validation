@@ -139,7 +139,7 @@ def get_ds_var_assert_single(ds: xr.Dataset) -> str:
     -------
         ``ds``'s variable
     """
-    ds_var_l = list(ds.data_vars)
+    ds_var_l: list[str] = list(ds.data_vars)
     if len(ds_var_l) != 1:
         msg = f"``ds`` must only have one variable. Received: {ds_var_l!r}"
         raise AssertionError(msg)
@@ -262,12 +262,7 @@ class Input4MIPsDataset:
         -------
             Name of the variable in ``self.ds``
         """
-        ds_var_l = list(self.ds.data_vars)
-        if len(ds_var_l) != 1:  # pragma: no cover
-            msg = "Should have been caught at initialisation"
-            raise AssertionError(msg)
-
-        return ds_var_l[0]
+        return get_ds_var_assert_single(self.ds)
 
     @classmethod
     def from_data_producer_minimum_information(  # noqa: PLR0913

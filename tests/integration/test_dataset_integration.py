@@ -156,44 +156,42 @@ def test_valid_writing_path(tmp_path):
 
         out_file = input4mips_ds.write(root_data_dir=tmp_path)
 
-    # TODO: replace with cvs.get_file_path(**kwargs) or something
-    exp_out_file = (
-        tmp_path
-        / metadata.activity_id
-        / metadata.mip_era
-        / metadata.target_mip
-        / metadata.institution_id
-        / metadata.source_id
-        / metadata.realm
-        / metadata.frequency
-        / metadata.variable_id
-        / metadata.grid_label
-        / metadata.version
-        / "_".join(
-            [
-                metadata.variable_id,
-                metadata.activity_id,
-                metadata.dataset_category,
-                metadata.target_mip,
-                metadata.source_id,
-                metadata.grid_label,
-                f"{metadata.time_range}.nc",
-            ]
-        )
-    )
+        cvs = load_cvs(get_raw_cvs_loader())
+
+    exp_out_file = tmp_path / cvs.get_file_path(metadata)
+    # Code for get_file_path
+    # Some notes from reading data request doc:
+    # - we're meant to use the CMIP data request variable names, not CF standards
+    #   so that there aren't hyphens in variable_id. We've clearly ignored that rule.
+    # - only [a-zA-Z0-9-] are allowed in file path names,
+    #   except where underscore is used as a separator
+
+    # exp_out_file = (
+    #     tmp_path
+    #     / metadata.activity_id
+    #     / metadata.mip_era
+    #     / metadata.target_mip
+    #     / metadata.institution_id
+    #     / metadata.source_id
+    #     / metadata.realm
+    #     / metadata.frequency
+    #     / metadata.variable_id
+    #     / metadata.grid_label
+    #     / metadata.version
+    #     / "_".join(
+    #         [
+    #             metadata.variable_id,
+    #             metadata.activity_id,
+    #             metadata.dataset_category,
+    #             metadata.target_mip,
+    #             metadata.source_id,
+    #             metadata.grid_label,
+    #             f"{metadata.time_range}.nc",
+    #         ]
+    #     )
+    # )
 
     assert out_file == exp_out_file
-
-
-# TODO: write tests of
-# - written file attributes
-# - written file encoding
-# - written file can be read using xarray and iris
-
-# TODO: write test of pre-write checks in `write` e.g.
-# - fails if no tracking_id
-# - fails if no creation_date
-# - fails if no time encoding
 
 
 def test_from_data_producer_minimum_information():

@@ -19,6 +19,19 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.5.0 (2024-06-25)
+
+
+### Breaking Changes
+
+- Completely re-wrote the package in an attempt to better handle the controlled vocabularies (CVs).
+
+  The key module is still {py:mod}`input4mips_validation.dataset`.
+
+  However, we now also have {py:mod}`input4mips_validation.cvs_handling`, which we use for sanely handling the CVs.
+  This package may be split out into a separate package in future. ([#15](https://github.com/climate-resource/input4mips_validation/pulls/15))
+
+
 ## input4mips-validation v0.4.0 (2024-06-20)
 
 

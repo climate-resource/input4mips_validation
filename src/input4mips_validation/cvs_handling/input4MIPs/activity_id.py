@@ -8,10 +8,11 @@ see {py:mod}`input4mips_validation.cvs_handling.input4MIPs.validation`.
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any, TypeAlias
+from typing import Any
 
 import attr
 from attrs import define, field
+from typing_extensions import TypeAlias
 
 from input4mips_validation.cvs_handling.exceptions import NonUniqueError
 from input4mips_validation.cvs_handling.input4MIPs.serialisation import converter_json

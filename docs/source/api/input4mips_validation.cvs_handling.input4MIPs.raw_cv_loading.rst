@@ -7,32 +7,35 @@ input4mips\_validation.cvs\_handling.input4MIPs.raw\_cv\_loading
 
 
 
-CVsRoot
-=======
+RawCVLoader
+===========
 
-.. autoclass:: CVsRoot
+.. autoclass:: RawCVLoader
    :members:
 
 
-get\_cvs\_root
-==============
+RawCVLoaderLocal
+================
 
-.. autofunction:: get_cvs_root
-
-
-get\_full\_path\_from\_known\_registry
-======================================
-
-.. autofunction:: get_full_path_from_known_registry
+.. autoclass:: RawCVLoaderLocal
+   :members:
 
 
-get\_full\_path\_no\_known\_registry
-====================================
+RawCVLoaderKnownRemoteRegistry
+==============================
 
-.. autofunction:: get_full_path_no_known_registry
+.. autoclass:: RawCVLoaderKnownRemoteRegistry
+   :members:
 
 
-load\_raw\_cv
-=============
+RawCVLoaderBaseURL
+==================
 
-.. autofunction:: load_raw_cv
+.. autoclass:: RawCVLoaderBaseURL
+   :members:
+
+
+get\_raw\_cvs\_loader
+=====================
+
+.. autofunction:: get_raw_cvs_loader

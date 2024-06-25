@@ -11,6 +11,8 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
+import pint
+import pint_xarray  # noqa: F401 # required to activate pint accessor
 import pytest
 import xarray as xr
 from attrs import asdict
@@ -32,6 +34,8 @@ from input4mips_validation.dataset import (
     Input4MIPsDatasetMetadataDataProducerMinimum,
 )
 from input4mips_validation.exceptions import DatasetMetadataInconsistencyError
+
+UR = pint.get_application_registry()
 
 DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
     (
@@ -56,7 +60,10 @@ def get_test_ds_metadata(
     time = pd.date_range("2000-01-01", periods=120, freq="MS")
 
     rng = np.random.default_rng()
-    ds_data = rng.random((lon.size, lat.size, time.size))
+    ds_data = UR.Quantity(
+        rng.random((lon.size, lat.size, time.size)),
+        "ppm",
+    )
 
     ds = xr.Dataset(
         data_vars={
@@ -75,11 +82,19 @@ def get_test_ds_metadata(
     metadata_valid_from_cvs = {
         k: v
         for k, v in asdict(valid_source_id_entry.values).items()
-        if k in ["activity_id"]
+        if k in ["activity_id", "mip_era", "institution_id", "version"]
     }
     metadata_valid = {
         **metadata_valid_from_cvs,
+        "dataset_category": "GHGConcentrations",
+        "frequency": "mon",
+        "grid_label": "gn",
+        "realm": "atmos",
         "source_id": valid_source_id_entry.source_id,
+        "target_mip": "CMIP",
+        "time_range": "-".join(
+            [f"{t.year:04d}{t.month:02d}" for t in [time[0], time[-1]]]
+        ),
         "variable_id": ds_variable,
     }
     metadata = Input4MIPsDatasetMetadata(**(metadata_valid | metadata_overrides))
@@ -144,7 +159,6 @@ def test_ds_more_than_one_var_error():
             )
 
 
-@pytest.mark.xfail(reason="write not implemented yet")
 def test_valid_writing_path(tmp_path):
     with patch.dict(
         os.environ,
@@ -162,37 +176,6 @@ def test_valid_writing_path(tmp_path):
         cvs = load_cvs(get_raw_cvs_loader())
 
     exp_out_file = tmp_path / cvs.get_file_path(metadata)
-    # Code for get_file_path
-    # Some notes from reading data request doc:
-    # - we're meant to use the CMIP data request variable names, not CF standards
-    #   so that there aren't hyphens in variable_id. We've clearly ignored that rule.
-    # - only [a-zA-Z0-9-] are allowed in file path names,
-    #   except where underscore is used as a separator
-
-    # exp_out_file = (
-    #     tmp_path
-    #     / metadata.activity_id
-    #     / metadata.mip_era
-    #     / metadata.target_mip
-    #     / metadata.institution_id
-    #     / metadata.source_id
-    #     / metadata.realm
-    #     / metadata.frequency
-    #     / metadata.variable_id
-    #     / metadata.grid_label
-    #     / metadata.version
-    #     / "_".join(
-    #         [
-    #             metadata.variable_id,
-    #             metadata.activity_id,
-    #             metadata.dataset_category,
-    #             metadata.target_mip,
-    #             metadata.source_id,
-    #             metadata.grid_label,
-    #             f"{metadata.time_range}.nc",
-    #         ]
-    #     )
-    # )
 
     assert out_file == exp_out_file
 

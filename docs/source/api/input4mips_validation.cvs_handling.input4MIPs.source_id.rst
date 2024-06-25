@@ -13,10 +13,10 @@ SOURCE\_ID\_FILENAME
 .. autodata:: SOURCE_ID_FILENAME
 
 
-SourceIDEntriesSerialised
-=========================
+SourceIDEntriesUnstructured
+===========================
 
-.. autodata:: SourceIDEntriesSerialised
+.. autodata:: SourceIDEntriesUnstructured
 
 
 SourceIDValues
@@ -40,13 +40,13 @@ SourceIDEntries
    :members:
 
 
-convert\_raw\_cv\_to\_source\_id\_entries
-=========================================
+convert\_unstructured\_cv\_to\_source\_id\_entries
+==================================================
 
-.. autofunction:: convert_raw_cv_to_source_id_entries
+.. autofunction:: convert_unstructured_cv_to_source_id_entries
 
 
-convert\_source\_id\_entries\_to\_raw\_cv
-=========================================
+convert\_source\_id\_entries\_to\_unstructured\_cv
+==================================================
 
-.. autofunction:: convert_source_id_entries_to_raw_cv
+.. autofunction:: convert_source_id_entries_to_unstructured_cv

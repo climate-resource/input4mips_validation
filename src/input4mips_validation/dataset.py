@@ -35,11 +35,38 @@ class Input4MIPsDatasetMetadata:
     activity_id: str
     """Activity ID that applies to the dataset"""
 
+    dataset_category: str
+    """The dataset's category"""
+
+    frequency: str
+    """Frequency of the data in the dataset"""
+
+    grid_label: str
+    """Grid label of the data in the dataset"""
+
+    institution_id: str
+    """Institution ID of the institution that created the dataset"""
+
+    mip_era: str
+    """The MIP era that applies to the dataset"""
+
+    realm: str
+    """The dataset's realm"""
+
     source_id: str
     """Source ID that applies to the dataset"""
 
+    target_mip: str
+    """The dataset's target MIP"""
+
+    time_range: str
+    """The dataset's time range"""
+
     variable_id: str
     """The ID of the variable contained in the dataset"""
+
+    version: str
+    """The version ID of the dataset"""
 
     metadata_non_cvs: dict[str, Any] | None = field(default=None)
     """Other metadata fields that aren't covered by the CVs"""
@@ -61,6 +88,25 @@ class Input4MIPsDatasetMetadata:
                 f"Clashing keys: {clashing_keys}"
             )
             raise AssertionError(msg)
+
+    @property
+    def to_ds_metadata(self) -> dict[str, str]:
+        """
+        Convert to {py:attr}`xr.Dataset.attrs` compatible values
+
+        For example, this ensures that {py:attr}`metadata_non_cvs`
+        is only included if it is not ``None``.
+
+        Returns
+        -------
+            {py:attr}`xr.Dataset.attrs` compatible values
+        """
+        res = {k: v for k, v in asdict(self).items() if k != "metadata_non_cvs"}
+        if self.metadata_non_cvs is not None:
+            # Add other keys in too
+            res = self.metadata_non_cvs | res
+
+        return res
 
 
 @define
@@ -251,6 +297,8 @@ class Input4MIPsDataset:
     Metadata about the dataset
     """
 
+    # Might be worth adding CVs as an attribute of the dataset...
+
     @property
     def ds_var(self) -> str:
         """
@@ -342,6 +390,7 @@ class Input4MIPsDataset:
         root_data_dir: Path,
         unlimited_dims: tuple[str, ...] = ("time",),
         encoding_kwargs: dict[str, Any] | None = None,
+        cvs: CVsInput4MIPs | None = None,
     ) -> Path:
         """
         Write to disk
@@ -359,8 +408,87 @@ class Input4MIPsDataset:
             These are passed to :meth:`xr.Dataset.to_netcdf`.
             If not supplied, we use :const:`DEFAULT_ENCODING_KWARGS`
 
+        cvs
+            CVs to use for validation
+
+            If not supplied, this will be retrieved with
+            {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
+
         Returns
         -------
             Path in which the file was written
         """
-        ...
+        if cvs is None:
+            cvs = load_cvs()
+
+        if encoding_kwargs is None:
+            encoding_kwargs = DEFAULT_ENCODING_KWARGS
+
+        out_path = root_data_dir / cvs.get_file_path(self.metadata)
+
+        # Can shallow copy as we don't alter the data from here on
+        ds_disk = self.ds.copy(deep=False).pint.dequantify(
+            format=PINT_DEQUANTIFY_FORMAT
+        )
+
+        # Add all the metadata
+        ds_disk.attrs = self.metadata.to_ds_metadata
+
+        # # Must be unique for every written file,
+        # # so we deliberately don't provide a way
+        # # for the user to overwrite this at present
+        # ds_disk.attrs["tracking_id"] = generate_tracking_id()
+        # ds_disk.attrs["creation_date"] = generate_creation_timestamp()
+
+        return write(
+            ds=ds_disk,
+            out_path=out_path,
+            unlimited_dims=unlimited_dims,
+            encoding={self.ds_var: encoding_kwargs},
+        )
+
+
+PINT_DEQUANTIFY_FORMAT = "cf"
+"""
+Format string to use when dequantifying variables with pint
+"""
+
+DEFAULT_ENCODING_KWARGS = {"zlib": True, "complevel": 5}
+"""Default values to use when encoding netCDF files"""
+
+
+def write(
+    ds: xr.Dataset,
+    out_path: Path,
+    unlimited_dims: tuple[str, ...],
+    encoding: dict[str, Any],
+) -> Path:
+    """
+    Write a dataset to disk
+
+    Parameters
+    ----------
+    ds
+        Dataset to write to disk
+
+    out_path
+        Path in which to write the dataset
+
+    unlimited_dims
+        Dimensions which should be written as unlimited
+
+    encoding
+        Encoding to apply when writing
+
+    Returns
+    -------
+        Path in which the dataset was written
+    """
+    # As part of https://github.com/climate-resource/input4mips_validation/issues/14
+    # add final validation here for bullet proofness
+
+    # Having validated, make the target directory and write
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    ds.to_netcdf(out_path, unlimited_dims=unlimited_dims, encoding=encoding)
+
+    return out_path

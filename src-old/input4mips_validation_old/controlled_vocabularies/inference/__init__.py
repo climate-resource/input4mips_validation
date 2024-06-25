@@ -74,7 +74,7 @@ def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
     # # don't exist in the mixed Julian/Gregorian calendar,
     # # so you don't get the right number of days for October 1582
     # # if you do it like this.
-    # # Hence have to use the hack below instead.
+    # ```
     # timestep_size = (
     #     ds["time_bounds"].sel(bounds=1) - ds["time_bounds"].sel(bounds=0)
     # ).dt.days
@@ -85,6 +85,8 @@ def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
     #     (timestep_size >= MIN_DAYS_IN_MONTH) & (timestep_size <= MAX_DAYS_IN_MONTH)
     # ).all():
     #     return "mon"
+    # ```
+    # # Hence have to use the hack below instead.
 
     start_years = ds["time_bounds"].sel(bounds=0).dt.year
     start_months = ds["time_bounds"].sel(bounds=0).dt.month

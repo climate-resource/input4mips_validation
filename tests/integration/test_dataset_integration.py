@@ -186,24 +186,17 @@ def test_from_data_producer_minimum_information():
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
-        ds, _ = get_test_ds_metadata()
+        ds, exp_metadata = get_test_ds_metadata()
 
         exp = Input4MIPsDataset(
             ds=ds,
-            metadata=Input4MIPsDatasetMetadata(
-                activity_id="input4MIPs",
-                source_id=source_id,
-                variable_id=list(ds.data_vars)[0],  # noqa: RUF015
-                metadata_non_cvs=None,
-            ),
+            metadata=exp_metadata,
         )
 
         res = Input4MIPsDataset.from_data_producer_minimum_information(
             ds=ds,
-            dimensions=(),
-            time_dimension="time",
             metadata_minimum=Input4MIPsDatasetMetadataDataProducerMinimum(
-                source_id=source_id
+                grid_label="gn", source_id=source_id, target_mip="CMIP"
             ),
         )
 

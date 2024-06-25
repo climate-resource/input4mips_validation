@@ -7,11 +7,19 @@ from pathlib import Path
 from typing import Any, Callable
 
 import attr
+import cf_xarray  # noqa: F401
 import xarray as xr
 from attrs import asdict, define, field, frozen
 
+import input4mips_validation.xarray_helpers as iv_xr_helpers
 from input4mips_validation.cvs_handling.input4MIPs.cv_loading import load_cvs
 from input4mips_validation.cvs_handling.input4MIPs.cvs import CVsInput4MIPs
+from input4mips_validation.cvs_handling.input4MIPs.cvs_inference import (
+    VARIABLE_DATASET_CATEGORY_MAP,
+    VARIABLE_REALM_MAP,
+    infer_frequency,
+    infer_time_range,
+)
 from input4mips_validation.cvs_handling.input4MIPs.dataset_validation import (
     assert_consistency_between_source_id_and_other_values,
     assert_in_cvs,
@@ -106,6 +114,23 @@ class Input4MIPsDatasetMetadata:
 class Input4MIPsDatasetMetadataDataProducerMinimum:
     """
     Minimum metadata required from an input4MIPs dataset producer
+    """
+
+    grid_label: str
+    """
+    The grid label that applies to the dataset
+
+    We may be able to remove this in future,
+    but right now the rules around calculating grid label are not clear to us.
+    """
+
+    target_mip: str
+    """
+    The dataset's target MIP
+
+    This should be inferrable in the future, but isn't currently
+    because we don't include the target experiment information
+    nor a mapping from experiment to target MIP.
     """
 
     source_id: str
@@ -274,7 +299,7 @@ class Input4MIPsDataset:
     """
 
     @cvs.default
-    def _load_default_cvs(self):
+    def _load_default_cvs(self) -> CVsInput4MIPs:
         return load_cvs()
 
     @property
@@ -294,9 +319,9 @@ class Input4MIPsDataset:
     def from_data_producer_minimum_information(  # noqa: PLR0913
         cls,
         ds: xr.Dataset,
-        dimensions: tuple[str, ...],
-        time_dimension: str,
         metadata_minimum: Input4MIPsDatasetMetadataDataProducerMinimum,
+        dimensions: tuple[str, ...] | None = None,
+        time_dimension: str = "time",
         metadata_non_cvs: dict[str, Any] | None = None,
         add_time_bounds: Callable[[xr.Dataset], xr.Dataset] | None = None,
         copy: bool = True,
@@ -310,17 +335,20 @@ class Input4MIPsDataset:
         ds
             Raw dataset
 
+        metadata_minimum
+            Minimum metadata required from the data producer
+
         dimensions
             Dimensions of the dataset other than the time dimension,
             these are checked for appropriate bounds.
             Bounds are added if they are not present.
 
+            If not supplied, we simply use all the dimensions of ``ds``
+            in the order they appear in the dataset.
+
         time_dimension
             Time dimension of the dataset.
             This is singled out because handling time bounds is often a special case.
-
-        metadata_minimum
-            Minimum metadata required from the data producer
 
         metadata_non_cvs
             Any other metadata the data producer would like to provider
@@ -349,15 +377,48 @@ class Input4MIPsDataset:
         AssertionError
             There is a clash between ``metadata_optional`` and the inferred metadata
         """
+        if dimensions is None:
+            dimensions = tuple(ds.dims)  # type: ignore
+
+        if add_time_bounds is None:
+            add_time_bounds = iv_xr_helpers.add_time_bounds
+
         if cvs is None:
             cvs = load_cvs()
 
         cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]
 
+        # add extra metadata following CF conventions, not really sure what
+        # this does but it's free so we include it on the assumption that they
+        # know more than we do
+        ds = ds.cf.guess_coord_axis().cf.add_canonical_attributes()
+
+        # add bounds to dimensions
+        for dim in dimensions:
+            if dim == time_dimension:
+                ds = add_time_bounds(ds)
+            else:
+                ds = ds.cf.add_bounds(dim)
+
+        cvs_values = cvs_source_id_entry.values
+        variable_id = get_ds_var_assert_single(ds)
+        frequency = infer_frequency(ds, time_bounds=f"{time_dimension}_bounds")
+
         metadata = Input4MIPsDatasetMetadata(
+            activity_id=cvs_values.activity_id,
+            dataset_category=VARIABLE_DATASET_CATEGORY_MAP[variable_id],
+            frequency=frequency,
+            grid_label=metadata_minimum.grid_label,
+            institution_id=cvs_values.institution_id,
+            realm=VARIABLE_REALM_MAP[variable_id],
+            mip_era=cvs_values.mip_era,
             source_id=metadata_minimum.source_id,
-            activity_id=cvs_source_id_entry.values.activity_id,
-            variable_id=get_ds_var_assert_single(ds),
+            target_mip=metadata_minimum.target_mip,
+            time_range=infer_time_range(
+                ds, frequency=frequency, time_dimension=time_dimension
+            ),
+            variable_id=variable_id,
+            version=cvs_values.version,
             metadata_non_cvs=metadata_non_cvs,
         )
 

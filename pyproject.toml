@@ -53,6 +53,7 @@ pre-commit = "^3.3.1"
 towncrier = "^23.6.0"
 liccheck = "^0.9.1"
 types-requests = "^2.31.0.20240125"
+pandas-stubs = "^2.2.2.240603"
 
 [tool.poetry.scripts]
 input4mips-validation = "input4mips_validation.cli:app"

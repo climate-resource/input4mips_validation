@@ -213,7 +213,7 @@ def assert_all_valid_filepath_characters(inp: str | Path) -> None:
     assert_only_valid_chars(inp, valid_chars=valid_chars)
 
 
-def assert_only_valid_chars(inp: str | Path, valid_chars: set[str]):
+def assert_only_valid_chars(inp: str | Path, valid_chars: set[str]) -> None:
     """
     Assert that the input only contains valid characters
 

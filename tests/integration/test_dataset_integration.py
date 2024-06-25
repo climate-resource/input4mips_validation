@@ -16,7 +16,10 @@ import xarray as xr
 from attrs import asdict
 
 from input4mips_validation.attrs_helpers import AttributeInitialisationError
-from input4mips_validation.cvs_handling.exceptions import InconsistentWithCVsError
+from input4mips_validation.cvs_handling.exceptions import (
+    InconsistentWithCVsError,
+    NotInCVsError,
+)
 from input4mips_validation.cvs_handling.input4MIPs.cv_loading import (
     load_cvs,
 )
@@ -246,7 +249,54 @@ def test_ds_variable_metadata_variable_mismatch_error():
             Input4MIPsDataset(ds=ds, metadata=metadata)
 
 
-# TODO: Test of values that aren't in CV
+@pytest.mark.parametrize(
+    "cv_source, key_to_test, value_to_apply",
+    (
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "activity_id",
+            "junk",
+        ),
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "source_id",
+            "junk",
+        ),
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "institution_id",
+        #     "junk",
+        # ),
+        # License logic is much more complicated and depends on other things
+        # so maybe don't include here
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "license",
+        #     "license text",
+        # ),
+        # (
+        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        #     "mip_era",
+        #     "junk",
+        # ),
+    ),
+)
+def test_value_not_in_cv(cv_source, key_to_test, value_to_apply):
+    """
+    Test that an error is raised if we use a value that is not in the CVs
+    """
+    with patch.dict(os.environ, {"INPUT4MIPS_VALIDATION_CV_SOURCE": cv_source}):
+        ds, metadata = get_test_ds_metadata(
+            metadata_overrides={key_to_test: value_to_apply}
+        )
+
+        error_msg = (
+            f"Received {key_to_test}={value_to_apply!r}. "
+            "This is not in the available CV values:.*"
+            + re.escape(f"CVs raw data loaded with: {get_raw_cvs_loader()}. ")
+        )
+        with pytest.raises(NotInCVsError, match=error_msg):
+            Input4MIPsDataset(ds=ds, metadata=metadata)
 
 
 @pytest.mark.parametrize(

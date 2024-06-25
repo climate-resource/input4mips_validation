@@ -15,6 +15,7 @@ import pytest
 import xarray as xr
 from attrs import asdict
 
+from input4mips_validation.attrs_helpers import AttributeInitialisationError
 from input4mips_validation.cvs_handling.exceptions import InconsistentWithCVsError
 from input4mips_validation.cvs_handling.input4MIPs.cv_loading import (
     load_cvs,
@@ -37,7 +38,7 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
 
 
 def get_test_ds_metadata(
-    ds_variable: str = "mole-fraction-of-carbon-dioxide-in-air",
+    ds_variable: str = "mole_fraction_of_carbon_dioxide_in_air",
     ds_attrs: dict[str, Any] | None = None,
     metadata_overrides: dict[str, Any] | None = None,
 ) -> tuple[xr.Dataset, Input4MIPsDatasetMetadata]:
@@ -113,6 +114,31 @@ def test_ds_var_property():
     # (which is same as what is in the data because metadata and data are
     # checked as being consistent at initialisation time)
     assert res == metadata.variable_id
+
+
+def test_ds_more_than_one_var_error():
+    with patch.dict(
+        os.environ,
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+    ):
+        ds, metadata = get_test_ds_metadata()
+
+        # Add a second variable to the dataset
+        first_variable_name = list(ds.data_vars)[0]  # noqa: RUF015
+        second = (
+            ds.data_vars[first_variable_name]
+            .copy()
+            .rename(f"{first_variable_name}_extra")
+        )
+
+        ds = ds.merge(second)
+
+        error_msg = "Error raised while initialising attribute ``ds``"
+        with pytest.raises(AttributeInitialisationError, match=error_msg):
+            Input4MIPsDataset(
+                ds=ds,
+                metadata=metadata,
+            )
 
 
 @pytest.mark.xfail(reason="write not implemented yet")

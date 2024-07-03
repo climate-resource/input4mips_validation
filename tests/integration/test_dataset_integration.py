@@ -291,12 +291,12 @@ def test_value_not_in_cv(cv_source, key_to_test, value_to_apply):
         #     "contact",
         #     "zeb@cr.com",
         # ),
-        # (
-        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
-        #     "CR-CMIP-0-2-0",
-        #     "further_info_url",
-        #     "http://www.tbd.com/elsewhere",
-        # ),
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "CR-CMIP-0-2-0",
+            "further_info_url",
+            "http://www.tbd.com/elsewhere",
+        ),
         # (
         #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
         #     "CR-CMIP-0-2-0",

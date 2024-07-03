@@ -114,7 +114,7 @@ def assert_source_id_entry_is_valid(entry: SourceIDEntry, cvs: CVsInput4MIPs) ->
     # Further info URL
     assert_is_url_like(
         value=entry.values.further_info_url,
-        description="further_info_url value",
+        description=f"further_info_url for source_id entry {entry.source_id!r}",
     )
 
     # Institution ID

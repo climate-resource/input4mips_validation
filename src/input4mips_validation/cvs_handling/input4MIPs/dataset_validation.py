@@ -53,6 +53,7 @@ def assert_in_cvs(
 def assert_consistency_between_source_id_and_other_values(
     source_id: str,
     activity_id: str,
+    further_info_url: str,
     institution_id: str,
     cvs: CVsInput4MIPs | None = None,
 ) -> None:
@@ -66,6 +67,9 @@ def assert_consistency_between_source_id_and_other_values(
 
     activity_id
         Activity ID
+
+    further_info_url
+        URL pointing to where further information can be found
 
     institution_id
         institution ID
@@ -86,6 +90,7 @@ def assert_consistency_between_source_id_and_other_values(
 
     values_to_check = {
         "activity_id": activity_id,
+        "further_info_url": further_info_url,
         "institution_id": institution_id,
     }
 

@@ -65,10 +65,9 @@ class CVsInput4MIPs:
     # data_reference_syntax: DataReferenceSyntax
     # """Data reference syntax (drs) specification"""
 
-    # instutition_ids: tuple[str, ...]
-    # """Recognised institution IDs"""
-    # These should be linked back to the global CVs somehow
-    # (probably as part of validation)
+    institution_ids: tuple[str, ...]
+    """Recognised institution IDs"""
+    # TODO: check these against the global CVs when validating
 
     # license: LicenseSpecification
     # """License specification that can be used with the data"""

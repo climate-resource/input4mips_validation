@@ -59,7 +59,7 @@ def test_activity_id_is_not_url_error():
                     activity_id="CMIP",
                     values=ActivityIDValues(
                         long_name="Some string",
-                        url="Obviously not a URL",
+                        URL="Obviously not a URL",
                     ),
                 ),
             ),
@@ -67,7 +67,7 @@ def test_activity_id_is_not_url_error():
     )
 
     error_msg = re.escape(
-        "url for activity_id entry 'CMIP' has a value of 'Obviously not a URL'. "
+        "URL for activity_id entry 'CMIP' has a value of 'Obviously not a URL'. "
         "This should be a URL (use `www.tbd.invalid` as a placeholder if you need)."
     )
     with pytest.raises(NotURLError, match=error_msg):

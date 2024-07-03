@@ -66,7 +66,7 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
                                     "esm-piControl, esm-historical, historical, "
                                     "and piControl experiments"
                                 ),
-                                url="https://gmd.copernicus.org/articles/9/1937/2016/gmd-9-1937-2016.pdf",
+                                URL="https://gmd.copernicus.org/articles/9/1937/2016/gmd-9-1937-2016.pdf",
                             ),
                         ),
                         ActivityIDEntry(
@@ -76,7 +76,7 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
                                     "input forcing datasets for "
                                     "Model Intercomparison Projects"
                                 ),
-                                url="https://pcmdi.llnl.gov/mips/input4MIPs/",
+                                URL="https://pcmdi.llnl.gov/mips/input4MIPs/",
                             ),
                         ),
                     ),

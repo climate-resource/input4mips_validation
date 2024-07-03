@@ -74,6 +74,37 @@ def test_activity_id_is_not_url_error():
         assert_cvs_are_valid(inp)
 
 
+def test_further_info_url_is_not_url_error():
+    start = load_cvs(
+        raw_cvs_loader=get_raw_cvs_loader(cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
+    )
+
+    base_source_id_entry = start.source_id_entries.entries[0]
+    bad_url_value = "Obviously not a URL"
+    inp = evolve(
+        start,
+        source_id_entries=SourceIDEntries(
+            (
+                SourceIDEntry(
+                    source_id=base_source_id_entry.source_id,
+                    values=evolve(
+                        base_source_id_entry.values,
+                        further_info_url=bad_url_value,
+                    ),
+                ),
+            ),
+        ),
+    )
+
+    error_msg = re.escape(
+        f"further_info_url for source_id entry {base_source_id_entry.source_id!r} "
+        f"has a value of {bad_url_value!r}. "
+        "This should be a URL (use `www.tbd.invalid` as a placeholder if you need)."
+    )
+    with pytest.raises(NotURLError, match=error_msg):
+        assert_cvs_are_valid(inp)
+
+
 @pytest.mark.parametrize(
     "cv_source, source_id, key_to_test, value_to_apply, exp_cv_valid_values_source",
     (

@@ -9,14 +9,14 @@ from __future__ import annotations
 from collections.abc import Collection
 from typing import Any
 
-import validators
-
 from input4mips_validation.cvs_handling.exceptions import (
     InternallyInconsistentCVsError,
-    NotURLError,
 )
 from input4mips_validation.cvs_handling.input4MIPs.activity_id import ActivityIDEntry
 from input4mips_validation.cvs_handling.input4MIPs.cvs import CVsInput4MIPs
+from input4mips_validation.cvs_handling.input4MIPs.general_validation import (
+    assert_is_url_like,
+)
 from input4mips_validation.cvs_handling.input4MIPs.source_id import SourceIDEntry
 
 
@@ -71,20 +71,16 @@ def assert_activity_id_entry_is_valid(entry: ActivityIDEntry) -> None:
     NotURLError
         ``entry.url`` is not a URL
     """
+    assert_is_url_like(
+        value=entry.values.URL,
+        description=f"URL for activity_id entry {entry.activity_id!r}",
+    )
     # TODO: work out
     #
     # - whether this should also be consistent with
     #   some global source from the multiverse
     #
     # - whether there are any restrictions on long_name
-
-    if not validators.url(entry.values.URL):
-        raise NotURLError(
-            bad_value=entry.values.URL,
-            cv_location_description=(
-                f"URL for activity_id entry {entry.activity_id!r}"
-            ),
-        )
 
 
 def assert_source_id_entry_is_valid(entry: SourceIDEntry, cvs: CVsInput4MIPs) -> None:
@@ -113,6 +109,12 @@ def assert_source_id_entry_is_valid(entry: SourceIDEntry, cvs: CVsInput4MIPs) ->
         source_key=f"For source_id {entry.source_id!r}, activity_id",
         cv_valid_values=cvs.activity_id_entries.activity_ids,
         cv_valid_values_source_key="cvs.activity_id_entries.activity_ids",
+    )
+
+    # Further info URL
+    assert_is_url_like(
+        value=entry.values.further_info_url,
+        description=f"further_info_url for source_id entry {entry.source_id!r}",
     )
 
     # Institution ID

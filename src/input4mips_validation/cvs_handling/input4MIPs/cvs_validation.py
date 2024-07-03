@@ -78,11 +78,11 @@ def assert_activity_id_entry_is_valid(entry: ActivityIDEntry) -> None:
     #
     # - whether there are any restrictions on long_name
 
-    if not validators.url(entry.values.url):
+    if not validators.url(entry.values.URL):
         raise NotURLError(
-            bad_value=entry.values.url,
+            bad_value=entry.values.URL,
             cv_location_description=(
-                f"url for activity_id entry {entry.activity_id!r}"
+                f"URL for activity_id entry {entry.activity_id!r}"
             ),
         )
 

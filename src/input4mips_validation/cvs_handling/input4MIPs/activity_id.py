@@ -35,7 +35,7 @@ class ActivityIDValues:
     long_name: str
     """Long name/description of the activity"""
 
-    url: str
+    URL: str
     """URL where information about this activity can be found"""
 
 

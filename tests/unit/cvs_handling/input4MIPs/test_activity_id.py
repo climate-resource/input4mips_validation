@@ -20,7 +20,7 @@ def test_conflicting_activity_ids():
     activity_id = "activity-id-1"
     activity_id_different = "activity-id-1837"
     values = ActivityIDValues(
-        url="www.placeholder.invalid",
+        URL="www.placeholder.invalid",
         long_name="Long name here",
     )
 
@@ -46,7 +46,7 @@ def test_activity_id_entries_convenience_methods():
         ActivityIDEntry(
             activity_id=f"activity_id_{i}",
             values=ActivityIDValues(
-                url=f"www.tbd-{i}.invalid",
+                URL=f"www.tbd-{i}.invalid",
                 long_name=f"Test value {i}",
             ),
         )

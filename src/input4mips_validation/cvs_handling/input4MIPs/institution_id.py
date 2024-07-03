@@ -21,7 +21,7 @@ InstitutionIDEntriesUnstructured: TypeAlias = dict[str, list[str]]
 
 def convert_unstructured_cv_to_institution_ids(
     unstructured: InstitutionIDEntriesUnstructured,
-) -> list[str]:
+) -> tuple[str, ...]:
     """
     Convert the raw CV data to a {py:obj}`list` of `str`
 
@@ -34,7 +34,7 @@ def convert_unstructured_cv_to_institution_ids(
     -------
         Institution IDs
     """
-    return converter_json.structure(unstructured["institution_id"], list[str])
+    return converter_json.structure(unstructured["institution_id"], tuple[str, ...])
 
 
 def convert_institution_ids_to_unstructured_cv(

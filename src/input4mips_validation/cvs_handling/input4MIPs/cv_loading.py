@@ -66,7 +66,7 @@ def load_source_id_entries(
 
 def load_institution_ids(
     raw_cvs_loader: RawCVLoader,
-) -> SourceIDEntries:
+) -> tuple[str, ...]:
     """
     Load the instution IDs in the CVs
 

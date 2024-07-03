@@ -81,6 +81,11 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
                         ),
                     ),
                 ),
+                institution_ids=(
+                    "CR",
+                    "PCMDI",
+                    "PNNL-JGCRI",
+                ),
                 source_id_entries=SourceIDEntries(
                     (
                         SourceIDEntry(

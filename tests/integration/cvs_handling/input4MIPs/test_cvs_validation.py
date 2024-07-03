@@ -84,12 +84,13 @@ def test_activity_id_is_not_url_error():
             "junk",
             "cvs.activity_id_entries.activity_ids",
         ),
-        # (
-        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
-        #     "CR-CMIP-0-2-0",
-        #     "institution_id",
-        #     "Cr",
-        # ),
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "CR-CMIP-0-2-0",
+            "institution_id",
+            "Cr",
+            "cvs.institution_ids",
+        ),
         # (
         #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
         #     "CR-CMIP-0-2-0",

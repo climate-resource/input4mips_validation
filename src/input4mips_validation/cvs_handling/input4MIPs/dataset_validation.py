@@ -51,7 +51,10 @@ def assert_in_cvs(
 
 
 def assert_consistency_between_source_id_and_other_values(
-    source_id: str, activity_id: str, cvs: CVsInput4MIPs | None = None
+    source_id: str,
+    activity_id: str,
+    institution_id: str,
+    cvs: CVsInput4MIPs | None = None,
 ) -> None:
     """
     Assert that there is consistency between source ID and values that it determines
@@ -64,18 +67,26 @@ def assert_consistency_between_source_id_and_other_values(
     activity_id
         Activity ID
 
+    institution_id
+        institution ID
+
     cvs
         CVs to use for validation
 
         If not supplied, this will be retrieved with
         {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
 
+    Raises
+    ------
+    InconsistentWithCVsError
+        One of the values is inconsistent with the value implied by the CVs
     """
     if cvs is None:
         cvs = load_cvs()
 
     values_to_check = {
         "activity_id": activity_id,
+        "institution_id": institution_id,
     }
 
     source_id_entry_from_cvs = cvs.source_id_entries[source_id]

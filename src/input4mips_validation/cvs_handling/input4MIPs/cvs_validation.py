@@ -115,14 +115,14 @@ def assert_source_id_entry_is_valid(entry: SourceIDEntry, cvs: CVsInput4MIPs) ->
         cv_valid_values_source_key="cvs.activity_id_entries.activity_ids",
     )
 
-    # # Institution ID
-    # assert_consistent_with_other_values_in_cvs(
-    #     value=entry.values.institution_id,
-    #     source_key=f"For source_id {entry.source_id!r}, institution_id",
-    #     cv_valid_values=cvs.institution_id_entries.institution_ids,
-    #     cv_valid_values_source_key="cvs.institution_id_entries.institution_ids",
-    # )
-    #
+    # Institution ID
+    assert_consistent_with_other_values_in_cvs(
+        value=entry.values.institution_id,
+        source_key=f"For source_id {entry.source_id!r}, institution_id",
+        cv_valid_values=cvs.institution_ids,
+        cv_valid_values_source_key="cvs.institution_ids",
+    )
+
     # License
     # assert_license_entry_is_valid(entry.values.license, cvs=cvs)
     #
@@ -160,7 +160,7 @@ def assert_cvs_are_valid(cvs: CVsInput4MIPs) -> None:
     # (noting that some parts of the CV come from outside input4MIPs e.g. realm)
 
     # Institution ID
-    # Validate against some global source?
+    # TODO: Validate against some global source
 
     # License
     # Validate against some global source?

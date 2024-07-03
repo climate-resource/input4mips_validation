@@ -10,6 +10,7 @@ from pathlib import Path
 
 from input4mips_validation.cvs_handling.input4MIPs import (
     ACTIVITY_ID_FILENAME,
+    INSTITUTION_ID_FILENAME,
     SOURCE_ID_FILENAME,
     ActivityIDEntries,
     ActivityIDEntry,
@@ -20,6 +21,9 @@ from input4mips_validation.cvs_handling.input4MIPs import (
 )
 from input4mips_validation.cvs_handling.input4MIPs.activity_id import (
     convert_activity_id_entries_to_unstructured_cv,
+)
+from input4mips_validation.cvs_handling.input4MIPs.institution_id import (
+    convert_institution_ids_to_unstructured_cv,
 )
 from input4mips_validation.cvs_handling.input4MIPs.source_id import (
     convert_source_id_entries_to_unstructured_cv,
@@ -93,6 +97,8 @@ source_id_entries = SourceIDEntries(
     )
 )
 
+institution_ids = ["CR", "PCMDI", "PNNL-JGCRI"]
+
 test_input4mips_cvs_dir.mkdir(parents=True, exist_ok=True)
 
 with open(test_input4mips_cvs_dir / ACTIVITY_ID_FILENAME, "w") as fh:
@@ -100,6 +106,11 @@ with open(test_input4mips_cvs_dir / ACTIVITY_ID_FILENAME, "w") as fh:
         json_dumps_cv_style(
             convert_activity_id_entries_to_unstructured_cv(activity_id_entries)
         )
+    )
+
+with open(test_input4mips_cvs_dir / INSTITUTION_ID_FILENAME, "w") as fh:
+    fh.write(
+        json_dumps_cv_style(convert_institution_ids_to_unstructured_cv(institution_ids))
     )
 
 with open(test_input4mips_cvs_dir / SOURCE_ID_FILENAME, "w") as fh:

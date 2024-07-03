@@ -20,6 +20,7 @@ from attrs import asdict
 from input4mips_validation.cvs_handling.exceptions import (
     InconsistentWithCVsError,
     NotInCVsError,
+    NotURLError,
 )
 from input4mips_validation.cvs_handling.input4MIPs.cv_loading import (
     load_cvs,
@@ -356,4 +357,31 @@ def test_value_conflict_with_source_id_inferred_value(
             f"CVs raw data loaded with: {get_raw_cvs_loader()}. "
         )
         with pytest.raises(InconsistentWithCVsError, match=error_msg):
+            Input4MIPsDataset(ds=ds, metadata=metadata)
+
+
+@pytest.mark.parametrize(
+    "cv_source, key_to_test, value_to_apply",
+    (
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "further_info_url",
+            "Obviously not a URL",
+        ),
+    ),
+)
+def test_value_not_a_url(cv_source, key_to_test, value_to_apply):
+    """
+    Test that an error is raised if we use a value that is not a URL
+    """
+    with patch.dict(os.environ, {"INPUT4MIPS_VALIDATION_CV_SOURCE": cv_source}):
+        ds, metadata = get_test_ds_metadata(
+            metadata_overrides={key_to_test: value_to_apply}
+        )
+
+        error_msg = re.escape(
+            "further_info_url has a value of 'Obviously not a URL'. "
+            "This should be a URL (use `www.tbd.invalid` as a placeholder if you need)."
+        )
+        with pytest.raises(NotURLError, match=error_msg):
             Input4MIPsDataset(ds=ds, metadata=metadata)

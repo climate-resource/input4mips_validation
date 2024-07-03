@@ -42,6 +42,9 @@ class Input4MIPsDatasetMetadata:
     frequency: str
     """Frequency of the data in the dataset"""
 
+    # further_info_url: str
+    # """URL that provides further information about the data"""
+    #
     grid_label: str
     """Grid label of the data in the dataset"""
 
@@ -165,6 +168,8 @@ def validate_ds_metadata(
         cv_values=cvs.activity_id_entries.activity_ids,
         cvs=cvs,
     )
+
+    # Further info URL
 
     # Institution ID
     assert_in_cvs(

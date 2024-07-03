@@ -47,7 +47,7 @@ class NotURLError(ValueError):
 
     def __init__(
         self,
-        cv_location_description: str,
+        description: str,
         bad_value: Any,
     ) -> None:
         """
@@ -55,8 +55,8 @@ class NotURLError(ValueError):
 
         Parameters
         ----------
-        cv_location_description
-            Description of the location in the CVs at which the bad value occured.
+        description
+            Description of the location at which the non-URL value occured.
 
            E.g. "url property of activity ID entry 'CMIP'",
            "further_info_url for source_id 'CR-CMIP-0-2-0'"
@@ -65,7 +65,7 @@ class NotURLError(ValueError):
             Value that was used for ``cvs_key``
         """
         error_msg = (
-            f"{cv_location_description} has a value of {bad_value!r}. "
+            f"{description} has a value of {bad_value!r}. "
             "This should be a URL "
             "(use `www.tbd.invalid` as a placeholder if you need)."
         )

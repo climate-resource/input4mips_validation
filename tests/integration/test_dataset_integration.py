@@ -81,7 +81,8 @@ def get_test_ds_metadata(
     metadata_valid_from_cvs = {
         k: v
         for k, v in asdict(valid_source_id_entry.values).items()
-        if k in ["activity_id", "mip_era", "institution_id", "version"]
+        if k
+        in ["activity_id", "further_info_url", "institution_id", "mip_era", "version"]
     }
     metadata_valid = {
         **metadata_valid_from_cvs,

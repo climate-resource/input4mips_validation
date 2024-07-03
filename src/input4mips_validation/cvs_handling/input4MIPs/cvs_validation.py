@@ -111,6 +111,12 @@ def assert_source_id_entry_is_valid(entry: SourceIDEntry, cvs: CVsInput4MIPs) ->
         cv_valid_values_source_key="cvs.activity_id_entries.activity_ids",
     )
 
+    # Further info URL
+    assert_is_url_like(
+        value=entry.values.further_info_url,
+        description="further_info_url value",
+    )
+
     # Institution ID
     assert_consistent_with_other_values_in_cvs(
         value=entry.values.institution_id,

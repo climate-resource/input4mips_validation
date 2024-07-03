@@ -24,6 +24,9 @@ from input4mips_validation.cvs_handling.input4MIPs.dataset_validation import (
     assert_consistency_between_source_id_and_other_values,
     assert_in_cvs,
 )
+from input4mips_validation.cvs_handling.input4MIPs.general_validation import (
+    assert_is_url_like,
+)
 from input4mips_validation.exceptions import DatasetMetadataInconsistencyError
 
 
@@ -42,9 +45,9 @@ class Input4MIPsDatasetMetadata:
     frequency: str
     """Frequency of the data in the dataset"""
 
-    # further_info_url: str
-    # """URL that provides further information about the data"""
-    #
+    further_info_url: str
+    """URL that provides further information about the data"""
+
     grid_label: str
     """Grid label of the data in the dataset"""
 
@@ -170,6 +173,10 @@ def validate_ds_metadata(
     )
 
     # Further info URL
+    assert_is_url_like(
+        value=value.further_info_url,
+        description="further_info_url",
+    )
 
     # Institution ID
     assert_in_cvs(
@@ -422,6 +429,7 @@ class Input4MIPsDataset:
             activity_id=cvs_values.activity_id,
             dataset_category=VARIABLE_DATASET_CATEGORY_MAP[variable_id],
             frequency=frequency,
+            further_info_url=cvs_values.further_info_url,
             grid_label=metadata_minimum.grid_label,
             institution_id=cvs_values.institution_id,
             realm=VARIABLE_REALM_MAP[variable_id],

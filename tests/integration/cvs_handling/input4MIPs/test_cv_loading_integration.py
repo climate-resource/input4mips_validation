@@ -81,6 +81,11 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
                         ),
                     ),
                 ),
+                institution_ids=[
+                    "CR",
+                    "PCMDI",
+                    "PNNL-JGCRI",
+                ],
                 source_id_entries=SourceIDEntries(
                     (
                         SourceIDEntry(
@@ -112,11 +117,6 @@ are excluded to the fullest extent permitted by law.""".replace("\n", " "),
                         ),
                     ),
                 ),
-                institution_ids=[
-                    "CR",
-                    "PCMDI",
-                    "PNNL-JGCRI",
-                ],
             ),
             id="local_test_files",
         ),

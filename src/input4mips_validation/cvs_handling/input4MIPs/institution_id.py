@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from typing_extensions import TypeAlias
 
+from input4mips_validation.cvs_handling.input4MIPs.serialisation import converter_json
+
 INSTITUTION_ID_FILENAME: str = "input4MIPs_institution_id.json"
 """Default name of the file in which the institution ID CV is saved"""
 
@@ -32,7 +34,7 @@ def convert_unstructured_cv_to_institution_ids(
     -------
         Institution IDs
     """
-    return unstructured["institution_id"]
+    return converter_json.structure(unstructured["institution_id"], list[str])
 
 
 def convert_institution_ids_to_unstructured_cv(

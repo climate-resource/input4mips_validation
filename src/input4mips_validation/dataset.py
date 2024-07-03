@@ -186,6 +186,7 @@ def validate_ds_metadata(
     assert_consistency_between_source_id_and_other_values(
         source_id=value.source_id,
         activity_id=value.activity_id,
+        institution_id=value.institution_id,
         cvs=cvs,
     )
 

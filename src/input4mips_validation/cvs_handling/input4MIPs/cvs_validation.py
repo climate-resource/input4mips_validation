@@ -160,7 +160,7 @@ def assert_cvs_are_valid(cvs: CVsInput4MIPs) -> None:
     # (noting that some parts of the CV come from outside input4MIPs e.g. realm)
 
     # Institution ID
-    # Validate against some global source?
+    # TODO: Validate against some global source
 
     # License
     # Validate against some global source?

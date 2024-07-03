@@ -9,6 +9,9 @@ from input4mips_validation.cvs_handling.input4MIPs.activity_id import (
     ActivityIDEntry,
     ActivityIDValues,
 )
+from input4mips_validation.cvs_handling.input4MIPs.institution_id import (
+    INSTITUTION_ID_FILENAME,
+)
 from input4mips_validation.cvs_handling.input4MIPs.source_id import (
     SOURCE_ID_FILENAME,
     SourceIDEntries,
@@ -21,6 +24,7 @@ __all__ = [
     "ActivityIDEntries",
     "ActivityIDEntry",
     "ActivityIDValues",
+    "INSTITUTION_ID_FILENAME",
     "SOURCE_ID_FILENAME",
     "SourceIDEntry",
     "SourceIDEntries",

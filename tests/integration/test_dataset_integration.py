@@ -301,12 +301,12 @@ def test_value_not_in_cv(cv_source, key_to_test, value_to_apply):
         #     "institution",
         #     "CR name here",
         # ),
-        # (
-        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
-        #     "CR-CMIP-0-2-0",
-        #     "institution_id",
-        #     "Cr",
-        # ),
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "CR-CMIP-0-2-0",
+            "institution_id",
+            "PCMDI",
+        ),
         # (
         #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
         #     "CR-CMIP-0-2-0",

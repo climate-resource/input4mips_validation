@@ -46,7 +46,7 @@ activity_id_entries = ActivityIDEntries(
             activity_id="input4MIPs",
             values=ActivityIDValues(
                 long_name="input forcing datasets for Model Intercomparison Projects",
-                url="https://pcmdi.llnl.gov/mips/input4MIPs/",
+                URL="https://pcmdi.llnl.gov/mips/input4MIPs/",
             ),
         ),
         ActivityIDEntry(
@@ -56,7 +56,7 @@ activity_id_entries = ActivityIDEntries(
                     "CMIP DECK: 1pctCO2, abrupt4xCO2, amip, esm-piControl, "
                     "esm-historical, historical, and piControl experiments"
                 ),
-                url="https://gmd.copernicus.org/articles/9/1937/2016/gmd-9-1937-2016.pdf",
+                URL="https://gmd.copernicus.org/articles/9/1937/2016/gmd-9-1937-2016.pdf",
             ),
         ),
     )

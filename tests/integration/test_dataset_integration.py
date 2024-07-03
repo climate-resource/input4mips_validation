@@ -237,11 +237,11 @@ def test_ds_variable_metadata_variable_mismatch_error():
             "source_id",
             "junk",
         ),
-        # (
-        #     DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
-        #     "institution_id",
-        #     "junk",
-        # ),
+        (
+            DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            "institution_id",
+            "junk",
+        ),
         # License logic is much more complicated and depends on other things
         # so maybe don't include here
         # (

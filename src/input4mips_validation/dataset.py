@@ -166,6 +166,14 @@ def validate_ds_metadata(
         cvs=cvs,
     )
 
+    # Institution ID
+    assert_in_cvs(
+        value=value.institution_id,
+        cvs_key="institution_id",
+        cv_values=cvs.institution_ids,
+        cvs=cvs,
+    )
+
     # Source ID
     assert_in_cvs(
         value=value.source_id,

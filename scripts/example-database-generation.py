@@ -4,6 +4,7 @@ Prototype for generating database entries from existing files
 There is some re-writing of the files too, to make sure they have compliant metdata.
 In production, this step would happen separately.
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -33,6 +34,7 @@ converter_json = cattrs.preconf.json.make_converter()
 
 iris.FUTURE.save_split_attrs = True
 
+TMP_DATA_PATH = Path(__file__).parent / ".." / "tmp-data-downloaded-by-hand"
 ROOT_DATA_PATH = (
     Path(__file__).parent
     / ".."
@@ -52,6 +54,7 @@ JSON_DB = WRITING_DIR_IRIS / "dataset_entries.json"
 
 
 working_files = [
+    *TMP_DATA_PATH.rglob("*.nc"),
     *ROOT_DATA_PATH.rglob("*mole-fraction-of-carbon-dioxide*.nc"),
     *ROOT_DATA_PATH.rglob("*mole-fraction-of-methane*.nc"),
 ]
@@ -77,15 +80,38 @@ cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
 #
 # To add/edit from current required global attributes in main:
 # - source_version
-#   - maybe this is just renaming, version -> ESGF version,
-#     source_version is version as defined by source
+#   - just a renaming of version (version -> ESGF version,
+#     source_version is version as defined by source)
+#   - TODO: do this renaming
 # - source
 #   - Should be looked up from central CMIP stuff based on source_id,
 #     hence ignoring for now
 # - region
-#   - no idea what rules are or what this is
+#   - CF conventions, so there are ways to check, just not obvious
 # - table_id
 #   - no idea what this is
+#
+# To add from reading Paul's data:
+# - comment
+#   - important for communication probably,
+#     although maybe best managed outside the file?
+# - data_specs_version
+#   - no idea what this is
+# - external_variables
+#   - super important when we come to validate trees
+# - grid
+#   - seems redundant given grid_label, but ok
+# - references
+#   - useful
+#
+# To exclude from reading Paul's data:
+# - release_year: totally redundant?
+# - source_description: redundant given there is also source,
+#   which is long-form source_id
+# - source_type: redundant given there is product?
+# - table_id: not used generally/not generally applicable?
+# - table_info: not used generally?
+# - cmor_version: not used generally?
 
 
 @define
@@ -109,13 +135,9 @@ class DatasetEntry:
 
     datetime_end: str
     """The dataset's end time"""
-    # Currently missing...
-    # Would require careful seralisation/validation
 
     datetime_start: str
     """The dataset's starting time"""
-    # Currently missing...
-    # Would require careful seralisation/validation
 
     frequency: str
     """Frequency of the data in the dataset"""
@@ -174,23 +196,48 @@ class DatasetEntry:
 dataset_entries: list[DatasetEntry] = []
 
 for wf in working_files:
+    subprocess.run(["ncdump", "-h", str(wf)], check=True)  # noqa: S603, S607
     start = xr.load_dataset(wf, use_cftime=True)
     print(f"Working from {start}")
 
     new = start.sel(time=start.time.dt.year >= 1750).copy()  # noqa: PLR2004
-    for bv in ["bounds", "sector_bounds", "time_bounds", "lat_bounds"]:
+    for bv in [
+        "bounds",
+        "sector_bounds",
+        "time_bounds",
+        "lat_bounds",
+        "bnds",
+        "time_bnds",
+        "lat_bnds",
+        "lon_bnds",
+    ]:
         if bv in new:
             new = new.drop_vars(bv)
 
     new.attrs = {}
 
-    metadata_minimum = Input4MIPsDatasetMetadataDataProducerMinimum(
-        grid_label=start.attrs["grid_label"],
-        nominal_resolution="tbd-cv",
-        product="derived",
-        source_id="CR-CMIP-0-2-0",
-        target_mip="CMIP",
-    )
+    if "CR" in start.attrs["source_id"]:
+        metadata_minimum = Input4MIPsDatasetMetadataDataProducerMinimum(
+            source_id="CR-CMIP-0-2-0",
+            target_mip="CMIP",
+            # These should be inferable/checkable from CVs I think
+            grid_label=start.attrs["grid_label"],
+            nominal_resolution="tbd-cv",
+            # product should go into source_id
+            product="derived",
+        )
+
+    elif start.attrs["source_id"] == "PCMDI-AMIP-1-1-9":
+        metadata_minimum = Input4MIPsDatasetMetadataDataProducerMinimum(
+            grid_label=start.attrs["grid_label"],
+            nominal_resolution=start.attrs["nominal_resolution"],
+            product=start.attrs["product"],
+            source_id=start.attrs["source_id"],
+            target_mip=start.attrs["target_mip"],
+        )
+
+    else:
+        raise NotImplementedError(start.attrs["source_id"])
 
     if start.attrs["frequency"] == "yr":
         add_time_bounds = partial(
@@ -224,6 +271,7 @@ for wf in working_files:
     print(f"{written_iris=}")
     pprint(written_iris.attrs)
     subprocess.run(["ncdump", "-h", str(iris_save_path)], check=True)  # noqa: S603, S607
+    iris.load_cube(iris_save_path)
     print()
     print()
 

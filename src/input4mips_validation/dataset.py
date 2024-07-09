@@ -46,6 +46,16 @@ class Input4MIPsDatasetMetadata:
     dataset_category: str
     """The dataset's category"""
 
+    datetime_end: str
+    """The end time of the dataset"""
+    # TODO: validation based on agreement with frequency
+    # TODO: validation based on agreement with time_range
+
+    datetime_start: str
+    """The starting time of the dataset"""
+    # TODO: validation based on agreement with frequency
+    # TODO: validation based on agreement with time_range
+
     frequency: str
     """Frequency of the data in the dataset"""
 
@@ -68,6 +78,10 @@ class Input4MIPsDatasetMetadata:
 
     mip_era: str
     """The MIP era that applies to the dataset"""
+
+    nominal_resolution: str
+    """Nominal resolution of the data in the dataset"""
+    # Validation rules completely unclear
 
     product: str
     """The kind of data that this dataset is"""
@@ -148,6 +162,14 @@ class Input4MIPsDatasetMetadataDataProducerMinimum:
 
     We may be able to remove this in future,
     but right now the rules around calculating grid label are not clear to us.
+    """
+
+    nominal_resolution: str
+    """
+    The nominal resolution of the data in the dataset
+
+    We may be able to remove this in future,
+    but right now the rules around calculating nominal resolution are not clear to us.
     """
 
     product: str
@@ -449,10 +471,21 @@ class Input4MIPsDataset:
         variable_id = get_ds_var_assert_single(ds)
         frequency = infer_frequency(ds, time_bounds=f"{time_dimension}_bounds")
 
+        start_end_separator = "-"
+        time_range = infer_time_range(
+            ds,
+            frequency=frequency,
+            time_dimension=time_dimension,
+            start_end_separator=start_end_separator,
+        )
+        datetime_start, datetime_end = time_range.split(start_end_separator)
+
         metadata = Input4MIPsDatasetMetadata(
             activity_id=cvs_values.activity_id,
             contact=cvs_values.contact,
             dataset_category=VARIABLE_DATASET_CATEGORY_MAP[variable_id],
+            datetime_end=datetime_end,
+            datetime_start=datetime_start,
             frequency=frequency,
             further_info_url=cvs_values.further_info_url,
             grid_label=metadata_minimum.grid_label,
@@ -460,13 +493,12 @@ class Input4MIPsDataset:
             institution_id=cvs_values.institution_id,
             license=cvs_values.license,
             mip_era=cvs_values.mip_era,
+            nominal_resolution=metadata_minimum.nominal_resolution,
             product=metadata_minimum.product,
             realm=VARIABLE_REALM_MAP[variable_id],
             source_id=metadata_minimum.source_id,
             target_mip=metadata_minimum.target_mip,
-            time_range=infer_time_range(
-                ds, frequency=frequency, time_dimension=time_dimension
-            ),
+            time_range=time_range,
             variable_id=variable_id,
             version=cvs_values.version,
             metadata_non_cvs=metadata_non_cvs,

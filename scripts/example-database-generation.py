@@ -74,6 +74,16 @@ class DatasetEntry:
     dataset_category: str
     """The dataset's category"""
 
+    datetime_end: str
+    """The dataset's end time"""
+    # Currently missing...
+    # Would require careful seralisation/validation
+
+    datetime_start: str
+    """The dataset's starting time"""
+    # Currently missing...
+    # Would require careful seralisation/validation
+
     frequency: str
     """Frequency of the data in the dataset"""
 
@@ -95,8 +105,14 @@ class DatasetEntry:
     mip_era: str
     """The MIP era that applies to the dataset"""
 
+    nominal_resolution: str
+    """Nominal resolution of the data in the dataset"""
+
     product: str
     """The kind of data that this dataset is"""
+
+    realm: str
+    """The dataset's realm"""
 
     # # Should be looked up from central CMIP stuff based on source_id, hence ignoring for now
     # source: str
@@ -104,6 +120,12 @@ class DatasetEntry:
 
     source_id: str
     """Source ID that applies to the dataset"""
+
+    target_mip: str
+    """The dataset's target MIP"""
+
+    time_range: str
+    """The dataset's time range"""
 
     variable_id: str
     """The ID of the variable contained in the dataset"""
@@ -127,6 +149,7 @@ for wf in working_files:
 
     metadata_minimum = Input4MIPsDatasetMetadataDataProducerMinimum(
         grid_label=start.attrs["grid_label"],
+        nominal_resolution="tbd-cv",
         product="derived",
         source_id="CR-CMIP-0-2-0",
         target_mip="CMIP",

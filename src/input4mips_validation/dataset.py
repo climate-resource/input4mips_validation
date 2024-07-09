@@ -27,6 +27,10 @@ from input4mips_validation.cvs_handling.input4MIPs.dataset_validation import (
 from input4mips_validation.cvs_handling.input4MIPs.general_validation import (
     assert_is_url_like,
 )
+from input4mips_validation.dataset_writing_helpers import (
+    generate_creation_timestamp,
+    generate_tracking_id,
+)
 from input4mips_validation.exceptions import DatasetMetadataInconsistencyError
 
 
@@ -90,7 +94,8 @@ class Input4MIPsDatasetMetadata:
     realm: str
     """The dataset's realm"""
 
-    # # Should be looked up from central CMIP stuff based on source_id, hence ignoring for now
+    # # Should be looked up from central CMIP stuff based on source_id,
+    # hence ignoring for now
     # source: str
     # """Longer name of the source that created the dataset"""
 
@@ -547,11 +552,11 @@ class Input4MIPsDataset:
         # Add all the metadata
         ds_disk.attrs = self.metadata.to_ds_metadata
 
-        # # Must be unique for every written file,
-        # # so we deliberately don't provide a way
-        # # for the user to overwrite this at present
-        # ds_disk.attrs["tracking_id"] = generate_tracking_id()
-        # ds_disk.attrs["creation_date"] = generate_creation_timestamp()
+        # Must be unique for every written file,
+        # so we deliberately don't provide a way
+        # for the user to overwrite this at present
+        ds_disk.attrs["tracking_id"] = generate_tracking_id()
+        ds_disk.attrs["creation_date"] = generate_creation_timestamp()
 
         return write(
             ds=ds_disk,
@@ -599,6 +604,7 @@ def write(
     """
     # As part of https://github.com/climate-resource/input4mips_validation/issues/14
     # add final validation here for bullet proofness
+    # - tracking ID, creation date etc.
 
     # Having validated, make the target directory and write
     out_path.parent.mkdir(parents=True, exist_ok=True)

@@ -61,15 +61,48 @@ raw_cvs_loader = get_raw_cvs_loader(cv_source=str(CV_SOURCE_DIR))
 cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
 
 
+# Overall thinking/notes:
+# - source ID is for dataset collection
+# - dataset is for stuff that has e.g. specific grid, time end, time start
+#     - something you could load with xr.load_mfdataset()
+#
+# - combine the stuff to create searchable tables
+#     - need to work out the normal forms for this to be sensible
+#
+# - exclude
+#     - status: that's a publishing thing, not something the dataset can know
+#         - could go into a DataBaseEntry
+#     - title: redundant
+#     - all ESGF index stuff, that's a different database's problem/domain
+#
+# To add/edit from current required global attributes in main:
+# - source_version
+#   - maybe this is just renaming, version -> ESGF version,
+#     source_version is version as defined by source
+# - source
+#   - Should be looked up from central CMIP stuff based on source_id,
+#     hence ignoring for now
+# - region
+#   - no idea what rules are or what this is
+# - table_id
+#   - no idea what this is
+
+
 @define
 class DatasetEntry:
     """Data model for a single dataset entry"""
+
+    Conventions: str
+    """CF conventions used when writing the dataset"""
 
     activity_id: str
     """Activity ID that applies to the dataset"""
 
     contact: str
     """Email addresses to contact in case of questions about the dataset"""
+
+    creation_date: str
+    """Date the dataset was created"""
 
     dataset_category: str
     """The dataset's category"""
@@ -114,7 +147,8 @@ class DatasetEntry:
     realm: str
     """The dataset's realm"""
 
-    # # Should be looked up from central CMIP stuff based on source_id, hence ignoring for now
+    # # Should be looked up from central CMIP stuff based on source_id,
+    # # hence ignoring for now
     # source: str
     # """Longer name of the source that created the dataset"""
 
@@ -126,6 +160,9 @@ class DatasetEntry:
 
     time_range: str
     """The dataset's time range"""
+
+    tracking_id: str
+    """Tracking ID of the dataset"""
 
     variable_id: str
     """The ID of the variable contained in the dataset"""
@@ -176,7 +213,7 @@ for wf in working_files:
     written = xr.load_dataset(out_file, use_cftime=True)
     print(f"{written=}")
     pprint(written.attrs)
-    subprocess.run(["ncdump", "-h", str(out_file)], check=True)
+    subprocess.run(["ncdump", "-h", str(out_file)], check=True)  # noqa: S603, S607
     print()
 
     cube = iris.load_cube(out_file)
@@ -186,7 +223,7 @@ for wf in working_files:
     written_iris = xr.load_dataset(iris_save_path, use_cftime=True)
     print(f"{written_iris=}")
     pprint(written_iris.attrs)
-    subprocess.run(["ncdump", "-h", str(iris_save_path)], check=True)
+    subprocess.run(["ncdump", "-h", str(iris_save_path)], check=True)  # noqa: S603, S607
     print()
     print()
 
@@ -200,7 +237,8 @@ for wf in working_files:
     # Minor annoyances
     # - have to use iris for writing to get the CF conventions writing help
     #   - that requires only doing conda/pixi installs
-    # - coordinates isn't allowed by CF conventions hence reading from an iris written file
+    # - coordinates isn't allowed by CF conventions
+    #   hence reading from an iris written file
     #   doesn't round trip nicely (xarray can't tell that bnds are not data variables)
     #   - using ncdata doesn't really help
     # break

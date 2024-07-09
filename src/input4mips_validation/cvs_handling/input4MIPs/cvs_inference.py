@@ -220,7 +220,12 @@ def infer_time_range(
     """
     fd = partial(format_date_for_time_range, ds_frequency=frequency)
     return start_end_separator.join(
-        [fd(t.values) for t in [ds[time_dimension].min(), ds[time_dimension].max()]]
+        # TODO: work out what right access is.
+        # tolist cannot be correct
+        [
+            fd(t.values.tolist())
+            for t in [ds[time_dimension].min(), ds[time_dimension].max()]
+        ]
     )
 
 

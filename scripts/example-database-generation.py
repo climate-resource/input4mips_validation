@@ -193,7 +193,28 @@ class DatasetEntry:
     """The version ID of the dataset"""
 
 
-dataset_entries: list[DatasetEntry] = []
+# Re-writing the solar data
+# for wf in (Path(__file__).parent / ".." / "tmp-data-downloaded-by-hand-broken").rglob(
+#     "*.nc"
+# ):
+#     subprocess.run(["ncdump", "-h", str(wf)], check=True)
+#     start = xr.load_dataset(wf, use_cftime=True)
+#     print(f"Working from {start}")
+#
+# if "SOLARIS-HEPPA-CMIP-4-1" in start.attrs["source_id"]:
+#     for variable_name in start.variables:
+#         # if variable_name in ["calyear", "calmonth", "calday", "scnum", "scph"]:
+#         if variable_name not in ["tsi"]:
+# tsi standard_name:  solar_irradiance
+#             # Hard to know what they actually want to write...
+#             continue
+#
+#             darray = start[variable_name].pint.quantify().to_dataset()
+#             breakpoint()
+#
+#     else:
+#         raise NotImplementedError(start.attrs["source_id"])
+
 
 for wf in working_files:
     subprocess.run(["ncdump", "-h", str(wf)], check=True)  # noqa: S603, S607
@@ -267,7 +288,12 @@ for wf in working_files:
     iris_save_path = WRITING_DIR_IRIS / out_file.relative_to(WRITING_DIR)
     iris_save_path.parent.mkdir(parents=True, exist_ok=True)
     iris.save(cube, iris_save_path)
-    written_iris = xr.load_dataset(iris_save_path, use_cftime=True)
+
+
+dataset_entries: list[DatasetEntry] = []
+
+for file in WRITING_DIR_IRIS.rglob("*.nc"):
+    written_iris = xr.load_dataset(file, use_cftime=True)
     print(f"{written_iris=}")
     pprint(written_iris.attrs)
     subprocess.run(["ncdump", "-h", str(iris_save_path)], check=True)  # noqa: S603, S607
@@ -290,7 +316,6 @@ for wf in working_files:
     #   doesn't round trip nicely (xarray can't tell that bnds are not data variables)
     #   - using ncdata doesn't really help
     # break
-
 db = [converter_json.unstructure(e) for e in dataset_entries]
 
 with open(JSON_DB, "w") as fh:

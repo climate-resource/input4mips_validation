@@ -39,6 +39,10 @@ class Input4MIPsDatasetMetadata:
     activity_id: str
     """Activity ID that applies to the dataset"""
 
+    contact: str
+    """Email addresses to contact in case of questions"""
+    # TODO: add validation that this is an email
+
     dataset_category: str
     """The dataset's category"""
 
@@ -51,14 +55,30 @@ class Input4MIPsDatasetMetadata:
     grid_label: str
     """Grid label of the data in the dataset"""
 
+    institution: str
+    """Longer name of the institution that created the dataset"""
+
     institution_id: str
     """Institution ID of the institution that created the dataset"""
+
+    license: str
+    """License information for the dataset"""
+    # Needs to be validated against CVs
+    # (and CVs values are moving)
 
     mip_era: str
     """The MIP era that applies to the dataset"""
 
+    product: str
+    """The kind of data that this dataset is"""
+    # Has to match CVs
+
     realm: str
     """The dataset's realm"""
+
+    # # Should be looked up from central CMIP stuff based on source_id, hence ignoring for now
+    # source: str
+    # """Longer name of the source that created the dataset"""
 
     source_id: str
     """Source ID that applies to the dataset"""
@@ -130,6 +150,12 @@ class Input4MIPsDatasetMetadataDataProducerMinimum:
     but right now the rules around calculating grid label are not clear to us.
     """
 
+    product: str
+    """The kind of data that this dataset is"""
+
+    source_id: str
+    """Source ID that applies to the dataset"""
+
     target_mip: str
     """
     The dataset's target MIP
@@ -138,9 +164,6 @@ class Input4MIPsDatasetMetadataDataProducerMinimum:
     because we don't include the target experiment information
     nor a mapping from experiment to target MIP.
     """
-
-    source_id: str
-    """Source ID that applies to the dataset"""
 
 
 def validate_ds_metadata(
@@ -428,13 +451,17 @@ class Input4MIPsDataset:
 
         metadata = Input4MIPsDatasetMetadata(
             activity_id=cvs_values.activity_id,
+            contact=cvs_values.contact,
             dataset_category=VARIABLE_DATASET_CATEGORY_MAP[variable_id],
             frequency=frequency,
             further_info_url=cvs_values.further_info_url,
             grid_label=metadata_minimum.grid_label,
+            institution=cvs_values.institution,
             institution_id=cvs_values.institution_id,
-            realm=VARIABLE_REALM_MAP[variable_id],
+            license=cvs_values.license,
             mip_era=cvs_values.mip_era,
+            product=metadata_minimum.product,
+            realm=VARIABLE_REALM_MAP[variable_id],
             source_id=metadata_minimum.source_id,
             target_mip=metadata_minimum.target_mip,
             time_range=infer_time_range(

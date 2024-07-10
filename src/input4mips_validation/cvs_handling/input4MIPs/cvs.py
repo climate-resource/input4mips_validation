@@ -1,4 +1,5 @@
 """Data model for input4MIPs' controlled vocabularies (CVs)"""
+
 from __future__ import annotations
 
 import string
@@ -8,6 +9,7 @@ from typing import Protocol
 from attrs import define
 
 from input4mips_validation.cvs_handling.input4MIPs.activity_id import ActivityIDEntries
+from input4mips_validation.cvs_handling.input4MIPs.license import LicenseEntries
 from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import RawCVLoader
 from input4mips_validation.cvs_handling.input4MIPs.source_id import SourceIDEntries
 
@@ -69,8 +71,8 @@ class CVsInput4MIPs:
     """Recognised institution IDs"""
     # TODO: check these against the global CVs when validating
 
-    # license: LicenseSpecification
-    # """License specification that can be used with the data"""
+    license_entries: LicenseEntries
+    """License entries"""
 
     # mip_era: tuple[str, ...]
     # """Recognised MIP eras"""

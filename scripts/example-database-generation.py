@@ -50,6 +50,7 @@ ROOT_DATA_PATH = (
 WRITING_DIR = Path(__file__).parent / ".." / "tmp-data"
 WRITING_DIR_IRIS = Path(__file__).parent / ".." / "tmp-data-iris"
 CV_SOURCE_DIR = Path(__file__).parent / "../tests/test-data/cvs/input4MIPs/default"
+CV_SOURCE_DIR = Path(__file__).parent / "../../input4MIPs_CVs"
 
 JSON_DB = WRITING_DIR_IRIS / "dataset_entries.json"
 

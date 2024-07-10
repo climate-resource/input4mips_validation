@@ -37,14 +37,10 @@ from input4mips_validation.exceptions import DatasetMetadataInconsistencyError
 
 # TODO: describe data model more generally
 @define
-class Input4MIPsDatasetMetadataEntry:
+class Input4MIPsDatasetMetadataFromFiles:
     """
-    Data model for a single dataset entry in the input4MIPs collection
-
-    For validation, see [TODO: {py:func}`validate_dataset_metadata`]
+    Data model for metadata that comes from a dataset's file(s)
     """
-
-    # TODO: remove Input4MIPsDatasetMetadata as that is a duplicate
 
     Conventions: str
     """CF conventions used when writing the dataset"""
@@ -75,9 +71,6 @@ class Input4MIPsDatasetMetadataEntry:
 
     grid_label: str
     """Grid label of the data in the dataset"""
-
-    institution: str
-    """Longer name of the institute that created the dataset"""
 
     institution_id: str
     """ID of the institute that created the dataset"""
@@ -118,7 +111,69 @@ class Input4MIPsDatasetMetadataEntry:
     """The ID of the variable contained in the dataset"""
 
     version: str
-    """The version ID of the dataset"""
+    """The version ID of the dataset as defined by the provider"""
+    # TODO: introduce the below and rename the above to source_version
+    # version: str
+    # """
+    # Datestamp of the day on which the dataset was produced
+    #
+    # This is used to provide a unique version on the ESGF,
+    # which can't handle versions with special characters
+    # (which is what goes in ``source_version``).
+    # The uniqueness of this version obviously relies on data
+    # being published daily or less frequently to ESGF.
+    # This is a fine assumption for now.
+    # """
+
+    institution: str | None = None
+    """Longer name of the institute that created the dataset"""
+
+
+@define
+class Input4MIPsDatasetMetadataFromESGF:
+    """
+    Data model for metadata that is managed by the ESGF
+    """
+
+    data_node: str | None = None
+    """Data node on which the dataset is held"""
+
+    latest: bool | None = None
+    """
+    Whether this dataset is the latest in its series
+
+    Series is not precisely defined.
+    """
+
+    publication_status: str | None = "in_publishing_queue"
+    """Publication status of the dataset"""
+    # Should match CVs
+
+    replica: bool | None = None
+    """Whether the data on this node is a replica of the original data"""
+
+    timestamp: str | None = None
+    """Timestamp of the dataset on the ESGF index"""
+
+    xlink: str | None = None
+    """Link to the dataset on the ESGF"""
+
+
+@define
+class Input4MIPsDatasetMetadataEntry:
+    """
+    Data model for a single dataset entry in the input4MIPs collection
+
+    For validation, see [TODO: {py:func}`validate_dataset_metadata`]
+    """
+
+    file: Input4MIPsDatasetMetadataFromFiles
+    """Dataset metadata that is contained in the file"""
+
+    esgf: Input4MIPsDatasetMetadataFromESGF
+    """Dataset metadata that is managed by the ESGF"""
+
+    # TODO: remove Input4MIPsDatasetMetadata as that is a duplicate
 
 
 @define
@@ -156,16 +211,18 @@ class Input4MIPsDatasetMetadata:
     grid_label: str
     """Grid label of the data in the dataset"""
 
-    institution: str
-    """Longer name of the institution that created the dataset"""
-
     institution_id: str
     """Institution ID of the institution that created the dataset"""
+
+    license_id: str
+    """License ID for the information in the dataset"""
+    # Needs to be validated against CVs
+    # (but note that CVs values are moving)
 
     license: str
     """License information for the dataset"""
     # Needs to be validated against CVs
-    # (and CVs values are moving)
+    # (but note that CVs values are moving)
 
     mip_era: str
     """The MIP era that applies to the dataset"""
@@ -204,6 +261,9 @@ class Input4MIPsDatasetMetadata:
     metadata_non_cvs: dict[str, Any] | None = field(default=None)
     """Other metadata fields that aren't covered by the CVs"""
 
+    institution: str | None = None
+    """Longer name of the institution that created the dataset"""
+
     @metadata_non_cvs.validator
     def _no_clash_with_other_attributes(
         self, attribute: attr.Attribute[Any], value: dict[str, Any] | None
@@ -234,7 +294,11 @@ class Input4MIPsDatasetMetadata:
         -------
             {py:attr}`xr.Dataset.attrs` compatible values
         """
-        res = {k: v for k, v in asdict(self).items() if k != "metadata_non_cvs"}
+        res = {
+            k: v
+            for k, v in asdict(self).items()
+            if (k != "metadata_non_cvs") and (v is not None)
+        }
         if self.metadata_non_cvs is not None:
             # Add other keys in too
             res = self.metadata_non_cvs | res
@@ -334,7 +398,6 @@ def validate_ds_metadata(
     # Consistency with source ID
     assert_consistency_between_source_id_and_other_values(
         source_id=value.source_id,
-        activity_id=value.activity_id,
         further_info_url=value.further_info_url,
         institution_id=value.institution_id,
         cvs=cvs,
@@ -485,6 +548,7 @@ class Input4MIPsDataset:
         add_time_bounds: Callable[[xr.Dataset], xr.Dataset] | None = None,
         copy: bool = True,
         cvs: CVsInput4MIPs | None = None,
+        activity_id: str = "input4MIPs",
     ) -> Input4MIPsDataset:
         """
         Initialise from the minimum required information from the data producer
@@ -526,6 +590,11 @@ class Input4MIPsDataset:
 
             If not supplied, this will be retrieved with
             {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
+
+        activity_id
+            Activity ID that applies to the dataset.
+
+            Given this is an Input4MIPsDataset, you shouldn't need to change this.
 
         Returns
         -------
@@ -573,7 +642,7 @@ class Input4MIPsDataset:
         datetime_start, datetime_end = time_range.split(start_end_separator)
 
         metadata = Input4MIPsDatasetMetadata(
-            activity_id=cvs_values.activity_id,
+            activity_id=activity_id,
             contact=cvs_values.contact,
             dataset_category=VARIABLE_DATASET_CATEGORY_MAP[variable_id],
             datetime_end=datetime_end,
@@ -581,9 +650,11 @@ class Input4MIPsDataset:
             frequency=frequency,
             further_info_url=cvs_values.further_info_url,
             grid_label=metadata_minimum.grid_label,
-            institution=cvs_values.institution,
+            # # TODO: look this up from central CVs
+            # institution=cvs_values.institution,
             institution_id=cvs_values.institution_id,
-            license=cvs_values.license,
+            license=cvs.license_entries[cvs_values.license_id].values.conditions,
+            license_id=cvs_values.license_id,
             mip_era=cvs_values.mip_era,
             nominal_resolution=metadata_minimum.nominal_resolution,
             product=metadata_minimum.product,

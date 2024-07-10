@@ -1,6 +1,7 @@
 """
 Validation of datasets and metadata against the CVs
 """
+
 from __future__ import annotations
 
 from collections.abc import Collection
@@ -50,9 +51,9 @@ def assert_in_cvs(
         )
 
 
+# TODO: assert rest of the values defined by source_id
 def assert_consistency_between_source_id_and_other_values(
     source_id: str,
-    activity_id: str,
     further_info_url: str,
     institution_id: str,
     cvs: CVsInput4MIPs | None = None,
@@ -89,7 +90,6 @@ def assert_consistency_between_source_id_and_other_values(
         cvs = load_cvs()
 
     values_to_check = {
-        "activity_id": activity_id,
         "further_info_url": further_info_url,
         "institution_id": institution_id,
     }

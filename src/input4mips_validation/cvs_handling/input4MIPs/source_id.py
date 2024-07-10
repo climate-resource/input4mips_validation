@@ -6,6 +6,7 @@ To keep things in one place, all validation is handled in
 This allows us to validate individual values as well as relationships
 between values in one hit.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -33,6 +34,7 @@ class SourceIDValues:
 
     activity_id: str
     """ID of the activity to which this source is contributing"""
+    # Nix, auto-generate
 
     contact: str
     """Email addresses to contact in case of questions"""
@@ -42,12 +44,14 @@ class SourceIDValues:
 
     institution: str
     """Institution which provides this source"""
+    # Nix, grab from CVs
 
     institution_id: str
     """ID of the institution which provides this source"""
 
     license: str
     """License information for data coming from this source"""
+    # Change to license_id
 
     mip_era: str
     """MIP era to which this source is contributing"""

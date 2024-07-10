@@ -7,7 +7,6 @@ In production, this step would happen separately.
 
 from __future__ import annotations
 
-import json
 import subprocess
 from functools import partial
 from pathlib import Path
@@ -16,10 +15,9 @@ from pprint import pprint
 import cattrs.preconf.json
 import cf_xarray.units  # noqa:F401 # get cf to format pint units
 import iris
-import pandas as pd
 import pint_xarray  # noqa: F401
 import xarray as xr
-from attrs import define, fields
+from attrs import fields
 
 # from ncdata.iris_xarray import cubes_to_xarray, cubes_from_xarray
 import input4mips_validation.xarray_helpers as iv_xr_helpers
@@ -27,10 +25,10 @@ from input4mips_validation.cvs_handling.input4MIPs.cv_loading import load_cvs
 from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
     get_raw_cvs_loader,
 )
-from input4mips_validation.cvs_handling.serialisation import json_dumps_cv_style
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
     Input4MIPsDatasetMetadataDataProducerMinimum,
+    Input4MIPsDatasetMetadataEntry,
 )
 
 converter_json = cattrs.preconf.json.make_converter()
@@ -78,123 +76,61 @@ cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
 # - exclude
 #     - status: that's a publishing thing, not something the dataset can know
 #         - could go into a DataBaseEntry
-#     - title: redundant
 #     - all ESGF index stuff, that's a different database's problem/domain
 #
 # To add/edit from current required global attributes in main:
 # - source_version
-#   - just a renaming of version (version -> ESGF version,
-#     source_version is version as defined by source)
-#   - TODO: do this renaming
+#   - rename from what I currently think of as version
+# - version
+#   - auto-generate so it matches creation_date
+#   - this is what goes in the DRS
 # - source
+#   - expanded form of source_id
 #   - Should be looked up from central CMIP stuff based on source_id,
 #     hence ignoring for now
 # - region
 #   - CF conventions, so there are ways to check, just not obvious
-# - table_id
-#   - no idea what this is
+#   - list here https://github.com/PCMDI/obs4MIPs-cmor-tables/blob/master/obs4MIPs_region.json
+# - title
+#   - Title of the file
+#     (auto-generated header for figures etc. with some tools,
+#     put whatever you want in here)
+# - licence
+#   - split into license_id and license
+# - nominal_resolution
+#   - has a CV
+#   - there is a tool somewhere
+#     - might need more bins added here
+# - product
+#   - has a CV
+# - target_mip
+#   - per file
+#   - can be a list
 #
 # To add from reading Paul's data:
 # - comment
 #   - important for communication probably,
 #     although maybe best managed outside the file?
 # - data_specs_version
-#   - no idea what this is
+#   - from using CMOR, ignore
 # - external_variables
 #   - super important when we come to validate trees
 # - grid
-#   - seems redundant given grid_label, but ok
+#   - free-text description of grid_label
 # - references
 #   - useful
 #
 # To exclude from reading Paul's data:
-# - release_year: totally redundant?
-# - source_description: redundant given there is also source,
-#   which is long-form source_id
-# - source_type: redundant given there is product?
-# - table_id: not used generally/not generally applicable?
-# - table_info: not used generally?
-# - cmor_version: not used generally?
-
-
-@define
-class DatasetEntry:
-    """Data model for a single dataset entry"""
-
-    Conventions: str
-    """CF conventions used when writing the dataset"""
-
-    activity_id: str
-    """Activity ID that applies to the dataset"""
-
-    contact: str
-    """Email addresses to contact in case of questions about the dataset"""
-
-    creation_date: str
-    """Date the dataset was created"""
-
-    dataset_category: str
-    """The dataset's category"""
-
-    datetime_end: str
-    """The dataset's end time"""
-
-    datetime_start: str
-    """The dataset's starting time"""
-
-    frequency: str
-    """Frequency of the data in the dataset"""
-
-    further_info_url: str
-    """URL where further information about the dataset can be found"""
-
-    grid_label: str
-    """Grid label of the data in the dataset"""
-
-    institution: str
-    """Longer name of the institution that created the dataset"""
-
-    institution_id: str
-    """Institution ID of the institution that created the dataset"""
-
-    license: str
-    """License information for the dataset"""
-
-    mip_era: str
-    """The MIP era that applies to the dataset"""
-
-    nominal_resolution: str
-    """Nominal resolution of the data in the dataset"""
-
-    product: str
-    """The kind of data that this dataset is"""
-
-    realm: str
-    """The dataset's realm"""
-
-    # # Should be looked up from central CMIP stuff based on source_id,
-    # # hence ignoring for now
-    # source: str
-    # """Longer name of the source that created the dataset"""
-
-    source_id: str
-    """Source ID that applies to the dataset"""
-
-    target_mip: str
-    """The dataset's target MIP"""
-
-    time_range: str
-    """The dataset's time range"""
-
-    tracking_id: str
-    """Tracking ID of the dataset"""
-
-    variable_id: str
-    """The ID of the variable contained in the dataset"""
-
-    version: str
-    """The version ID of the dataset"""
-
+# - release_year: redundant given creation date
+# - source_description: redundant given there is title
+# - source_type: redundant given there is product
+#   - could make product_id and product
+# - table_id: not used generally/not generally applicable
+# - table_info: not used generally
+# - cmor_version: not used generally
+# - institution: can be looked up based on global CVs
+#
+# Very helpful for keying things: https://docs.google.com/document/d/1pU9IiJvPJwRvIgVaSDdJ4O0Jeorv_2ekEtted34K9cA/edit?pli=1
 
 # Re-writing the solar data
 for wf in (Path(__file__).parent / ".." / "tmp-data-downloaded-by-hand-broken").rglob(
@@ -205,9 +141,9 @@ for wf in (Path(__file__).parent / ".." / "tmp-data-downloaded-by-hand-broken").
     print(f"Working from {start}")
 
     # See if raw data would work in terms of metadata
-    dataset_entry_keys = [v.name for v in fields(DatasetEntry)]
+    dataset_entry_keys = [v.name for v in fields(Input4MIPsDatasetMetadataEntry)]
     try:
-        DatasetEntry(
+        Input4MIPsDatasetMetadataEntry(
             **{k: v for k, v in start.attrs.items() if k in dataset_entry_keys}
         )
     except TypeError as exc:
@@ -342,40 +278,3 @@ for wf in working_files:
     iris_save_path = WRITING_DIR_IRIS / out_file.relative_to(WRITING_DIR)
     iris_save_path.parent.mkdir(parents=True, exist_ok=True)
     iris.save(cube, iris_save_path)
-
-
-dataset_entries: list[DatasetEntry] = []
-
-for file in WRITING_DIR_IRIS.rglob("*.nc"):
-    written_iris = xr.load_dataset(file, use_cftime=True)
-    print(f"{written_iris=}")
-    pprint(written_iris.attrs)
-    subprocess.run(["ncdump", "-h", str(iris_save_path)], check=True)  # noqa: S603, S607
-    iris.load_cube(iris_save_path)
-    print()
-    print()
-
-    dataset_entry_keys = [v.name for v in fields(DatasetEntry)]
-    dataset_entry = DatasetEntry(
-        **{k: v for k, v in written_iris.attrs.items() if k in dataset_entry_keys}
-    )
-
-    dataset_entries.append(dataset_entry)
-
-    # Minor annoyances
-    # - have to use iris for writing to get the CF conventions writing help
-    #   - that requires only doing conda/pixi installs
-    # - coordinates isn't allowed by CF conventions
-    #   hence reading from an iris written file
-    #   doesn't round trip nicely (xarray can't tell that bnds are not data variables)
-    #   - using ncdata doesn't really help
-
-db = [converter_json.unstructure(e) for e in dataset_entries]
-
-with open(JSON_DB, "w") as fh:
-    fh.write(json_dumps_cv_style(db))
-
-with open(JSON_DB) as fh:
-    df = pd.DataFrame(json.load(fh)).set_index("tracking_id")
-
-# breakpoint()

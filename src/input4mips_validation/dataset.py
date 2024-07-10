@@ -1,6 +1,7 @@
 """
 Input4MIPs dataset model
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -32,6 +33,92 @@ from input4mips_validation.dataset_writing_helpers import (
     generate_tracking_id,
 )
 from input4mips_validation.exceptions import DatasetMetadataInconsistencyError
+
+
+# TODO: describe data model more generally
+@define
+class Input4MIPsDatasetMetadataEntry:
+    """
+    Data model for a single dataset entry in the input4MIPs collection
+
+    For validation, see [TODO: {py:func}`validate_dataset_metadata`]
+    """
+
+    # TODO: remove Input4MIPsDatasetMetadata as that is a duplicate
+
+    Conventions: str
+    """CF conventions used when writing the dataset"""
+
+    activity_id: str
+    """Activity ID that applies to the dataset"""
+
+    contact: str
+    """Email addresses to contact in case of questions about the dataset"""
+
+    creation_date: str
+    """Date the dataset was created"""
+
+    dataset_category: str
+    """The dataset's category"""
+
+    datetime_end: str
+    """The dataset's end time"""
+
+    datetime_start: str
+    """The dataset's starting time"""
+
+    frequency: str
+    """Frequency of the data in the dataset"""
+
+    further_info_url: str
+    """URL where further information about the dataset can be found"""
+
+    grid_label: str
+    """Grid label of the data in the dataset"""
+
+    institution: str
+    """Longer name of the institute that created the dataset"""
+
+    institution_id: str
+    """ID of the institute that created the dataset"""
+
+    license: str
+    """License information for the dataset"""
+
+    mip_era: str
+    """The MIP era that applies to the dataset"""
+
+    nominal_resolution: str
+    """Nominal resolution of the data in the dataset"""
+
+    product: str
+    """The kind of data that this dataset is"""
+
+    realm: str
+    """The dataset's realm"""
+
+    # # Should be looked up from central CMIP stuff based on source_id,
+    # # hence ignoring for now
+    # source: str
+    # """Longer name of the source that created the dataset"""
+
+    source_id: str
+    """Source ID that applies to the dataset"""
+
+    target_mip: str
+    """The dataset's target MIP"""
+
+    time_range: str
+    """The dataset's time range"""
+
+    tracking_id: str
+    """Tracking ID of the dataset"""
+
+    variable_id: str
+    """The ID of the variable contained in the dataset"""
+
+    version: str
+    """The version ID of the dataset"""
 
 
 @define

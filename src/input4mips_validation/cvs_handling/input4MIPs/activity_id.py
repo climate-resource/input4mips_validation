@@ -133,8 +133,7 @@ def convert_unstructured_cv_to_activity_id_entries(
     """
     restructured = {
         "entries": [
-            dict(activity_id=key, values=value)
-            for key, value in unstructured["activity_id"].items()
+            dict(activity_id=key, values=value) for key, value in unstructured.items()
         ]
     }
 

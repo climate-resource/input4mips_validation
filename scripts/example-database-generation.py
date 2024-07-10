@@ -17,7 +17,6 @@ import cf_xarray.units  # noqa:F401 # get cf to format pint units
 import iris
 import pint_xarray  # noqa: F401
 import xarray as xr
-from attrs import fields
 
 # from ncdata.iris_xarray import cubes_to_xarray, cubes_from_xarray
 import input4mips_validation.xarray_helpers as iv_xr_helpers
@@ -28,7 +27,6 @@ from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import (
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
     Input4MIPsDatasetMetadataDataProducerMinimum,
-    Input4MIPsDatasetMetadataEntry,
 )
 
 converter_json = cattrs.preconf.json.make_converter()
@@ -50,7 +48,7 @@ ROOT_DATA_PATH = (
 WRITING_DIR = Path(__file__).parent / ".." / "tmp-data"
 WRITING_DIR_IRIS = Path(__file__).parent / ".." / "tmp-data-iris"
 CV_SOURCE_DIR = Path(__file__).parent / "../tests/test-data/cvs/input4MIPs/default"
-CV_SOURCE_DIR = Path(__file__).parent / "../../input4MIPs_CVs"
+CV_SOURCE_DIR = Path(__file__).parent / "../../input4MIPs_CVs/CVs"
 
 JSON_DB = WRITING_DIR_IRIS / "dataset_entries.json"
 
@@ -140,15 +138,6 @@ for wf in (Path(__file__).parent / ".." / "tmp-data-downloaded-by-hand-broken").
     subprocess.run(["ncdump", "-h", str(wf)], check=True)  # noqa: S603, S607
     start = xr.load_dataset(wf, use_cftime=True)
     print(f"Working from {start}")
-
-    # See if raw data would work in terms of metadata
-    dataset_entry_keys = [v.name for v in fields(Input4MIPsDatasetMetadataEntry)]
-    try:
-        Input4MIPsDatasetMetadataEntry(
-            **{k: v for k, v in start.attrs.items() if k in dataset_entry_keys}
-        )
-    except TypeError as exc:
-        print(exc)
 
     if "SOLARIS-HEPPA-CMIP-4-1" in start.attrs["source_id"]:
         for variable_name in start.variables:

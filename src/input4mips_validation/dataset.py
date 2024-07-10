@@ -89,6 +89,10 @@ class Input4MIPsDatasetMetadataFromFiles:
 
     realm: str
     """The dataset's realm"""
+    #
+    # region: str
+    # """The dataset's region"""
+    # # Has to be validated against CV/CF conventions
 
     # # Should be looked up from central CMIP stuff based on source_id,
     # # hence ignoring for now

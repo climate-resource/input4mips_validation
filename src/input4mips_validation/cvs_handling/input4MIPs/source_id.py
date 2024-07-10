@@ -52,7 +52,8 @@ class SourceIDValues:
     # """The kind of data that this source provides"""
     # TODO: add this and check against CVs
 
-    # # Should be looked up from central CMIP stuff based on source_id, hence ignoring for now
+    # # Should be looked up from central CMIP stuff based on source_id,
+    # # hence ignoring for now
     # source: str
     # """Longer name of the source"""
 
@@ -153,8 +154,7 @@ def convert_unstructured_cv_to_source_id_entries(
     """
     restructured = {
         "entries": [
-            dict(source_id=key, values=value)
-            for key, value in unstructured["source_id"].items()
+            dict(source_id=key, values=value) for key, value in unstructured.items()
         ]
     }
 

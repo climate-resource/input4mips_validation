@@ -6,6 +6,7 @@ To keep things in one place, all validation is handled in
 This allows us to validate individual values as well as relationships
 between values in one hit.
 """
+
 from __future__ import annotations
 
 from typing_extensions import TypeAlias
@@ -34,7 +35,7 @@ def convert_unstructured_cv_to_institution_ids(
     -------
         Institution IDs
     """
-    return converter_json.structure(unstructured["institution_id"], tuple[str, ...])
+    return converter_json.structure(unstructured, tuple[str, ...])
 
 
 def convert_institution_ids_to_unstructured_cv(

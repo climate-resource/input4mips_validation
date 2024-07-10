@@ -7,13 +7,16 @@ In production, this step would happen separately.
 
 from __future__ import annotations
 
+import json
 import subprocess
 from functools import partial
 from pathlib import Path
 from pprint import pprint
 
 import cattrs.preconf.json
+import cf_xarray.units  # noqa:F401 # get cf to format pint units
 import iris
+import pandas as pd
 import pint_xarray  # noqa: F401
 import xarray as xr
 from attrs import define, fields
@@ -194,26 +197,77 @@ class DatasetEntry:
 
 
 # Re-writing the solar data
-# for wf in (Path(__file__).parent / ".." / "tmp-data-downloaded-by-hand-broken").rglob(
-#     "*.nc"
-# ):
-#     subprocess.run(["ncdump", "-h", str(wf)], check=True)
-#     start = xr.load_dataset(wf, use_cftime=True)
-#     print(f"Working from {start}")
-#
-# if "SOLARIS-HEPPA-CMIP-4-1" in start.attrs["source_id"]:
-#     for variable_name in start.variables:
-#         # if variable_name in ["calyear", "calmonth", "calday", "scnum", "scph"]:
-#         if variable_name not in ["tsi"]:
-# tsi standard_name:  solar_irradiance
-#             # Hard to know what they actually want to write...
-#             continue
-#
-#             darray = start[variable_name].pint.quantify().to_dataset()
-#             breakpoint()
-#
-#     else:
-#         raise NotImplementedError(start.attrs["source_id"])
+for wf in (Path(__file__).parent / ".." / "tmp-data-downloaded-by-hand-broken").rglob(
+    "*.nc"
+):
+    subprocess.run(["ncdump", "-h", str(wf)], check=True)  # noqa: S603, S607
+    start = xr.load_dataset(wf, use_cftime=True)
+    print(f"Working from {start}")
+
+    # See if raw data would work in terms of metadata
+    dataset_entry_keys = [v.name for v in fields(DatasetEntry)]
+    try:
+        DatasetEntry(
+            **{k: v for k, v in start.attrs.items() if k in dataset_entry_keys}
+        )
+    except TypeError as exc:
+        print(exc)
+
+    if "SOLARIS-HEPPA-CMIP-4-1" in start.attrs["source_id"]:
+        for variable_name in start.variables:
+            darray = start[variable_name]
+            try:
+                standard_name = darray.attrs["standard_name"]
+            except KeyError:
+                continue
+
+            if variable_name in list(start.coords):
+                continue
+
+            ds = xr.Dataset({darray.attrs["standard_name"]: darray.pint.quantify()})
+            ds.attrs = {}
+
+            metadata_minimum = Input4MIPsDatasetMetadataDataProducerMinimum(
+                grid_label=start.attrs["grid_label"],
+                nominal_resolution="tbd-cv",  # global-mean I guess
+                # product should go into source_id
+                product="tbd",  # need to check with Bernd
+                source_id=start.attrs["source_id"],
+                target_mip=start.attrs["target_mip"],
+            )
+
+            if start.attrs["frequency"] == "yr":
+                add_time_bounds = partial(
+                    iv_xr_helpers.add_time_bounds,
+                    yearly_time_bounds=True,
+                    monthly_time_bounds=False,
+                )
+            else:
+                add_time_bounds = iv_xr_helpers.add_time_bounds
+
+            ds = Input4MIPsDataset.from_data_producer_minimum_information(
+                ds=ds,
+                metadata_minimum=metadata_minimum,
+                add_time_bounds=add_time_bounds,
+                cvs=cvs,
+            )
+            out_file = ds.write(root_data_dir=WRITING_DIR)
+            print()
+            print(f"Wrote {out_file}")
+            written = xr.load_dataset(out_file, use_cftime=True)
+            print(f"{written=}")
+            pprint(written.attrs)
+            subprocess.run(["ncdump", "-h", str(out_file)], check=True)  # noqa: S603, S607
+            print()
+
+            cube = iris.load_cube(out_file)
+            iris_save_path = WRITING_DIR_IRIS / out_file.relative_to(WRITING_DIR)
+            iris_save_path.parent.mkdir(parents=True, exist_ok=True)
+            iris.save(cube, iris_save_path)
+            subprocess.run(["ncdump", "-h", str(iris_save_path)], check=True)  # noqa: S603, S607
+
+    else:
+        raise NotImplementedError(start.attrs["source_id"])
 
 
 for wf in working_files:
@@ -315,8 +369,13 @@ for file in WRITING_DIR_IRIS.rglob("*.nc"):
     #   hence reading from an iris written file
     #   doesn't round trip nicely (xarray can't tell that bnds are not data variables)
     #   - using ncdata doesn't really help
-    # break
+
 db = [converter_json.unstructure(e) for e in dataset_entries]
 
 with open(JSON_DB, "w") as fh:
     fh.write(json_dumps_cv_style(db))
+
+with open(JSON_DB) as fh:
+    df = pd.DataFrame(json.load(fh)).set_index("tracking_id")
+
+# breakpoint()

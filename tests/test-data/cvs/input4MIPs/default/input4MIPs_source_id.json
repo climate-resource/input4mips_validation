@@ -19,6 +19,17 @@
             "license":"AMIP boundary condition data produced by PCMDI is licensed under a Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing input4MIPs output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file). The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law",
             "mip_era":"CMIP6Plus",
             "version":"1.1.9"
+        },
+        "SOLARIS-HEPPA-CMIP-4-1":{
+            "activity_id":"input4MIPs",
+            "contact":"bernd@iaa.es",
+            "further_info_url":"http://solarisheppa.geomar.de/cmip7",
+            "institution":"APARC SOLARIS-HEPPA",
+            "institution_id":"SOLARIS-HEPPA",
+            "license":"Solar radiation data produced by SOLARIS-HEPPA is licensed under a Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing input4MIPs output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file). The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law",
+            "mip_era":"CMIP6Plus",
+            "target_mip":"CMIP",
+            "version":"4.1"
         }
     }
 }

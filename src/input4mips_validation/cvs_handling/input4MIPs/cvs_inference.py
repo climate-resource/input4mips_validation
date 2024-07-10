@@ -1,6 +1,7 @@
 """
 Inference of values based on rules in or adjacent to the CVs
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -62,6 +63,8 @@ VARIABLE_DATASET_CATEGORY_MAP = {
     "mole_fraction_of_cfc11_eq_in_air": "GHGConcentrations",
     "mole_fraction_of_cfc12_eq_in_air": "GHGConcentrations",
     "mole_fraction_of_hfc134a_eq_in_air": "GHGConcentrations",
+    "solar_irradiance_per_unit_wavelength": "solar",
+    "solar_irradiance": "solar",
 }
 """
 Mapping from variable names to dataset category
@@ -125,6 +128,9 @@ VARIABLE_REALM_MAP = {
     "mole_fraction_of_cfc11_eq_in_air": "atmos",
     "mole_fraction_of_cfc12_eq_in_air": "atmos",
     "mole_fraction_of_hfc134a_eq_in_air": "atmos",
+    # Feels like wrong realm (should be extraterrestrial or something), but ok
+    "solar_irradiance_per_unit_wavelength": "atmos",
+    "solar_irradiance": "atmos",
 }
 """
 Mapping from variable names to realm

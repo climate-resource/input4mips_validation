@@ -4,7 +4,7 @@ version = "0.5.1a0"
 description = "Validation of input4MIPs data (checking file formats, metadata etc.)."
 authors = [{name = "Zebedee Nicholls", email = "zebedee.nicholls@climate-resource.com"}]
 requires-python = ">= 3.9"
-dependencies = ["pint-xarray", "cftime", "attrs", "cattrs", "pooch", "validators", "cf-xarray", "python-dateutil"]
+dependencies = ["pint-xarray", "cftime", "attrs", "cattrs", "pooch", "validators", "cf-xarray", "python-dateutil", "typer", "loguru", "cfchecker"]
 # readme = "README.md"
 # license = "BSD-3-Clause"
 # include = ["LICENCE"]  # poetry uses US English so assumes it will be spelt LICENSE

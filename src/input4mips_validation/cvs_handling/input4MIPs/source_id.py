@@ -43,21 +43,11 @@ class SourceIDValues:
 
     license_id: str
     """License information for data coming from this source"""
-    # Change to license_id
 
     mip_era: str
     """MIP era to which this source is contributing"""
 
-    # product: str
-    # """The kind of data that this source provides"""
-    # TODO: add this and check against CVs
-
-    # # Should be looked up from central CMIP stuff based on source_id,
-    # # hence ignoring for now
-    # source: str
-    # """Longer name of the source"""
-
-    version: str
+    source_version: str
     """Version identifier for data associated with this source"""
 
 

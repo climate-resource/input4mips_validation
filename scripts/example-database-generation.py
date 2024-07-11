@@ -15,6 +15,7 @@ from pprint import pprint
 import cattrs.preconf.json
 import cf_xarray.units  # noqa:F401 # get cf to format pint units
 import iris
+import numpy as np
 import pint_xarray  # noqa: F401
 import xarray as xr
 
@@ -65,69 +66,13 @@ cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
 
 
 # Overall thinking/notes:
-# - source ID is for dataset collection
-# - dataset is for stuff that has e.g. specific grid, time end, time start
-#     - something you could load with xr.load_mfdataset()
 #
-# - combine the stuff to create searchable tables
-#     - need to work out the normal forms for this to be sensible
-#
-# - exclude
-#     - status: that's a publishing thing, not something the dataset can know
-#         - could go into a DataBaseEntry
-#     - all ESGF index stuff, that's a different database's problem/domain
-#
-# To add/edit from current required global attributes in main:
+# To check:
 # - source_version
 #   - rename from what I currently think of as version
 # - version
 #   - auto-generate so it matches creation_date
 #   - this is what goes in the DRS
-# - source
-#   - expanded form of source_id
-#   - Should be looked up from central CMIP stuff based on source_id,
-#     hence ignoring for now
-# - region
-#   - CF conventions, so there are ways to check, just not obvious
-#   - list here https://github.com/PCMDI/obs4MIPs-cmor-tables/blob/master/obs4MIPs_region.json
-# - title
-#   - Title of the file
-#     (auto-generated header for figures etc. with some tools,
-#     put whatever you want in here)
-# - licence
-#   - split into license_id and license
-# - nominal_resolution
-#   - has a CV
-#   - there is a tool somewhere
-#     - might need more bins added here
-# - product
-#   - has a CV
-# - target_mip
-#   - per file
-#   - can be a list
-#
-# To add from reading Paul's data:
-# - comment
-#   - important for communication probably,
-#     although maybe best managed outside the file?
-# - data_specs_version
-#   - from using CMOR, ignore
-# - external_variables
-#   - super important when we come to validate trees
-# - grid
-#   - free-text description of grid_label
-# - references
-#   - useful
-#
-# To exclude from reading Paul's data:
-# - release_year: redundant given creation date
-# - source_description: redundant given there is title
-# - source_type: redundant given there is product
-#   - could make product_id and product
-# - table_id: not used generally/not generally applicable
-# - table_info: not used generally
-# - cmor_version: not used generally
-# - institution: can be looked up based on global CVs
 #
 # Very helpful for keying things: https://docs.google.com/document/d/1pU9IiJvPJwRvIgVaSDdJ4O0Jeorv_2ekEtted34K9cA/edit?pli=1
 
@@ -152,12 +97,14 @@ for wf in (Path(__file__).parent / ".." / "tmp-data-downloaded-by-hand-broken").
 
             ds = xr.Dataset({darray.attrs["standard_name"]: darray.pint.quantify()})
             ds.attrs = {}
+            # Remove attribute that cfchecks complains about
+            ds["time"].attrs.pop("_CoordinateAxisType")
 
             metadata_minimum = Input4MIPsDatasetMetadataDataProducerMinimum(
                 grid_label=start.attrs["grid_label"],
-                nominal_resolution="tbd-cv",  # global-mean I guess
-                # product should go into source_id
-                product="tbd",  # need to check with Bernd
+                nominal_resolution="10000 km",
+                product="observations",  # TODO: check with Bernd
+                region="global",
                 source_id=start.attrs["source_id"],
                 target_mip=start.attrs["target_mip"],
             )
@@ -177,6 +124,7 @@ for wf in (Path(__file__).parent / ".." / "tmp-data-downloaded-by-hand-broken").
                 add_time_bounds=add_time_bounds,
                 cvs=cvs,
             )
+
             out_file = ds.write(root_data_dir=WRITING_DIR)
             print()
             print(f"Wrote {out_file}")
@@ -218,24 +166,52 @@ for wf in working_files:
     new.attrs = {}
 
     if "CR" in start.attrs["source_id"]:
+        if start.attrs["grid_label"] == "gmnhsh":
+            nominal_resolution = "10000 km"
+        elif start.attrs["grid_label"] == "15_deg_lat":
+            nominal_resolution = "2500 km"
+        else:
+            raise NotImplementedError(start.attrs["grid_label"])
+
         metadata_minimum = Input4MIPsDatasetMetadataDataProducerMinimum(
             source_id="CR-CMIP-0-2-0",
-            target_mip="CMIP",
-            # These should be inferable/checkable from CVs I think
-            grid_label=start.attrs["grid_label"],
-            nominal_resolution="tbd-cv",
-            # product should go into source_id
             product="derived",
+            target_mip="CMIP",
+            region="global",
+            # These should be inferable/checkable from data in future I think
+            grid_label=start.attrs["grid_label"],
+            nominal_resolution=nominal_resolution,
         )
+        # Fix up time encoding
+        new["time"].encoding = {
+            **{k: new["time"].encoding[k] for k in ["calendar", "units"]},
+            # Time has to be encoded as float
+            # to ensure that half-days etc. are handled
+            "dtype": np.dtypes.Float64DType,
+        }
+
+        v = list(new.data_vars)[0]  # noqa: RUF015
+        standard_long_names = {
+            "sector": {"long_name": "sector ie an odd way of communicating the region"},
+            v: {"standard_name": v},
+        }
+        if "sector" in new:
+            # This is dumb, but fine for now as we can remove in future
+            # and it just leads to a warning with cfchecker
+            new["sector"].attrs["units"] = "1"
 
     elif start.attrs["source_id"] == "PCMDI-AMIP-1-1-9":
         metadata_minimum = Input4MIPsDatasetMetadataDataProducerMinimum(
+            source_id=start.attrs["source_id"],
+            product=start.attrs["product"],
+            region=start.attrs["region"],
+            target_mip=start.attrs["target_mip"],
+            # These should be inferable/checkable from CVs in future I think
             grid_label=start.attrs["grid_label"],
             nominal_resolution=start.attrs["nominal_resolution"],
-            product=start.attrs["product"],
-            source_id=start.attrs["source_id"],
-            target_mip=start.attrs["target_mip"],
         )
+
+        standard_long_names = None
 
     else:
         raise NotImplementedError(start.attrs["source_id"])
@@ -254,6 +230,7 @@ for wf in working_files:
         metadata_minimum=metadata_minimum,
         add_time_bounds=add_time_bounds,
         cvs=cvs,
+        standard_long_names=standard_long_names,
     )
     out_file = ds.write(root_data_dir=WRITING_DIR)
     print()

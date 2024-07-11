@@ -1,4 +1,5 @@
 """Helpers for working with {py:mod}`xarray`"""
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -274,5 +275,7 @@ def add_time_bounds(
 
     ds.coords[bname] = bounds
     ds[variable].attrs["bounds"] = bname
+    # Ensure that bounds has the same encoding as the variable
+    ds.coords[bname].encoding = ds[variable].encoding
 
     return ds

@@ -78,32 +78,37 @@ class Input4MIPsDatasetMetadataFromFiles:
     license: str
     """License information for the dataset"""
 
+    license_id: str
+    """ID of the license used in this dataset"""
+
     mip_era: str
     """The MIP era that applies to the dataset"""
 
     nominal_resolution: str
     """Nominal resolution of the data in the dataset"""
+    # TODO: validate against CV/tool
+    # https://github.com/PCMDI/nominal_resolution
+    # May need to add more bins to the tool
 
     product: str
     """The kind of data that this dataset is"""
+    # Should validate against the CVs
 
     realm: str
     """The dataset's realm"""
-    #
-    # region: str
-    # """The dataset's region"""
-    # # Has to be validated against CV/CF conventions
 
-    # # Should be looked up from central CMIP stuff based on source_id,
-    # # hence ignoring for now
-    # source: str
-    # """Longer name of the source that created the dataset"""
+    region: str
+    """The dataset's region"""
+    # Has to be validated against CV/CF conventions
+    # https://github.com/PCMDI/obs4MIPs-cmor-tables/blob/master/obs4MIPs_region.json
 
     source_id: str
     """Source ID that applies to the dataset"""
 
     target_mip: str
     """The dataset's target MIP"""
+    # TODO: This should be on the ESGF side,
+    # because it is defined after the file is used
 
     time_range: str
     """The dataset's time range"""
@@ -114,23 +119,62 @@ class Input4MIPsDatasetMetadataFromFiles:
     variable_id: str
     """The ID of the variable contained in the dataset"""
 
-    version: str
+    source_version: str
     """The version ID of the dataset as defined by the provider"""
-    # TODO: introduce the below and rename the above to source_version
-    # version: str
-    # """
-    # Datestamp of the day on which the dataset was produced
-    #
-    # This is used to provide a unique version on the ESGF,
-    # which can't handle versions with special characters
-    # (which is what goes in ``source_version``).
-    # The uniqueness of this version obviously relies on data
-    # being published daily or less frequently to ESGF.
-    # This is a fine assumption for now.
-    # """
+
+    version: str
+    """
+    Datestamp of the day on which the dataset was produced
+
+    This can be used to create the file's path according to the DRS
+    and is used to provide a unique version on the ESGF,
+    which can't handle versions with special characters
+    (which is what goes in ``source_version``).
+    The uniqueness of this version obviously relies on data
+    being published daily or less frequently to ESGF.
+    This is a fine assumption for now.
+    """
+
+    comment: str | None = None
+    """
+    Any comment about the dataset that can be made at the time of writing the file
+    """
+    # TODO: consider whether we should have comments on ESGF side too,
+    # for comments that are made after the file is released.
+
+    external_variables: str | None = None
+    """
+    Any external variables that may be required to work with the dataset
+
+    For example, cell areas.
+
+    If not provided,
+    there should be no external variables required to work with the dataset.
+    """
+
+    grid: str | None = None
+    """Free-text description of the grid"""
 
     institution: str | None = None
     """Longer name of the institute that created the dataset"""
+
+    references: str | None = None
+    """Any references relevant to the dataset"""
+    # TODO: consider whether we should have comments on ESGF side too,
+    # for references that are published after the file is released.
+
+    # Should be able tobe looked up from central CMIP stuff based on source_id in future
+    source: str | None = None
+    """Longer name of the source that created the dataset"""
+    # Should be able tobe looked up from central CMIP stuff based on source_id in future
+
+    title: str | None = None
+    """
+    Title of the dataset
+
+    This key can be useful to use to provide a plain-text description of the data
+    because this key is automatically used by some tools when making plots etc.
+    """
 
 
 @define
@@ -242,10 +286,8 @@ class Input4MIPsDatasetMetadata:
     realm: str
     """The dataset's realm"""
 
-    # # Should be looked up from central CMIP stuff based on source_id,
-    # hence ignoring for now
-    # source: str
-    # """Longer name of the source that created the dataset"""
+    region: str
+    """The dataset's region"""
 
     source_id: str
     """Source ID that applies to the dataset"""
@@ -259,14 +301,17 @@ class Input4MIPsDatasetMetadata:
     variable_id: str
     """The ID of the variable contained in the dataset"""
 
-    version: str
-    """The version ID of the dataset"""
+    source_version: str
+    """The version ID of the dataset as defined by the provider"""
 
     metadata_non_cvs: dict[str, Any] | None = field(default=None)
     """Other metadata fields that aren't covered by the CVs"""
 
     institution: str | None = None
     """Longer name of the institution that created the dataset"""
+
+    source: str | None = None
+    """Longer name of the source that created the dataset"""
 
     @metadata_non_cvs.validator
     def _no_clash_with_other_attributes(
@@ -334,6 +379,14 @@ class Input4MIPsDatasetMetadataDataProducerMinimum:
 
     product: str
     """The kind of data that this dataset is"""
+
+    region: str
+    """
+    The dataset's region
+
+    We may be able to remove this in future,
+    but right now the rules around determining region are not clear to us.
+    """
 
     source_id: str
     """Source ID that applies to the dataset"""
@@ -542,7 +595,7 @@ class Input4MIPsDataset:
         return get_ds_var_assert_single(self.ds)
 
     @classmethod
-    def from_data_producer_minimum_information(  # noqa: PLR0913
+    def rom_data_producer_minimum_information(  # noqa: PLR0913
         cls,
         ds: xr.Dataset,
         metadata_minimum: Input4MIPsDatasetMetadataDataProducerMinimum,
@@ -553,6 +606,7 @@ class Input4MIPsDataset:
         copy: bool = True,
         cvs: CVsInput4MIPs | None = None,
         activity_id: str = "input4MIPs",
+        standard_long_names: dict[str, dict[str, str]] | None = None,
     ) -> Input4MIPsDataset:
         """
         Initialise from the minimum required information from the data producer
@@ -600,6 +654,18 @@ class Input4MIPsDataset:
 
             Given this is an Input4MIPsDataset, you shouldn't need to change this.
 
+        standard_long_names
+            Standard/long names to use for the variables in ``ds``.
+
+            All variables that are not bounds
+            must have one of standard name or long name to be set.
+            This is only required if these attributes are not already set.
+
+            Each key should be a variable in ``ds``.
+            The value should itself be a dictionary with keys
+            "standard_name" for the variable's standard name
+            and "long_name" for the variable's long name.
+
         Returns
         -------
             Initialised instance
@@ -626,14 +692,60 @@ class Input4MIPsDataset:
         ds = ds.cf.guess_coord_axis().cf.add_canonical_attributes()
 
         # add bounds to dimensions
+        # This handling is super messy, must be a better way
+        bounds_dim = "bounds"
         for dim in dimensions:
             if dim == time_dimension:
-                ds = add_time_bounds(ds)
+                ds = add_time_bounds(ds, output_dim=bounds_dim)
             else:
-                ds = ds.cf.add_bounds(dim)
+                ds = ds.cf.add_bounds(dim, output_dim=bounds_dim)
+
+        # I'm pretty sure that cf_xarray should handle this,
+        # but it isn't right now.
+        for ds_variable in [*ds.data_vars, *ds.coords]:
+            if bounds_dim in ds_variable:
+                continue
+
+            if not any(
+                k in ds[ds_variable].attrs for k in ["standard_name", "long_name"]
+            ):
+                # Ensure these key IDs are there
+                if standard_long_names is None:
+                    msg = (
+                        f"Variable {ds_variable} "
+                        "does not have either standard_name or long_name set. "
+                        "Hence you must supply `standard_long_names`."
+                    )
+                    raise ValueError(msg)
+
+                if ds_variable not in standard_long_names:
+                    msg = f"Standard or long name for {ds_variable} must be supplied"
+                    raise KeyError(msg)
+
+                if "standard_name" in standard_long_names[ds_variable]:
+                    ds[ds_variable].attrs["standard_name"] = standard_long_names[
+                        ds_variable
+                    ]["standard_name"]
+
+                if "long_name" in standard_long_names[ds_variable]:
+                    ds[ds_variable].attrs["long_name"] = standard_long_names[
+                        ds_variable
+                    ]["long_name"]
+
+                if (
+                    "standard_name" not in ds[ds_variable].attrs
+                    and "long_name" not in ds[ds_variable].attrs
+                ):
+                    msg = (
+                        "One of standard_name and long_name "
+                        "must be in ds[ds_variable]. "
+                        f"Received {ds[ds_variable]=}"
+                    )
+                    raise KeyError(msg)
 
         cvs_values = cvs_source_id_entry.values
         variable_id = get_ds_var_assert_single(ds)
+
         frequency = infer_frequency(ds, time_bounds=f"{time_dimension}_bounds")
 
         start_end_separator = "-"
@@ -663,11 +775,12 @@ class Input4MIPsDataset:
             nominal_resolution=metadata_minimum.nominal_resolution,
             product=metadata_minimum.product,
             realm=VARIABLE_REALM_MAP[variable_id],
+            region=metadata_minimum.region,
             source_id=metadata_minimum.source_id,
+            source_version=cvs_values.source_version,
             target_mip=metadata_minimum.target_mip,
             time_range=time_range,
             variable_id=variable_id,
-            version=cvs_values.version,
             metadata_non_cvs=metadata_non_cvs,
         )
 
@@ -704,8 +817,6 @@ class Input4MIPsDataset:
         if encoding_kwargs is None:
             encoding_kwargs = DEFAULT_ENCODING_KWARGS
 
-        out_path = root_data_dir / cvs.get_file_path(self.metadata)
-
         # Can shallow copy as we don't alter the data from here on
         ds_disk = self.ds.copy(deep=False).pint.dequantify(
             format=PINT_DEQUANTIFY_FORMAT
@@ -719,6 +830,12 @@ class Input4MIPsDataset:
         # for the user to overwrite this at present
         ds_disk.attrs["tracking_id"] = generate_tracking_id()
         ds_disk.attrs["creation_date"] = generate_creation_timestamp()
+        # YYYYMMDD out of creation date
+        ds_disk.attrs["version"] = ds_disk.attrs["creation_date"][:10].replace("-", "")
+
+        out_path = root_data_dir / cvs.get_file_path(
+            self.metadata, ds_esgf_version=ds_disk.attrs["version"]
+        )
 
         return write(
             ds=ds_disk,

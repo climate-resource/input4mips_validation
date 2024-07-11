@@ -1,6 +1,7 @@
 """
 Root for the command-line interface
 """
+
 from __future__ import annotations
 
 import sys
@@ -44,4 +45,4 @@ def setup_logging(config: dict[str, Any] | None = None) -> None:
         config = DEFAULT_LOGGING_CONFIG
 
     logger.configure(**config)
-    logger.enable("fgen")
+    logger.enable("input4mips_validation")

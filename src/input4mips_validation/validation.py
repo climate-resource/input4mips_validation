@@ -427,6 +427,7 @@ def validate_file(infile: Path | str, cv_source: str) -> Input4MIPsDatasetMetada
     InvalidFileError
         The file does not pass all of the validation.
     """
+    logger.info(f"Validating {infile}")
     error_container = []
     catch_error = get_catch_error_decorator(error_container)
 
@@ -456,6 +457,10 @@ def validate_file(infile: Path | str, cv_source: str) -> Input4MIPsDatasetMetada
     )(ds, cvs=cvs)
 
     if error_container:
+        logger.info("Validation failed")
         raise InvalidFileError(filepath=infile, error_container=error_container)
+
+    else:
+        logger.info("Validation passed")
 
     return dataset_entry

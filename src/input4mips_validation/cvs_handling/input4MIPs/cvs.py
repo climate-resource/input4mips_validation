@@ -14,6 +14,7 @@ from input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading import RawCVLo
 from input4mips_validation.cvs_handling.input4MIPs.source_id import SourceIDEntries
 
 
+# Note: now out of date. Should pick this up in testing.
 class DatasetMetadataLike(Protocol):
     """Protocol for classes that hold metadata about a dataset"""
 
@@ -95,7 +96,9 @@ class CVsInput4MIPs:
     # tracking_id_regexp: str | regexp
     # """Regular expression which files' tracking IDs must match"""
 
-    def get_file_path(self, metadata: DatasetMetadataLike) -> Path:
+    def get_file_path(
+        self, metadata: DatasetMetadataLike, ds_esgf_version: str
+    ) -> Path:
         """
         Get file path for given metadata based on the data reference syntax
 
@@ -106,6 +109,12 @@ class CVsInput4MIPs:
         ----------
         metadata
             Metadata information
+
+        ds_esgf_version
+            The dataset's version on ESGF.
+
+            This has to be supplied separately from the file's metadata,
+            because it is only known at write time.
 
         Returns
         -------
@@ -147,7 +156,8 @@ class CVsInput4MIPs:
             / akr(metadata.frequency)
             / akr(metadata.variable_id)
             / akr(metadata.grid_label)
-            / akr(metadata.version)
+            # For some reason, we put v in front of the version in the filepath
+            / akr(f"v{ds_esgf_version}")
         )
         for component in directory.parts:
             assert_all_valid_filepath_component_characters(component)

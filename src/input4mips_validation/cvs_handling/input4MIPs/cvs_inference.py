@@ -265,4 +265,10 @@ def format_date_for_time_range(
     if ds_frequency.startswith("yr"):
         return date_safe.strftime("%Y")
 
+    if ds_frequency.startswith("day"):
+        return date_safe.strftime("%Y%m%d")
+
+    if ds_frequency.startswith("3hr"):
+        return date_safe.strftime("%Y%m%d%H%M")
+
     raise NotImplementedError(ds_frequency)

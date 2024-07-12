@@ -1,7 +1,12 @@
 #!/bin/bash
 
 # python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs tmp-data-downloaded-by-hand/siconc_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-9_gn_187001-202212.nc
-python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs tmp-data-downloaded-by-hand-broken/solarforcing-ref-mon_input4MIPs_solar_CMIP_SOLARIS-HEPPA-4-1_gn_18500101-20231231.nc
+# python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs tmp-data-downloaded-by-hand-broken/solarforcing-ref-mon_input4MIPs_solar_CMIP_SOLARIS-HEPPA-4-1_gn_18500101-20231231.nc
+# python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
+# 	tmp-data-downloaded-by-hand-broken/H2-em-biomassburning_input4MIPs_emissions_CMIP_DRES-CMIP-BB4CMIP6+-1-0_gn_190001-202212.nc
+
+python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
+	tmp-data-downloaded-by-hand-broken/CO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2024-06-04_gn_195001-199912.nc
 
 # # My re-written files
 # python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \

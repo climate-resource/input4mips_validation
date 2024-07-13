@@ -10,6 +10,7 @@ from typing import Any, Callable
 import attr
 import cf_xarray  # noqa: F401
 import iris
+import ncdata.iris_xarray
 import xarray as xr
 from attrs import asdict, define, field, frozen
 
@@ -34,6 +35,8 @@ from input4mips_validation.dataset_writing_helpers import (
     generate_tracking_id,
 )
 from input4mips_validation.exceptions import DatasetMetadataInconsistencyError
+
+iris.FUTURE.save_split_attrs = True
 
 
 # TODO: describe data model more generally
@@ -791,7 +794,7 @@ class Input4MIPsDataset:
     def write(
         self,
         root_data_dir: Path,
-        unlimited_dims: tuple[str, ...] = ("time",),
+        unlimited_dimensions: tuple[str, ...] = ("time",),
         encoding_kwargs: dict[str, Any] | None = None,
     ) -> Path:
         """
@@ -802,12 +805,15 @@ class Input4MIPsDataset:
         root_data_dir
             Root directory in which to write the file
 
-        unlimited_dims
+        unlimited_dimensions
             Dimensions which should be unlimited in the written file
+
+            This is passed to {py:func}`iris.save`.
 
         encoding_kwargs
             Kwargs to use when encoding to disk.
-            These are passed to :meth:`xr.Dataset.to_netcdf`.
+
+            These are passed to {py:func}`iris.save`.
             If not supplied, we use :const:`DEFAULT_ENCODING_KWARGS`
 
         Returns
@@ -842,8 +848,8 @@ class Input4MIPsDataset:
         return write(
             ds=ds_disk,
             out_path=out_path,
-            unlimited_dims=unlimited_dims,
-            encoding={self.ds_var: encoding_kwargs},
+            unlimited_dimensions=unlimited_dimensions,
+            **encoding_kwargs,
         )
 
 
@@ -856,28 +862,31 @@ DEFAULT_ENCODING_KWARGS = {"zlib": True, "complevel": 5}
 """Default values to use when encoding netCDF files"""
 
 
-def write(
-    ds: xr.Dataset,
-    out_path: Path,
-    unlimited_dims: tuple[str, ...],
-    encoding: dict[str, Any],
-) -> Path:
+def write(ds: xr.Dataset, out_path: Path, **kwargs) -> Path:
     """
     Write a dataset to disk
+
+    A note for users of this function.
+    We convert the dataset to a list of {py:obj}`iris.Cube`
+    with {py:func}`ncdata.iris_xarray.cubes_from_xarray`
+    and then write the file to disk with {py:mod}`iris`
+    because {py:mod}`iris` adds CF-conventions upon writing,
+    which is needed for input4MIPs data.
+    This works smoothly in our experience,
+    but the conversion is always tricky so if you are having issues,
+    this may be the reason.
 
     Parameters
     ----------
     ds
-        Dataset to write to disk
+        Dataset to write to disk.
+        May contain one or more variables.
 
     out_path
         Path in which to write the dataset
 
-    unlimited_dims
-        Dimensions which should be written as unlimited
-
-    encoding
-        Encoding to apply when writing
+    **kwargs
+        Passed through to {py:func}`iris.save`
 
     Returns
     -------
@@ -890,10 +899,7 @@ def write(
     # Having validated, make the target directory and write
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    cube = ds[get_ds_var_assert_single(ds)].to_iris()
-    cube.attributes.globals = ds._attrs
-    iris.save(
-        cube, out_path, unlimited_dimensions=unlimited_dims, **DEFAULT_ENCODING_KWARGS
-    )
+    cubes = ncdata.iris_xarray.cubes_from_xarray(ds)
+    iris.save(cubes, out_path, **kwargs)
 
     return out_path

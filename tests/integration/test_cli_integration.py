@@ -49,9 +49,9 @@ def test_valid_file_passes(tmp_path):
         target_mip="CMIP",
     )
 
-    lon = np.arange(-165, 180, 30)
-    lat = np.arange(-82.5, 90, 15)
-    time = pd.date_range("2000-01-01", periods=120, freq="MS")
+    lon = np.arange(-165.0, 180.0, 30.0, dtype=np.float64)
+    lat = np.arange(-82.5, 90.0, 15.0, dtype=np.float64)
+    time = pd.date_range("2000-01-15", periods=120, freq="MS")
 
     rng = np.random.default_rng()
     ds_data = UR.Quantity(
@@ -70,6 +70,16 @@ def test_valid_file_passes(tmp_path):
         ),
         attrs={},
     )
+    # This is a good trick to remember for, e.g. reducing file sizes.
+    ds["lat"].encoding = {"dtype": np.dtypes.Float32DType}
+    ds["time"].encoding = {
+        "calendar": "proleptic_gregorian",
+        "units": "days since 1850-01-01 00:00:00",
+        # Time has to be encoded as float
+        # to ensure that half-days etc. are handled.
+        "dtype": np.dtypes.Float32DType,
+    }
+
     with patch.dict(
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},

@@ -28,7 +28,7 @@ def generate_creation_timestamp() -> str:
     -------
         Creation timestamp
     """
-    ts = dt.datetime.utcnow().replace(
+    ts = dt.datetime.now(dt.UTC).replace(
         microsecond=0  # remove microseconds from creation_timestamp
     )
 

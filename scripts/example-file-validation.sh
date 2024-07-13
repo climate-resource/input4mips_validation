@@ -7,9 +7,16 @@
 
 # python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
 # 	tmp-data-downloaded-by-hand-broken/CO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2024-06-04_gn_195001-199912.nc
+#
+# python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
+# 	tmp-data-downloaded-by-hand-broken/utsvolcsulfur_input4MIPs_emissions_CMIP6Plus_source_id_grid_label_1750-2021.nc
+#
+# python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
+# 	tmp-data-downloaded-by-hand-broken/multiple_input4MIPs_aerosolProperties_CMIP_IACETH-SAGE3lambda-3-0-0_gn_1850_2014.nc
 
 python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
-	tmp-data-downloaded-by-hand-broken/utsvolcsulfur_input4MIPs_emissions_CMIP6Plus_source_id_grid_label_1750-2021.nc
+	tmp-data-downloaded-by-hand-broken/volcan-eesm_global_2015_so2-emissions-database_v1.0.nc
+
 # # My re-written files
 # python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
 # 	tmp-data-iris/input4MIPs/CMIP6Plus/CMIP/CR/CR-CMIP-0-2-0/atmos/mon/mole-fraction-of-carbon-dioxide-in-air/gmnhsh/v20240711/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gmnhsh_175001-202212.nc

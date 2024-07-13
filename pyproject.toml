@@ -5,9 +5,13 @@ description = "Validation of input4MIPs data (checking file formats, metadata et
 authors = [{name = "Zebedee Nicholls", email = "zebedee.nicholls@climate-resource.com"}]
 requires-python = ">= 3.9"
 dependencies = ["pint-xarray", "cftime", "attrs", "cattrs", "pooch", "validators", "cf-xarray", "python-dateutil", "typer", "loguru", "cfchecker", "py7zr"]
-# readme = "README.md"
-# license = "BSD-3-Clause"
-# include = ["LICENCE"]  # poetry uses US English so assumes it will be spelt LICENSE
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
 
 [build-system]
 requires = ["setuptools"]

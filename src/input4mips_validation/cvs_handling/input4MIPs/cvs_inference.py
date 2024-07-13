@@ -200,6 +200,27 @@ def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
     raise NotImplementedError(ds)
 
 
+def xr_time_min_max_to_single_value(
+    v: xr.DataArray,
+) -> cftime.datetime | dt.datetime | np.datetime64:
+    """
+    Convert the results from calling `min` or `max` to a single value
+
+    TODO: work out what right access is. There must be a better way than this.
+
+    Parameters
+    ----------
+    v
+        The results of calling `min` or `max`
+
+    Returns
+    -------
+        The single minimum or maximum value,
+        converted from being an {py:obj}`xr.DataArray`.
+    """
+    return v.to_dict()["data"]
+
+
 def infer_time_range(
     ds: xr.Dataset, frequency: str, time_dimension: str, start_end_separator: str = "-"
 ) -> str:
@@ -226,10 +247,8 @@ def infer_time_range(
     """
     fd = partial(format_date_for_time_range, ds_frequency=frequency)
     return start_end_separator.join(
-        # TODO: work out what right access is.
-        # tolist cannot be correct
         [
-            fd(t.values.tolist())
+            fd(xr_time_min_max_to_single_value(t))
             for t in [ds[time_dimension].min(), ds[time_dimension].max()]
         ]
     )

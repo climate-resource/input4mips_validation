@@ -9,6 +9,7 @@ from typing import Any, Callable
 
 import attr
 import cf_xarray  # noqa: F401
+import iris
 import xarray as xr
 from attrs import asdict, define, field, frozen
 
@@ -595,7 +596,7 @@ class Input4MIPsDataset:
         return get_ds_var_assert_single(self.ds)
 
     @classmethod
-    def rom_data_producer_minimum_information(  # noqa: PLR0913
+    def from_data_producer_minimum_information(  # noqa: PLR0912, PLR0913
         cls,
         ds: xr.Dataset,
         metadata_minimum: Input4MIPsDatasetMetadataDataProducerMinimum,
@@ -784,7 +785,8 @@ class Input4MIPsDataset:
             metadata_non_cvs=metadata_non_cvs,
         )
 
-        return cls(ds=ds, metadata=metadata, cvs=cvs)
+        # Make sure time appears first as this is what CF conventions expect
+        return cls(ds=ds.transpose(time_dimension, ...), metadata=metadata, cvs=cvs)
 
     def write(
         self,
@@ -887,6 +889,11 @@ def write(
 
     # Having validated, make the target directory and write
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    ds.to_netcdf(out_path, unlimited_dims=unlimited_dims, encoding=encoding)
+
+    cube = ds[get_ds_var_assert_single(ds)].to_iris()
+    cube.attributes.globals = ds._attrs
+    iris.save(
+        cube, out_path, unlimited_dimensions=unlimited_dims, **DEFAULT_ENCODING_KWARGS
+    )
 
     return out_path

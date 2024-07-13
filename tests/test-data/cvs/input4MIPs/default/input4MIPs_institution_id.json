@@ -1,8 +1,6 @@
-{
-    "institution_id":[
-        "CR",
-        "PCMDI",
-        "PNNL-JGCRI",
-        "SOLARIS-HEPPA"
-    ]
-}
+[
+    "CR",
+    "PCMDI",
+    "PNNL-JGCRI",
+    "SOLARIS-HEPPA"
+]

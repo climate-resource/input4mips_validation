@@ -1,66 +1,71 @@
-[tool.poetry]
+[project]
+authors = [
+    {name = "Zebedee Nicholls", email = "zebedee.nicholls@climate-resource.com"},
+]
+license = {text = "BSD-3-Clause"}
+requires-python = "<4.0,>=3.9"
+dependencies = [
+    "loguru>=0.7",
+    "cf-xarray>=0.8",
+    "xarray>=2022.0",
+    "pint-xarray>=0.3",
+    "numpy<2.0,>=1.23",
+    "cftime>=1.6",
+    "typing-extensions>=4.0",
+    "pooch>=1.0",
+    "netcdf4>=1.0",
+    "attrs>=22.0",
+    "typer<1.0.0,>=0.9.0",
+    "validators<1.0.0,>=0.28.3",
+    "cattrs<24.0.0,>=23.2.3",
+]
 name = "input4mips-validation"
 version = "0.5.1a0"
 description = "Validation of input4MIPs data (checking file formats, metadata etc.)."
-authors = ["Zebedee Nicholls <zebedee.nicholls@climate-resource.com>"]
 readme = "README.md"
-packages = [{include = "input4mips_validation", from = "src"}]
-license = "BSD-3-Clause"
-include = ["LICENCE"]  # poetry uses US English so assumes it will be spelt LICENSE
 
-[tool.poetry.dependencies]
-python = "^3.9"
-matplotlib = { version = ">=3.0", optional = true }
-notebook = { version = ">=6.0", optional = true }
-loguru = ">=0.7"
-cf-xarray = ">=0.8"
-xarray = ">=2022.0"
-pint-xarray = ">=0.3"
-numpy = ">=1.23,<2.0"  # Pin numpy 2.0 while pint is broken
-cftime = ">=1.6"
-typing-extensions = ">=4.0"
-pooch = ">=1.0"
-# Pooch is a dependency of cf-xarray but not included in cf-xarray's dependencies.
-# TODO: PR into cf-xarray
-netcdf4 = ">=1.0"
-attrs = ">=22.0"
-typer = "^0.9.0"
-validators = "^0.28.3"
-cattrs = "^23.2.3"
+[project.optional-dependencies]
+plots = [
+    "matplotlib>=3.0",
+]
+notebooks = [
+    "notebook>=6.0",
+]
 
-[tool.poetry.extras]
-plots = ["matplotlib"]
-notebooks = ["notebook"]
-
-[tool.poetry.group.tests.dependencies]
-pytest = "^7.3.1"
-
-[tool.poetry.group.docs.dependencies]
-myst-nb = "^0.17.0"
-sphinx-book-theme = "^1.1.0"
-sphinx-autodoc-typehints = "^1.23.0"
-sphinx-autodocgen = "^1.3"
-jupytext = "^1.14.5"
-sphinx-copybutton = "^0.5.2"
-sphinx-click = "^5.1.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest-cov = "^4.0.0"
-coverage = "^7.2.0"
-mypy = "^1.2.0"
-ruff = "^0.1.8"
-pre-commit = "^3.3.1"
-towncrier = "^23.6.0"
-liccheck = "^0.9.1"
-types-requests = "^2.31.0.20240125"
-pandas-stubs = "^2.2.2.240603"
-
-[tool.poetry.scripts]
+[project.scripts]
 input4mips-validation = "input4mips_validation.cli:app"
 
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+tests = [
+    "pytest<8.0.0,>=7.3.1",
+]
+docs = [
+    "myst-nb<1.0.0,>=0.17.0",
+    "sphinx-book-theme<2.0.0,>=1.1.0",
+    "sphinx-autodoc-typehints<2.0.0,>=1.23.0",
+    "sphinx-autodocgen<2.0,>=1.3",
+    "jupytext<2.0.0,>=1.14.5",
+    "sphinx-copybutton<1.0.0,>=0.5.2",
+    "sphinx-click<6.0.0,>=5.1.0",
+]
+dev = [
+    "pytest-cov<5.0.0,>=4.0.0",
+    "coverage<8.0.0,>=7.2.0",
+    "mypy<2.0.0,>=1.2.0",
+    "ruff<1.0.0,>=0.1.8",
+    "pre-commit<4.0.0,>=3.3.1",
+    "towncrier<24.0.0,>=23.6.0",
+    "liccheck<1.0.0,>=0.9.1",
+    "types-requests<3.0.0.0,>=2.31.0.20240125",
+    "pandas-stubs<3.0.0.0,>=2.2.2.240603",
+]
+
+[tool.pdm.build]
+includes = ["src/input4mips_validation", "LICENCE"]
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [tool.coverage.run]
 source = ["src"]

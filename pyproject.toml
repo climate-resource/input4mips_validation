@@ -104,6 +104,9 @@ addopts = [
 [tool.ruff]
 src = ["src"]
 target-version = "py39"
+line-length = 88
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle error
     "W",  # pycodestyle warning
@@ -126,12 +129,8 @@ ignore = [
     "D200",  # One-line docstring should fit on one line with quotes
     "D400",  # First line should end with a period
 ]
-line-length = 88
 
-[tool.ruff.format]
-docstring-code-format = true
-
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "test*.py" = [
     "D",  # Documentation not needed in tests
     "S101",  # S101 Use of `assert` detected
@@ -151,11 +150,14 @@ docstring-code-format = true
     "PLR0913",
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["src"]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.towncrier]
 package = "input4mips_validation"

@@ -5,6 +5,7 @@ Where validation is possible on values in isolation, we include data validation 
 Where the validation requires knowledge about other values in the CVs,
 see {py:mod}`input4mips_validation.cvs_handling.input4MIPs.validation`.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable

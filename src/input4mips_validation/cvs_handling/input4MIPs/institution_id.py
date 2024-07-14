@@ -6,6 +6,7 @@ To keep things in one place, all validation is handled in
 This allows us to validate individual values as well as relationships
 between values in one hit.
 """
+
 from __future__ import annotations
 
 from typing_extensions import TypeAlias

@@ -4,6 +4,7 @@ Validation of CVs against our data model
 This basically allows us to check that the raw CV JSON files
 actually comply with the data model codified here.
 """
+
 from __future__ import annotations
 
 from collections.abc import Collection

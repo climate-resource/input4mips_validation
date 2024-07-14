@@ -1,6 +1,7 @@
 """
 Exceptions used in the top-level modules
 """
+
 from __future__ import annotations
 
 

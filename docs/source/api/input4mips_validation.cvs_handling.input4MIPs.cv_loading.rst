@@ -19,6 +19,12 @@ load\_source\_id\_entries
 .. autofunction:: load_source_id_entries
 
 
+load\_institution\_ids
+======================
+
+.. autofunction:: load_institution_ids
+
+
 load\_cvs
 =========
 

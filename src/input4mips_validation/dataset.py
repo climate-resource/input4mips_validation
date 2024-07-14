@@ -1,6 +1,7 @@
 """
 Input4MIPs dataset model
 """
+
 from __future__ import annotations
 
 from pathlib import Path

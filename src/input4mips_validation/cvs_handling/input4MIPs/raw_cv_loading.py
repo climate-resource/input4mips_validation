@@ -4,6 +4,7 @@ Tools for loading the raw CVs
 This allows us to access CVs defined locally as well as in remote sources,
 specifically on GitHub.
 """
+
 from __future__ import annotations
 
 import os

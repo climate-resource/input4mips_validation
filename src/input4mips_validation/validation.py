@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Callable, ParamSpec, TypeVar
 
 import iris
+import ncdata.iris_xarray
 import xarray as xr
 from attrs import fields
 from loguru import logger
@@ -370,15 +371,8 @@ def validate_ds(
         Controlled vocabularies to use during the validation
     """
     # Create Input4MIPsDataset
-
     ds_no_attrs = ds.copy()
     ds_no_attrs.attrs = {}
-
-    # Guess that everything which has "bnds" in it is a co-ordinate.
-    # This is definitely a pain point when loading data from iris written.
-    # TODO: try using ncdata for conversion and see if that helps
-    bnds_guess = [v for v in ds_no_attrs.data_vars if "bnds" in v]
-    ds_no_attrs = ds_no_attrs.set_coords(bnds_guess)
 
     metadata_keys = [v.name for v in fields(Input4MIPsDatasetMetadata)]
     metadata = Input4MIPsDatasetMetadata(
@@ -415,7 +409,7 @@ def load_cvs_here(cv_source: str) -> CVsInput4MIPs:
 
 
 def validate_file(
-    infile: Path | str, cv_source: str | None
+    infile: Path | str, cv_source: str | None, bnds_coord_indicator: str = "bnds"
 ) -> Input4MIPsDatasetMetadataEntry:
     """
     Validate a file
@@ -434,6 +428,11 @@ def validate_file(
         For full details on options for loading CVs,
         see {py:func}`input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading`.
 
+    bnds_coord_indicator
+        String that indicates that a variable is a bounds co-ordinate
+
+        This helps us with identifying `infile`'s variables correctly.
+
     Returns
     -------
         The dataset's corresponding metadata entry,
@@ -448,33 +447,42 @@ def validate_file(
     error_container = []
     catch_error = get_catch_error_decorator(error_container)
 
-    ds = catch_error(xr.load_dataset, call_purpose="Load data with `xr.load_dataset`")(
-        infile
-    )
+    ds_xr_load = catch_error(
+        xr.load_dataset, call_purpose="Load data with `xr.load_dataset`"
+    )(infile)
 
-    catch_error(iris.load, call_purpose="Load data with `iris.load`")(infile)
-    if ds.attrs["variable_id"] != "multiple":
+    cubes = catch_error(iris.load, call_purpose="Load data with `iris.load`")(infile)
+    if ds_xr_load.attrs["variable_id"] != "multiple":
         catch_error(iris.load_cube, call_purpose="Load data with `iris.load_cube`")(
             infile
         )
 
     catch_error(check_with_cf_checker, call_purpose="Check data with cf-checker")(
-        infile, ds=ds
+        infile, ds=ds_xr_load
     )
 
     dataset_entry = catch_error(
         create_metadata_entry, call_purpose="Create input4MIPs database metadata entry"
-    )(ds)
+    )(ds_xr_load)
 
     cvs = catch_error(
         load_cvs_here,
         call_purpose="Load controlled vocabularies to use during validation",
     )(cv_source)
 
+    # Convert with ncdata as it is generally better at this
+    ds_careful_load = ncdata.iris_xarray.cubes_to_xarray(cubes)
+    # Guess that everything which has "bnds" in it is a co-ordinate.
+    # This is definitely a pain point when loading data from iris written.
+    # TODO: issue in [ncdata](https://github.com/pp-mo/ncdata)
+    # to see whether a true expert has any ideas.
+    bnds_guess = [v for v in ds_careful_load.data_vars if bnds_coord_indicator in v]
+    ds_careful_load = ds_careful_load.set_coords(bnds_guess)
+
     catch_error(
         validate_ds,
         call_purpose="Check the dataset's data and metadata",
-    )(ds, cvs=cvs)
+    )(ds_careful_load, cvs=cvs)
 
     if error_container:
         logger.info("Validation failed")

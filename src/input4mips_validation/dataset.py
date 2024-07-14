@@ -362,7 +362,11 @@ class Input4MIPsDatasetMetadata:
 @define
 class Input4MIPsDatasetMetadataDataProducerMinimum:
     """
-    Minimum metadata required from an input4MIPs dataset producer
+    Minimum metadata from input4MIPs dataset producer
+
+    This is the minimum metadata required to create a valid
+    {py:obj}`Input4MIPsDataset` object using
+    {py:meth}`Input4MIPsDataset.from_data_producer_minimum_information`.
     """
 
     grid_label: str
@@ -383,6 +387,70 @@ class Input4MIPsDatasetMetadataDataProducerMinimum:
 
     product: str
     """The kind of data that this dataset is"""
+
+    region: str
+    """
+    The dataset's region
+
+    We may be able to remove this in future,
+    but right now the rules around determining region are not clear to us.
+    """
+
+    source_id: str
+    """Source ID that applies to the dataset"""
+
+    target_mip: str
+    """
+    The dataset's target MIP
+
+    This should be inferrable in the future, but isn't currently
+    because we don't include the target experiment information
+    nor a mapping from experiment to target MIP.
+    """
+
+
+@define
+class Input4MIPsDatasetMetadataDataProducerMinimumMultipleVariable:
+    """
+    Minimum metadata from input4MIPs dataset producer for multi-variable dataset
+
+    This is the minimum metadata required to create a valid
+    {py:obj}`Input4MIPsDataset` object using
+    {py:meth}`Input4MIPsDataset.from_data_producer_minimum_information_multiple_variable`.
+    """
+
+    dataset_category: str
+    """
+    The dataset's category
+
+    The dataset is multi-variable hence the data producer needs to supply this.
+    """
+
+    grid_label: str
+    """
+    The grid label that applies to the dataset
+
+    We may be able to remove this in future,
+    but right now the rules around calculating grid label are not clear to us.
+    """
+
+    nominal_resolution: str
+    """
+    The nominal resolution of the data in the dataset
+
+    We may be able to remove this in future,
+    but right now the rules around calculating nominal resolution are not clear to us.
+    """
+
+    product: str
+    """The kind of data that this dataset is"""
+
+    realm: str
+    """
+    The dataset's realm
+
+    The dataset is multi-variable hence the data producer needs to supply this.
+    """
 
     region: str
     """
@@ -508,14 +576,6 @@ def validate_ds(
     """
     # cvs = instance.cvs
 
-    try:
-        get_ds_var_assert_single(value)
-    except AssertionError as exc:
-        msg = (
-            f"The value used for `{attribute.name}` must only contain a single variable"
-        )
-        raise AssertionError(msg) from exc
-
 
 def validate_ds_metadata_consistency(
     instance: Input4MIPsDataset,
@@ -540,16 +600,29 @@ def validate_ds_metadata_consistency(
 
     metadata = value
 
-    # Variable ID
-    dataset_variable = instance.ds_var
+    variable_id = metadata.variable_id
 
-    if dataset_variable != metadata.variable_id:
-        raise DatasetMetadataInconsistencyError(
-            ds_key="The dataset's variable",
-            ds_key_value=f"{dataset_variable=}",
-            metadata_key="metadata.variable_id",
-            metadata_key_value=f"{metadata.variable_id=!r}",
-        )
+    if variable_id == "multiple":
+        dataset_variables = list(instance.ds.data_vars)
+
+        if len(dataset_variables) <= 1:
+            msg = (
+                "If variable_id is 'multiple', "
+                "there should be more than one variable in the dataset. "
+                f"Received: {dataset_variables=}"
+            )
+            raise ValueError(msg)
+
+    else:
+        dataset_variable = instance.ds_var
+
+        if dataset_variable != metadata.variable_id:
+            raise DatasetMetadataInconsistencyError(
+                ds_key="The dataset's variable",
+                ds_key_value=f"{dataset_variable=}",
+                metadata_key="metadata.variable_id",
+                metadata_key_value=f"{metadata.variable_id=!r}",
+            )
 
 
 @frozen
@@ -750,6 +823,7 @@ class Input4MIPsDataset:
         cvs_values = cvs_source_id_entry.values
         variable_id = get_ds_var_assert_single(ds)
 
+        # cf-xarray uses suffix bounds, hence hard-code this
         frequency = infer_frequency(ds, time_bounds=f"{time_dimension}_bounds")
 
         start_end_separator = "-"
@@ -779,6 +853,210 @@ class Input4MIPsDataset:
             nominal_resolution=metadata_minimum.nominal_resolution,
             product=metadata_minimum.product,
             realm=VARIABLE_REALM_MAP[variable_id],
+            region=metadata_minimum.region,
+            source_id=metadata_minimum.source_id,
+            source_version=cvs_values.source_version,
+            target_mip=metadata_minimum.target_mip,
+            time_range=time_range,
+            variable_id=variable_id,
+            metadata_non_cvs=metadata_non_cvs,
+        )
+
+        # Make sure time appears first as this is what CF conventions expect
+        return cls(ds=ds.transpose(time_dimension, ...), metadata=metadata, cvs=cvs)
+
+    @classmethod
+    def from_data_producer_minimum_information_multiple_variable(  # noqa: PLR0912, PLR0913
+        cls,
+        ds: xr.Dataset,
+        metadata_minimum: Input4MIPsDatasetMetadataDataProducerMinimumMultipleVariable,
+        dimensions: tuple[str, ...] | None = None,
+        time_dimension: str = "time",
+        metadata_non_cvs: dict[str, Any] | None = None,
+        add_time_bounds: Callable[[xr.Dataset], xr.Dataset] | None = None,
+        copy: bool = True,
+        cvs: CVsInput4MIPs | None = None,
+        activity_id: str = "input4MIPs",
+        standard_long_names: dict[str, dict[str, str]] | None = None,
+        variable_id: str = "multiple",
+    ) -> Input4MIPsDataset:
+        """
+        Initialise from the minimum required information from the data producer
+
+        Parameters
+        ----------
+        ds
+            Raw dataset
+
+        metadata_minimum
+            Minimum metadata required from the data producer
+
+        dimensions
+            Dimensions of the dataset other than the time dimension,
+            these are checked for appropriate bounds.
+            Bounds are added if they are not present.
+
+            If not supplied, we simply use all the dimensions of ``ds``
+            in the order they appear in the dataset.
+
+        time_dimension
+            Time dimension of the dataset.
+            This is singled out because handling time bounds is often a special case.
+
+        metadata_non_cvs
+            Any other metadata the data producer would like to provider
+
+            This must not clash with any of our inferred metadata.
+
+        add_time_bounds
+            Function to use to add time bounds.
+
+            If not supplied, we use
+            {py:func}`input4mips_validation.xarray_helpers.add_time_bounds`.
+
+        copy
+            Callable to use to add time bounds.
+            If not supplied, uses
+            :func:`input4mips_validation.xarray_helpers.add_time_bounds`.
+
+        cvs
+            CVs to use for inference and validation
+
+            If not supplied, this will be retrieved with
+            {py:func}`input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs`.
+
+        activity_id
+            Activity ID that applies to the dataset.
+
+            Given this is an Input4MIPsDataset, you shouldn't need to change this.
+
+        standard_long_names
+            Standard/long names to use for the variables in ``ds``.
+
+            All variables that are not bounds
+            must have one of standard name or long name to be set.
+            This is only required if these attributes are not already set.
+
+            Each key should be a variable in ``ds``.
+            The value should itself be a dictionary with keys
+            "standard_name" for the variable's standard name
+            and "long_name" for the variable's long name.
+
+        variable_id
+            The variable ID to use.
+
+            For multi-variable datasets, as far as we are aware,
+            this is always "multiple", hence you shouldn't need to change the defaults.
+
+        Returns
+        -------
+            Initialised instance
+
+        Raises
+        ------
+        AssertionError
+            There is a clash between ``metadata_optional`` and the inferred metadata
+        """
+        if dimensions is None:
+            dimensions = tuple(ds.dims)  # type: ignore
+
+        if add_time_bounds is None:
+            add_time_bounds = iv_xr_helpers.add_time_bounds
+
+        if cvs is None:
+            cvs = load_cvs()
+
+        cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]
+
+        # add extra metadata following CF conventions, not really sure what
+        # this does but it's free so we include it on the assumption that they
+        # know more than we do
+        ds = ds.cf.guess_coord_axis().cf.add_canonical_attributes()
+
+        # add bounds to dimensions
+        # This handling is super messy, must be a better way
+        bounds_dim = "bounds"
+        for dim in dimensions:
+            if dim == time_dimension:
+                ds = add_time_bounds(ds, output_dim=bounds_dim)
+            else:
+                ds = ds.cf.add_bounds(dim, output_dim=bounds_dim)
+
+        # I'm pretty sure that cf_xarray should handle this,
+        # but it isn't right now.
+        for ds_variable in [*ds.data_vars, *ds.coords]:
+            if bounds_dim in ds_variable:
+                continue
+
+            if not any(
+                k in ds[ds_variable].attrs for k in ["standard_name", "long_name"]
+            ):
+                # Ensure these key IDs are there
+                if standard_long_names is None:
+                    msg = (
+                        f"Variable {ds_variable} "
+                        "does not have either standard_name or long_name set. "
+                        "Hence you must supply `standard_long_names`."
+                    )
+                    raise ValueError(msg)
+
+                if ds_variable not in standard_long_names:
+                    msg = f"Standard or long name for {ds_variable} must be supplied"
+                    raise KeyError(msg)
+
+                if "standard_name" in standard_long_names[ds_variable]:
+                    ds[ds_variable].attrs["standard_name"] = standard_long_names[
+                        ds_variable
+                    ]["standard_name"]
+
+                if "long_name" in standard_long_names[ds_variable]:
+                    ds[ds_variable].attrs["long_name"] = standard_long_names[
+                        ds_variable
+                    ]["long_name"]
+
+                if (
+                    "standard_name" not in ds[ds_variable].attrs
+                    and "long_name" not in ds[ds_variable].attrs
+                ):
+                    msg = (
+                        "One of standard_name and long_name "
+                        "must be in ds[ds_variable]. "
+                        f"Received {ds[ds_variable]=}"
+                    )
+                    raise KeyError(msg)
+
+        cvs_values = cvs_source_id_entry.values
+
+        # cf-xarray uses suffix bounds, hence hard-code this
+        frequency = infer_frequency(ds, time_bounds=f"{time_dimension}_bounds")
+
+        start_end_separator = "-"
+        time_range = infer_time_range(
+            ds,
+            frequency=frequency,
+            time_dimension=time_dimension,
+            start_end_separator=start_end_separator,
+        )
+        datetime_start, datetime_end = time_range.split(start_end_separator)
+
+        metadata = Input4MIPsDatasetMetadata(
+            activity_id=activity_id,
+            contact=cvs_values.contact,
+            dataset_category=metadata_minimum.dataset_category,
+            datetime_end=datetime_end,
+            datetime_start=datetime_start,
+            frequency=frequency,
+            further_info_url=cvs_values.further_info_url,
+            grid_label=metadata_minimum.grid_label,
+            # # TODO: look this up from central CVs
+            # institution=cvs_values.institution,
+            institution_id=cvs_values.institution_id,
+            license=cvs.license_entries[cvs_values.license_id].values.conditions,
+            license_id=cvs_values.license_id,
+            mip_era=cvs_values.mip_era,
+            nominal_resolution=metadata_minimum.nominal_resolution,
+            product=metadata_minimum.product,
+            realm=metadata_minimum.realm,
             region=metadata_minimum.region,
             source_id=metadata_minimum.source_id,
             source_version=cvs_values.source_version,

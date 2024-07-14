@@ -291,7 +291,7 @@ def get_ds_var_assert_single(ds: xr.Dataset) -> str:
 
 
 def validate_input4mips_ds_ds(
-    imput4mips_ds_ds: xr.Dataset,
+    input4mips_ds_ds: xr.Dataset,
     cvs: CVsInput4MIPs,
 ) -> None:
     """
@@ -299,13 +299,14 @@ def validate_input4mips_ds_ds(
 
     Parameters
     ----------
-    imput4mips_ds_ds
+    input4mips_ds_ds
         Dataset value to validate
 
     cvs
         Controlled vocabularies to use during the validation
     """
-    get_ds_var_assert_single(imput4mips_ds_ds)
+    # no-op currently
+    pass
 
 
 def validate_input4mips_ds_ds_metadata_consistency(
@@ -328,16 +329,29 @@ def validate_input4mips_ds_ds_metadata_consistency(
     """
     metadata = ds.metadata
 
-    # Variable ID
-    dataset_variable = ds.ds_var
+    variable_id = metadata.variable_id
 
-    if dataset_variable != metadata.variable_id:
-        raise DatasetMetadataInconsistencyError(
-            ds_key="The dataset's variable",
-            ds_key_value=f"{dataset_variable=}",
-            metadata_key="metadata.variable_id",
-            metadata_key_value=f"{metadata.variable_id=!r}",
-        )
+    if variable_id == "multiple":
+        dataset_variables = list(ds.ds.data_vars)
+
+        if len(dataset_variables) <= 1:
+            msg = (
+                "If variable_id is 'multiple', "
+                "there should be more than one variable in the dataset. "
+                f"Received: {dataset_variables=}"
+            )
+            raise ValueError(msg)
+
+    else:
+        dataset_variable = ds.ds_var
+
+        if dataset_variable != metadata.variable_id:
+            raise DatasetMetadataInconsistencyError(
+                ds_key="The dataset's variable",
+                ds_key_value=f"{dataset_variable=}",
+                metadata_key="metadata.variable_id",
+                metadata_key_value=f"{metadata.variable_id=!r}",
+            )
 
 
 def validate_ds(
@@ -359,11 +373,12 @@ def validate_ds(
 
     ds_no_attrs = ds.copy()
     ds_no_attrs.attrs = {}
-    # Guess that everything which isn't our variable is a co-ordinate.
-    # This will explode for variable_id="multiple", can deal with that later.
-    ds_no_attrs = ds_no_attrs.set_coords(
-        set(ds_no_attrs.data_vars) - {ds.attrs["variable_id"]}
-    )
+
+    # Guess that everything which has "bnds" in it is a co-ordinate.
+    # This is definitely a pain point when loading data from iris written.
+    # TODO: try using ncdata for conversion and see if that helps
+    bnds_guess = [v for v in ds_no_attrs.data_vars if "bnds" in v]
+    ds_no_attrs = ds_no_attrs.set_coords(bnds_guess)
 
     metadata_keys = [v.name for v in fields(Input4MIPsDatasetMetadata)]
     metadata = Input4MIPsDatasetMetadata(
@@ -399,7 +414,9 @@ def load_cvs_here(cv_source: str) -> CVsInput4MIPs:
     return cvs
 
 
-def validate_file(infile: Path | str, cv_source: str) -> Input4MIPsDatasetMetadataEntry:
+def validate_file(
+    infile: Path | str, cv_source: str | None
+) -> Input4MIPsDatasetMetadataEntry:
     """
     Validate a file
 
@@ -436,7 +453,10 @@ def validate_file(infile: Path | str, cv_source: str) -> Input4MIPsDatasetMetada
     )
 
     catch_error(iris.load, call_purpose="Load data with `iris.load`")(infile)
-    catch_error(iris.load_cube, call_purpose="Load data with `iris.load_cube`")(infile)
+    if ds.attrs["variable_id"] != "multiple":
+        catch_error(iris.load_cube, call_purpose="Load data with `iris.load_cube`")(
+            infile
+        )
 
     catch_error(check_with_cf_checker, call_purpose="Check data with cf-checker")(
         infile, ds=ds

@@ -62,9 +62,11 @@ dev = [
 ]
 
 [tool.pdm.build]
+locked = true
 includes = ["src/input4mips_validation", "LICENCE"]
+
 [build-system]
-requires = ["pdm-backend"]
+requires = ["pdm-backend", "pdm-build-locked"]
 build-backend = "pdm.backend"
 
 [tool.coverage.run]

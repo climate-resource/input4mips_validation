@@ -41,4 +41,5 @@ repos:
     hooks:
       # - id: pdm-export  # no point doing this here because of conda dependencies
       - id: pdm-lock-check  # no real point doing this here because of conda dependencies, but leave for now
+        args: [ --dev, --group, ":all" ]
       # - id: pdm-sync  # no point doing this here because of conda dependencies

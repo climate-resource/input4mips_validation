@@ -24,22 +24,22 @@ help:  ## print short description of each target
 
 .PHONY: checks
 checks:  ## run all the linting checks of the codebase
-	@echo "=== pre-commit ==="; pdm run pre-commit run --all-files || echo "--- pre-commit failed ---" >&2; \
-		echo "=== mypy ==="; MYPYPATH=stubs pdm run mypy src || echo "--- mypy failed ---" >&2; \
+	@echo "=== pre-commit ==="; pixi run -e dev pre-commit run --all-files || echo "--- pre-commit failed ---" >&2; \
+		echo "=== mypy ==="; MYPYPATH=stubs pixi run -e dev mypy src || echo "--- mypy failed ---" >&2; \
 		echo "======"
 
 .PHONY: ruff-fixes
 ruff-fixes:  ## fix the code using ruff
     # format before and after checking so that the formatted stuff is checked and
     # the fixed stuff is formatted
-	pdm run ruff format src tests scripts docs/source/conf.py docs/source/notebooks/*.py
-	pdm run ruff check src tests scripts docs/source/conf.py docs/source/notebooks/*.py --fix
-	pdm run ruff format src tests scripts docs/source/conf.py docs/source/notebooks/*.py
+	pixi run -e dev ruff format src tests scripts docs/source/conf.py docs/source/notebooks/*.py
+	pixi run -e dev ruff check src tests scripts docs/source/conf.py docs/source/notebooks/*.py --fix
+	pixi run -e dev ruff format src tests scripts docs/source/conf.py docs/source/notebooks/*.py
 
 
 .PHONY: test
 test:  ## run the tests
-	pdm run pytest src tests -r a -v --doctest-modules --cov=src
+	pixi run -e dev pytest src tests -r a -v --doctest-modules --cov=src
 
 # Note on code coverage and testing:
 # You must specify cov=src as otherwise funny things happen when doctests are
@@ -53,21 +53,22 @@ test:  ## run the tests
 
 .PHONY: docs
 docs:  ## build the docs
-	pdm run sphinx-build -T -b html docs/source docs/build/html
+	pixi run -e dev sphinx-build -T -b html docs/source docs/build/html
 
 .PHONY: changelog-draft
 changelog-draft:  ## compile a draft of the next changelog
-	pdm run towncrier build --draft
+	pixi run -e dev towncrier build --draft
 
-.PHONY: licence-check
-licence-check:  ## Check that licences of the dependencies are suitable
-	# Will likely fail on Windows, but Makefiles are in general not Windows
-	# compatible so we're not too worried
-	pdm export --without=tests --without=docs --without=dev > $(TEMP_FILE)
-	pdm run liccheck -r $(TEMP_FILE) -R licence-check.txt
-	rm $(TEMP_FILE)
+# # Doesn't work with conda dependencies/pixi
+# .PHONY: licence-check
+# licence-check:  ## Check that licences of the dependencies are suitable
+# 	# Will likely fail on Windows, but Makefiles are in general not Windows
+# 	# compatible so we're not too worried
+# 	pdm export --without=tests --without=docs --without=dev > $(TEMP_FILE)
+# 	pdm run liccheck -r $(TEMP_FILE) -R licence-check.txt
+# 	rm $(TEMP_FILE)
 
 .PHONY: virtual-environment
 virtual-environment:  ## update virtual environment, create a new one if it doesn't already exist
-	pdm install --dev --group :all
-	pdm run pre-commit install
+	pixi install
+	pixi run -e dev pre-commit install

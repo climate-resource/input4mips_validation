@@ -36,10 +36,11 @@ repos:
       - id: ruff
         args: [ --fix, --exit-non-zero-on-fix ]
       - id: ruff-format
-  - repo: https://github.com/pdm-project/pdm
-    rev: 2.16.1
-    hooks:
-      # - id: pdm-export  # no point doing this here because of conda dependencies
-      - id: pdm-lock-check  # no real point doing this here because of conda dependencies, but leave for now
-        args: [ --dev, --group, ":all" ]
-      # - id: pdm-sync  # no point doing this here because of conda dependencies
+  # Using pixi for main management, hence comment out
+  # - repo: https://github.com/pdm-project/pdm
+  #   rev: 2.16.1
+  #   hooks:
+  #     # - id: pdm-export  # no point doing this here because of conda dependencies
+  #     - id: pdm-lock-check  # no real point doing this here because of conda dependencies, but leave for now
+  #       args: [ --dev, --group, ":all" ]
+  #     # - id: pdm-sync  # no point doing this here because of conda dependencies

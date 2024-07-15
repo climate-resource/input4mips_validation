@@ -1,5 +1,11 @@
 # Input4MIPs-validation
 
+Notes for re-write:
+
+- pixi for actual dev
+- pdm there too, to help with PyPI builds
+- conda forge repo here: [TODO]
+
 <!---
 Can use start-after and end-before directives in docs, see
 https://myst-parser.readthedocs.io/en/latest/syntax/organising_content.html#inserting-other-documents-directly-into-the-current-document

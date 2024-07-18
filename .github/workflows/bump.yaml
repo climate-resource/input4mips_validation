@@ -1,6 +1,7 @@
 name: Bump version
 
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
       bump_rule:
@@ -30,22 +31,21 @@ jobs:
           fetch-depth: 0
           token: "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
 
-      # towncrier imports the package as part of building so we have to
-      # install the pacakage (to keep things slim, we only install the main
-      # dependencies, which also means that we get a test that we can import
-      # the package with only the compulsory dependencies installed for free)
+      # Install the package and towncrier with pixi
       - uses: ./.github/actions/setup
         with:
-          python-version: "3.11"
-          venv-id: "bump"
-          poetry-dependency-install-flags: "--only main"
+          pixi-environments: "all-dev"
 
-      - name: Install towncrier
+      # Also need pdm for the bump
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: "3.9"
+      - name: Install pdm-bump
         run: |
-          poetry run pip install towncrier
+          pdm self add pdm-bump
 
       - name: Create bump and changelog
-
         run: |
           git config --global user.name "$GITHUB_ACTOR"
           git config --global user.email "$CI_COMMIT_EMAIL"

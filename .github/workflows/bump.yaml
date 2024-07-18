@@ -1,7 +1,6 @@
 name: Bump version
 
 on:
-  pull_request:
   workflow_dispatch:
     inputs:
       bump_rule:
@@ -62,7 +61,7 @@ jobs:
           echo "Bumping to version $NEW_VERSION"
 
           # Build CHANGELOG
-          poetry run towncrier build --yes --version v$NEW_VERSION
+          pixi run -e all-dev towncrier build --yes --version v$NEW_VERSION
 
           # # Commit and tag
           # git commit -a -m "bump: version $BASE_VERSION -> $NEW_VERSION"

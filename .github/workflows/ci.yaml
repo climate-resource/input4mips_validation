@@ -36,7 +36,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ "ubuntu-latest" ]
-        python-version: [ "3.9", "3.10", "3.11" ]
+        test-python-id: [ "py39", "py310", "py311" ]
     runs-on: "${{ matrix.os }}"
     defaults:
       run:
@@ -49,14 +49,11 @@ jobs:
         uses: actions/checkout@v4
       - uses: ./.github/actions/setup
         with:
-          os: "${{ matrix.os }}"
-          python-version: "${{ matrix.python-version }}"
-          venv-id: "tests-${{ runner.os }}"
-          poetry-dependency-install-flags: "--all-extras"
+          pixi-environments: "test-${{ matrix.test-python-id }} all-dev"
       - name: Run tests
         run: |
-          poetry run pytest -r a -v src tests --doctest-modules --cov=src --cov-report=term-missing --cov-report=xml
-          poetry run coverage report
+          pixi run -e "test-${{ matrix.test-python-id }}" pytest -r a -v src tests --doctest-modules --cov=src --cov-report=term-missing --cov-report=xml
+          pixi run -e all-dev coverage report
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
 

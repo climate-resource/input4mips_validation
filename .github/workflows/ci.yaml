@@ -15,11 +15,9 @@ jobs:
         uses: actions/checkout@v4
       - uses: ./.github/actions/setup
         with:
-          python-version: "3.9"
-          venv-id: "docs"
-          poetry-dependency-install-flags: "--all-extras --only 'main,dev'"
+          pixi-environments: "all-dev"
       - name: mypy
-        run: MYPYPATH=stubs poetry run mypy src
+        run: MYPYPATH=stubs pixi run mypy src
 
   docs:
     if: ${{ !github.event.pull_request.draft }}

@@ -61,12 +61,12 @@ class Input4MIPsDatasetMetadataFromFiles:
     dataset_category: str
     """The dataset's category"""
 
-    datetime_end: str
-    """The dataset's end time"""
-
-    datetime_start: str
-    """The dataset's starting time"""
-
+    # datetime_end: str
+    # """The dataset's end time"""
+    #
+    # datetime_start: str
+    # """The dataset's starting time"""
+    #
     frequency: str
     """Frequency of the data in the dataset"""
 
@@ -82,8 +82,9 @@ class Input4MIPsDatasetMetadataFromFiles:
     license: str
     """License information for the dataset"""
 
-    license_id: str
-    """ID of the license used in this dataset"""
+    # license_id: str
+    # """ID of the license used in this dataset"""
+    # # TODO: check with Paul
 
     mip_era: str
     """The MIP era that applies to the dataset"""
@@ -114,9 +115,9 @@ class Input4MIPsDatasetMetadataFromFiles:
     # TODO: This should be on the ESGF side,
     # because it is defined after the file is used
 
-    time_range: str
-    """The dataset's time range"""
-
+    # time_range: str
+    # """The dataset's time range"""
+    #
     tracking_id: str
     """Tracking ID of the dataset"""
 
@@ -126,18 +127,20 @@ class Input4MIPsDatasetMetadataFromFiles:
     source_version: str
     """The version ID of the dataset as defined by the provider"""
 
-    version: str
-    """
-    Datestamp of the day on which the dataset was produced
-
-    This can be used to create the file's path according to the DRS
-    and is used to provide a unique version on the ESGF,
-    which can't handle versions with special characters
-    (which is what goes in ``source_version``).
-    The uniqueness of this version obviously relies on data
-    being published daily or less frequently to ESGF.
-    This is a fine assumption for now.
-    """
+    # version: str
+    # """
+    # Datestamp of the day on which the dataset was produced
+    #
+    # This can be used to create the file's path according to the DRS
+    # and is used to provide a unique version on the ESGF,
+    # which can't handle versions with special characters
+    # (which is what goes in ``source_version``).
+    # The uniqueness of this version obviously relies on data
+    # being published daily or less frequently to ESGF.
+    # This is a fine assumption for now.
+    # """
+    # # Tweak this, because Paul sometimes uses it to keep track of when he created
+    # # the directory structure so it may not always match the creation date.
 
     comment: str | None = None
     """
@@ -266,10 +269,10 @@ class Input4MIPsDatasetMetadata:
     institution_id: str
     """Institution ID of the institution that created the dataset"""
 
-    license_id: str
-    """License ID for the information in the dataset"""
-    # Needs to be validated against CVs
-    # (but note that CVs values are moving)
+    # license_id: str
+    # """License ID for the information in the dataset"""
+    # # Needs to be validated against CVs
+    # # (but note that CVs values are moving)
 
     license: str
     """License information for the dataset"""
@@ -827,6 +830,7 @@ class Input4MIPsDataset:
         frequency = infer_frequency(ds, time_bounds=f"{time_dimension}_bounds")
 
         start_end_separator = "-"
+        # Nix time_range, datetime_start and datetime_end
         time_range = infer_time_range(
             ds,
             frequency=frequency,

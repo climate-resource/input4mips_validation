@@ -5,6 +5,8 @@
 # python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
 # 	tmp-data-downloaded-by-hand-broken/H2-em-biomassburning_input4MIPs_emissions_CMIP_DRES-CMIP-BB4CMIP6+-1-0_gn_190001-202212.nc
 
+python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
+	tmp-data-downloaded-by-hand-broken/solarforcing-ref-mon_input4MIPs_solar_CMIP_SOLARIS-HEPPA-4-2_gn_18500101-20231231.nc
 # python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
 # 	tmp-data-downloaded-by-hand-broken/CO2-em-anthro_input4MIPs_emissions_CMIP_CEDS-2024-06-04_gn_195001-199912.nc
 #
@@ -13,9 +15,9 @@
 #
 # python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
 # 	tmp-data-downloaded-by-hand-broken/multiple_input4MIPs_aerosolProperties_CMIP_IACETH-SAGE3lambda-3-0-0_gn_1850_2014.nc
-
-python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
-	tmp-data-downloaded-by-hand-broken/volcan-eesm_global_2015_so2-emissions-database_v1.0.nc
+#
+# python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \
+# 	tmp-data-downloaded-by-hand-broken/volcan-eesm_global_2015_so2-emissions-database_v1.0.nc
 
 # # My re-written files
 # python src/input4mips_validation/cli/__init__.py validate-file --cv-source ../input4MIPs_CVs/CVs \

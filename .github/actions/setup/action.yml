@@ -2,10 +2,6 @@ name: "Setup Python and pixi"
 description: "setup Python and pixi with caches"
 
 inputs:
-  os:
-    description: "Operating system to use"
-    required: false
-    default: "ubuntu-latest"
   pixi-environments:
     description: "Pixi environment(s) to install (use a space to separate multiple environments)"
     required: true

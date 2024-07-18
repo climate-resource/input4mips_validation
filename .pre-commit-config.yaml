@@ -3,6 +3,9 @@ ci:
   autofix_prs: false
   autoupdate_schedule: quarterly
   autoupdate_branch: pre-commit-autoupdate
+  # Don't have pixi in CI
+  # and this lock file check happens elsewhere so we can skip it here
+  skip: [pixi-install]
 
 # See https://pre-commit.com/hooks.html for more hooks
 repos:

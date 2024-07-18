@@ -1,13 +1,5 @@
 # Input4MIPs-validation
 
-Notes for re-write:
-
-- pixi for actual dev
-- pdm there too, to help with PyPI builds
-- conda forge repo here: [TODO]
-- locked version from conda forge
-- locked version from pypi [TODO]
-
 <!---
 Can use start-after and end-before directives in docs, see
 https://myst-parser.readthedocs.io/en/latest/syntax/organising_content.html#inserting-other-documents-directly-into-the-current-document
@@ -47,14 +39,53 @@ We recommend reading the docs there because the internal documentation links
 don't render correctly on GitHub's viewer.
 
 ## Installation
-
 <!--- sec-begin-installation -->
 
-Input4MIPs-validation can be installed with pip, mamba or conda:
+### As an application
+
+If you want to use input4MIPs-validation as an application,
+for example you just want to use its command-line interface,
+then we recommend using the 'locked' version of the package.
+This version pins the version of all dependencies too,
+which reduces the chance of installation issues
+because of breaking updates to dependencies.
+
+The locked version of input4mips-validation can be installed with
 
 ```bash
+# pip: https://pip.pypa.io/en/stable/
+pip install input4mips-validation[locked]
+# mamba: https://mamba.readthedocs.io/en/latest/
+mamba install -c conda-forge input4mips-validation-locked
+# conda: https://docs.conda.io/projects/conda/en/stable/
+conda install -c conda-forge input4mips-validation-locked
+```
+
+### As a library
+
+If you want to use input4MIPs-validation as a library,
+for example you want to use it
+as a dependency in another package/application that you're building,
+then we recommend installing the package with the commands below.
+This method provides the loosest pins possible of all dependencies.
+This gives you, the package/application developer,
+as much freedom as possible to set the versions of different packages.
+However, the tradeoff with this freedom is that you may install
+incompatible versions of input4mips-validation's dependencies
+(we cannot test all combinations of dependencies,
+particularly ones which haven't been released yet!).
+Hence, you may run into installation issues.
+If you believe these are because of a problem in input4mips-validation,
+please [raise an issue](https://github.com/climate-resource/input4mips_validation/issues/new/choose).
+
+The (non-locked) version of input4mips-validation can be installed with
+
+```bash
+# pip: https://pip.pypa.io/en/stable/
 pip install input4mips-validation
+# mamba: https://mamba.readthedocs.io/en/latest/
 mamba install -c conda-forge input4mips-validation
+# conda: https://docs.conda.io/projects/conda/en/stable/
 conda install -c conda-forge input4mips-validation
 ```
 
@@ -77,11 +108,16 @@ pip install input4mips-validation[notebooks]
 
 <!--- sec-begin-installation-dev -->
 
-For development, we rely on [poetry](https://python-poetry.org) for all our
-dependency management. To get started, you will need to make sure that poetry
-is installed
-([instructions here](https://python-poetry.org/docs/#installing-with-the-official-installer),
-we found that pipx and pip worked better to install on a Mac).
+For development, we rely on [pixi](https://pixi.sh/latest/)
+for all our dependency management.
+To get started, you will need to make sure that pixi is installed
+([instructions here](https://pixi.sh/latest/#installation)).
+
+We rely on [pdm](https://pdm-project.org/en/latest/) for managing our PyPI builds.
+Hence, you will also need to make sure that pdm is installed on your system
+([instructions here](https://pdm-project.org/en/latest/#installation),
+although we found that installing with [pipx](https://pipx.pypa.io/stable/installation/)
+worked perfectly for us).
 
 For all of work, we use our `Makefile`.
 You can read the instructions out and run the commands by hand if you wish,

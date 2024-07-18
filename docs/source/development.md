@@ -47,8 +47,11 @@ commits that matter when traversing through the commit history.
 (releasing-reference)=
 ## Releasing
 
-Releasing is semi-automated via a CI job. The CI job requires the type of version bump that will be performed to be
-manually specified. See the poetry docs for the [list of available bump rules](https://python-poetry.org/docs/cli/#version).
+Releasing is semi-automated via a CI job.
+The CI job requires the type of version bump
+that will be performed to be manually specified.
+See the pdm-bump docs for the
+[list of available bump rules](https://github.com/carstencodes/pdm-bump#usage).
 
 ### Standard process
 
@@ -57,7 +60,7 @@ The steps required are the following:
 
 1. Bump the version: manually trigger the "bump" workflow from the main branch
    (see here: [bump workflow](https://github.com/climate-resource/input4mips_validation/actions/workflows/bump.yaml)).
-   A valid "bump_rule" (see [poetry's docs](https://python-poetry.org/docs/cli/#version)) will need to be specified.
+   A valid "bump_rule" (see [pdm-bump's docs](https://github.com/carstencodes/pdm-bump#usage)) will need to be specified.
    This will then trigger a draft release.
 
 1. Edit the draft release which has been created

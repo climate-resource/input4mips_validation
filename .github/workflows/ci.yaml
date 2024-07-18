@@ -17,7 +17,7 @@ jobs:
         with:
           pixi-environments: "all-dev"
       - name: mypy
-        run: MYPYPATH=stubs pixi run mypy src
+        run: MYPYPATH=stubs pixi run -e all-dev mypy src
 
   docs:
     if: ${{ !github.event.pull_request.draft }}

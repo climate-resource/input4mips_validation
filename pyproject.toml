@@ -78,11 +78,11 @@ test-py311 = { features = ["tests", "py311"] }
 [tool.pixi.project]
 channels = ["conda-forge"]
 platforms = [
-    # "osx-64",
+    "osx-64",
     "osx-arm64",
-    # "linux-64",
-    # "linux-aarch64",
-    # "win-64",
+    "linux-64",
+    "linux-aarch64",
+    "win-64",
     # Not sure why these two fail, anyway
     # "win-arm64",
     # "noarch",

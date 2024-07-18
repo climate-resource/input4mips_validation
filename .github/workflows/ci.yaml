@@ -49,7 +49,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: ./.github/actions/setup
         with:
-          pixi-environments: "test-${{ matrix.test-python-id }} all-dev"
+          pixi-environments: "test-${{ matrix.test-python-id }}"
       - name: Run tests
         run: |
           pixi run -e "test-${{ matrix.test-python-id }}" pytest -r a -v src tests --doctest-modules --cov=src --cov-report=term-missing --cov-report=xml
@@ -62,18 +62,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [ "ubuntu-latest" ]
-        python-version: [ "3.9", "3.10", "3.11" ]
+        python-id: [ "py39", "py310", "py311" ]
     runs-on: "${{ matrix.os }}"
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
       - uses: ./.github/actions/setup
         with:
-          python-version: "${{ matrix.python-version }}"
-          venv-id: "imports-without-extras-${{ runner.os }}"
-          poetry-dependency-install-flags: "--only main"
+          pixi-environments: "${{ matrix.python-id }}"
       - name: Check importable without extras
-        run: poetry run python scripts/test-install.py
+        run: pixi run -e "${{ matrix.python-id }}" python scripts/test-install.py
 
   check-build:
     runs-on: ubuntu-latest

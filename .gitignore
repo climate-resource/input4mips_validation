@@ -5,6 +5,9 @@ tests/test-data/input4MIPs/CMIP6Plus/CMIP/PCMDI
 # Default data download directory
 src/input4mips_validation/cvs_handling/input4MIPs/user_cvs
 
+# Auto-generated docs
+docs/source/api
+
 # Notebooks
 *.ipynb
 

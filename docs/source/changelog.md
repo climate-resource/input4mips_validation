@@ -19,6 +19,21 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.6.0 (2024-07-18)
+
+
+### Breaking Changes
+
+- Re-named {py:attr}`input5mips_validation.cvs_handling.input4MIPs.activity_id.ActivityIDValues.url` to {py:attr}`input4mips_validation.cvs_handling.input4MIPs.activity_id.ActivityIDValues.URL`
+  i.e. "url" --> "URL" ([#17](https://github.com/climate-resource/input4mips_validation/pulls/17))
+- Loosened dependency pins ([#21](https://github.com/climate-resource/input4mips_validation/pulls/21))
+
+### Features
+
+- Added handling of the institution ID controlled vocabulary ([#16](https://github.com/climate-resource/input4mips_validation/pulls/16))
+- Added handling of the futher_info_url within the context of the controlled vocabulary ([#18](https://github.com/climate-resource/input4mips_validation/pulls/18))
+
+
 ## input4mips-validation v0.5.0 (2024-06-25)
 
 

@@ -38,6 +38,9 @@ repos:
       - id: ruff-format
   - repo: local
     hooks:
+      # pixi doesn't have a lock/check command yet,
+      # so we just have to run install each time.
+      # Ok for now
       - id: pixi-install
         name: pixi-install
         entry: pixi install

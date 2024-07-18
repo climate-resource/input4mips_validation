@@ -28,6 +28,11 @@ Validation of input4MIPs data (checking file formats, metadata etc.).
 [![PyPI: Supported Python versions](https://img.shields.io/pypi/pyversions/input4mips-validation.svg)](https://pypi.org/project/input4mips-validation/)
 [![PyPI install](https://github.com/climate-resource/input4mips_validation/actions/workflows/install.yaml/badge.svg?branch=main)](https://github.com/climate-resource/input4mips_validation/actions/workflows/install.yaml)
 
+**Conda :**
+[![Conda](https://img.shields.io/conda/vn/conda-forge/input4mips-validation.svg)](https://anaconda.org/conda-forge/input4mips-validation)
+[![Conda platforms](https://img.shields.io/conda/pn/conda-forge/input4mips-validation.svg)](https://anaconda.org/conda-forge/input4mips-validation)
+[![Conda install](https://github.com/climate-resource/input4mips_validation/workflows/Test%20conda%20install/badge.svg)](https://github.com/climate-resource/input4mips_validation/actions?query=workflow%3A%22Test+conda+install%22)
+
 **Other info :**
 [![Licence](https://img.shields.io/github/license/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/blob/main/LICENCE)
 [![Last Commit](https://img.shields.io/github/last-commit/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/commits/main)

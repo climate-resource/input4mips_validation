@@ -5,7 +5,7 @@ ci:
   autoupdate_branch: pre-commit-autoupdate
   # Don't have pixi in CI
   # and this lock file check happens elsewhere so we can skip it here
-  skip: [pixi-install]
+  skip: [pixi-install, environment-docs]
 
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
@@ -47,6 +47,13 @@ repos:
       - id: pixi-install
         name: pixi-install
         entry: pixi install
+        language: system
+        require_serial: true
+        pass_filenames: false
+      - id: environment-docs
+        name: environment-docs
+        entry: pixi run -e all-dev python scripts/write-docs-environment.py
+        files: "pixi.lock"
         language: system
         require_serial: true
         pass_filenames: false

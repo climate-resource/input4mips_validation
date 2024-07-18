@@ -13,8 +13,9 @@ build:
   tools:
     python: "mambaforge-22.9"
   jobs:
+    pre_build:
+      - pip install --no-deps .
     post_install:
-      - which pip
       - mamba list
 
 conda:

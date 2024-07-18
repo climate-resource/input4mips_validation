@@ -1,6 +1,7 @@
 """
 Command-line interface
 """
+
 from pathlib import Path
 from typing import Annotated
 

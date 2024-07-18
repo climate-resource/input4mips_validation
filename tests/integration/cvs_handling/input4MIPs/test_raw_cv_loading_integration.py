@@ -3,6 +3,7 @@ Test loading of raw CV data
 
 This includes testing how loading from different sources will be handled.
 """
+
 from __future__ import annotations
 
 import os

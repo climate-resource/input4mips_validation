@@ -1,6 +1,7 @@
 """
 Inference of values based on rules in or adjacent to the CVs
 """
+
 from __future__ import annotations
 
 import datetime as dt

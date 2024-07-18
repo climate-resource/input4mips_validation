@@ -12,37 +12,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup
         with:
-          os: "ubuntu-latest"
-          python-version: "3.9"
-          venv-id: "docs"
-          poetry-dependency-install-flags: "--all-extras --only 'main,dev'"
+          pixi-environments: "all-dev"
       - name: mypy
-        run: MYPYPATH=stubs poetry run mypy src
+        run: MYPYPATH=stubs pixi run -e all-dev mypy src
 
   docs:
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup
         with:
-          os: "ubuntu-latest"
-          python-version: "3.9"
-          venv-id: "docs"
-          poetry-dependency-install-flags: "--all-extras --only 'main,docs'"
+          pixi-environments: "docs"
       - name: docs
-        run: poetry run sphinx-build -W --keep-going -T -b html docs/source docs/build
+        run: pixi run -e docs sphinx-build -W --keep-going -T -b html docs/source docs/build
 
   tests:
     strategy:
       fail-fast: false
       matrix:
         os: [ "ubuntu-latest" ]
-        python-version: [ "3.9", "3.10", "3.11" ]
+        test-python-id: [ "py39", "py310", "py311" ]
     runs-on: "${{ matrix.os }}"
     defaults:
       run:
@@ -52,17 +46,14 @@ jobs:
         shell: bash
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup
         with:
-          os: "${{ matrix.os }}"
-          python-version: "${{ matrix.python-version }}"
-          venv-id: "tests-${{ runner.os }}"
-          poetry-dependency-install-flags: "--all-extras"
+          pixi-environments: "test-${{ matrix.test-python-id }}"
       - name: Run tests
         run: |
-          poetry run pytest -r a -v src tests --doctest-modules --cov=src --cov-report=term-missing --cov-report=xml
-          poetry run coverage report
+          pixi run -e "test-${{ matrix.test-python-id }}" pytest -r a -v src tests --doctest-modules --cov=src --cov-report=term-missing --cov-report=xml
+          pixi run -e "test-${{ matrix.test-python-id }}"  coverage report
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
 
@@ -71,53 +62,51 @@ jobs:
       fail-fast: false
       matrix:
         os: [ "ubuntu-latest" ]
-        python-version: [ "3.9", "3.10", "3.11" ]
+        python-id: [ "py39", "py310", "py311" ]
     runs-on: "${{ matrix.os }}"
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup
         with:
-          python-version: "${{ matrix.python-version }}"
-          venv-id: "imports-without-extras-${{ runner.os }}"
-          poetry-dependency-install-flags: "--only main"
+          pixi-environments: "${{ matrix.python-id }}"
       - name: Check importable without extras
-        run: poetry run python scripts/test-install.py
+        run: pixi run -e "${{ matrix.python-id }}" python scripts/test-install.py
 
   check-build:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
-      - uses: ./.github/actions/setup
+        uses: actions/checkout@v4
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
         with:
           python-version: "3.9"
-          venv-id: "check-build-${{ runner.os }}"
-          run-poetry-install: false
-          poetry-dependency-install-flags: "not used"
       - name: Build package
         run: |
-          poetry build --no-interaction
+          pdm build
       - name: Check build
         run: |
           tar -tvf dist/input4mips_validation-*.tar.gz --wildcards '*input4mips_validation/py.typed'
           tar -tvf dist/input4mips_validation-*.tar.gz --wildcards 'input4mips_validation-*/LICENCE'
 
 
-  check-dependency-licences:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
-      - uses: ./.github/actions/setup
-        with:
-          python-version: "3.9"
-          venv-id: "licence-check"
-          poetry-dependency-install-flags: "--all-extras"
-      - name: Check licences of dependencies
-        shell: bash
-        run: |
-          TEMP_FILE=$(mktemp)
-          poetry export --without=tests --without=docs --without=dev > $TEMP_FILE
-          poetry run liccheck -r $TEMP_FILE -R licence-check.txt
-          cat licence-check.txt
+  # # Not sure how to do this with conda in the mix yet,
+  # # hence leave out for now
+  # check-dependency-licences:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Check out repository
+  #       uses: actions/checkout@v4
+  #     - uses: ./.github/actions/setup
+  #       with:
+  #         python-version: "3.9"
+  #         venv-id: "licence-check"
+  #         poetry-dependency-install-flags: "--all-extras"
+  #     - name: Check licences of dependencies
+  #       shell: bash
+  #       run: |
+  #         TEMP_FILE=$(mktemp)
+  #         poetry export --without=tests --without=docs --without=dev > $TEMP_FILE
+  #         poetry run liccheck -r $TEMP_FILE -R licence-check.txt
+  #         cat licence-check.txt

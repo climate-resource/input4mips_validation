@@ -1,4 +1,5 @@
 """Helpers for working with {py:mod}`xarray`"""
+
 from __future__ import annotations
 
 from collections.abc import Iterable

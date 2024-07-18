@@ -1,6 +1,7 @@
 """
 input4MIPs CVs handling
 """
+
 from __future__ import annotations
 
 from input4mips_validation.cvs_handling.input4MIPs.activity_id import (

@@ -7,6 +7,7 @@ This package also contains tools for creating valid input4MIPs data
 Finally, it also currently contains tools for working with the CMIP CVs.
 These may be moved in future.
 """
+
 import importlib.metadata
 
 __version__ = importlib.metadata.version("input4mips_validation")

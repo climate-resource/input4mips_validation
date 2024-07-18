@@ -1,66 +1,119 @@
-[tool.poetry]
+[project]
+authors = [
+    {name = "Zebedee Nicholls", email = "zebedee.nicholls@climate-resource.com"},
+]
+license = {text = "BSD-3-Clause"}
+requires-python = ">=3.9"
+dependencies = [
+    "loguru>=0.7",
+    "cf-xarray>=0.8",
+    "xarray>=2022.0",
+    "pint-xarray>=0.3",
+    "numpy<2.0,>=1.23",
+    "cftime>=1.6",
+    "typing-extensions>=4.0",
+    "pooch>=1.0",
+    "netcdf4>=1.0",
+    "attrs>=22.0",
+    "typer<1.0.0,>=0.9.0",
+    "validators<1.0.0,>=0.28.3",
+    "cattrs<24.0.0,>=23.2.3",
+]
 name = "input4mips-validation"
-version = "0.6.1a0"
+version = "0.5.1a0"
 description = "Validation of input4MIPs data (checking file formats, metadata etc.)."
-authors = ["Zebedee Nicholls <zebedee.nicholls@climate-resource.com>"]
 readme = "README.md"
-packages = [{include = "input4mips_validation", from = "src"}]
-license = "BSD-3-Clause"
-include = ["LICENCE"]  # poetry uses US English so assumes it will be spelt LICENSE
 
-[tool.poetry.dependencies]
-python = "^3.9"
-matplotlib = { version = ">=3.0", optional = true }
-notebook = { version = ">=6.0", optional = true }
-loguru = ">=0.7"
-cf-xarray = ">=0.8"
-xarray = ">=2022.0"
-pint-xarray = ">=0.3"
-numpy = ">=1.23,<2.0"  # Pin numpy 2.0 while pint is broken
-cftime = ">=1.6"
-typing-extensions = ">=4.0"
-pooch = ">=1.0"
-# Pooch is a dependency of cf-xarray but not included in cf-xarray's dependencies.
-# TODO: PR into cf-xarray
-netcdf4 = ">=1.0"
-attrs = ">=22.0"
-typer = ">=0.9.0"
-validators = ">=0.28.3"
-cattrs = ">=23.2.3"
+[project.optional-dependencies]
+dev = [
+    "mypy<2.0.0,>=1.2.0",
+    "ruff<1.0.0,>=0.1.8",
+    "pre-commit<4.0.0,>=3.3.1",
+    "towncrier<24.0.0,>=23.6.0",
+    "liccheck<1.0.0,>=0.9.1",
+    "types-requests<3.0.0.0,>=2.31.0.20240125",
+    "pandas-stubs<3.0.0.0,>=2.2.2.240603",
+    "pyyaml<7.0,>=6.0.1",
+]
+docs = [
+    "myst-nb<1.0.0,>=0.17.0",
+    "sphinx-book-theme<2.0.0,>=1.1.0",
+    "sphinx-autodoc-typehints<2.0.0,>=1.23.0",
+    "sphinx-autodocgen<2.0,>=1.3",
+    "jupytext<2.0.0,>=1.14.5",
+    "sphinx-copybutton<1.0.0,>=0.5.2",
+    "sphinx-click<6.0.0,>=5.1.0",
+]
+notebooks = [
+    "notebook>=6.0",
+]
+plots = [
+    "matplotlib>=3.0",
+]
+tests = [
+    "pytest<8.0.0,>=7.3.1",
+    "pytest-cov<5.0.0,>=4.0.0",
+    "coverage<8.0.0,>=7.2.0",
+]
 
-[tool.poetry.extras]
-plots = ["matplotlib"]
-notebooks = ["notebook"]
-
-[tool.poetry.group.tests.dependencies]
-pytest = "^7.3.1"
-
-[tool.poetry.group.docs.dependencies]
-myst-nb = "^0.17.0"
-sphinx-book-theme = "^1.1.0"
-sphinx-autodoc-typehints = "^1.23.0"
-sphinx-autodocgen = "^1.3"
-jupytext = "^1.14.5"
-sphinx-copybutton = "^0.5.2"
-sphinx-click = "^5.1.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest-cov = "^4.0.0"
-coverage = "^7.2.0"
-mypy = "^1.2.0"
-ruff = "^0.1.8"
-pre-commit = "^3.3.1"
-towncrier = "^23.6.0"
-liccheck = "^0.9.1"
-types-requests = "^2.31.0.20240125"
-pandas-stubs = "^2.2.2.240603"
-
-[tool.poetry.scripts]
+[project.scripts]
 input4mips-validation = "input4mips_validation.cli:app"
 
+[tool.pixi.feature.py39.dependencies]
+python = "3.9.*"
+
+[tool.pixi.feature.py310.dependencies]
+python = "3.10.*"
+
+[tool.pixi.feature.py311.dependencies]
+python = "3.11.*"
+
+[tool.pixi.environments]
+default = { features = ["py39"] }
+docs = { features = ["docs"], solve-group = "default" }
+all-dev = { features = ["dev", "docs", "notebooks", "plots", "tests"], solve-group = "default" }
+py39 = { features = ["py39"], solve-group = "default" }
+py310 = { features = ["py310"] }
+py311 = { features = ["py311"] }
+test-py39 = { features = ["tests"], solve-group = "default" }
+test-py310 = { features = ["tests", "py310"] }
+test-py311 = { features = ["tests", "py311"] }
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = [
+    "osx-64",
+    "osx-arm64",
+    "linux-64",
+    "linux-aarch64",
+    "win-64",
+    # Not sure why these two fail, anyway
+    # "win-arm64",
+    # "noarch",
+]
+
+[tool.pixi.pypi-dependencies]
+input4mips_validation = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+# If key tool were pdm, would worry about this,
+# but it's not so empty here.
+
+[tool.pdm.build]
+locked = true
+includes = ["src/input4mips_validation", "LICENCE"]
+
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+# PDM build locked: https://pdm-build-locked.readthedocs.io/en/stable/plugins/backend.html
+# Not entirely necessary here, but doesn't hurt
+# and is helpful.
+requires = ["pdm-backend", "pdm-build-locked"]
+build-backend = "pdm.backend"
 
 [tool.coverage.run]
 source = ["src"]
@@ -99,6 +152,9 @@ addopts = [
 [tool.ruff]
 src = ["src"]
 target-version = "py39"
+line-length = 88
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle error
     "W",  # pycodestyle warning
@@ -121,12 +177,8 @@ ignore = [
     "D200",  # One-line docstring should fit on one line with quotes
     "D400",  # First line should end with a period
 ]
-line-length = 88
 
-[tool.ruff.format]
-docstring-code-format = true
-
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "test*.py" = [
     "D",  # Documentation not needed in tests
     "S101",  # S101 Use of `assert` detected
@@ -146,11 +198,14 @@ docstring-code-format = true
     "PLR0913",
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["src"]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.towncrier]
 package = "input4mips_validation"

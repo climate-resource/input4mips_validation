@@ -4,6 +4,7 @@ Write test CV files
 This will eventually become redundant, once the CVs format settles
 on https://github.com/PCMDI/input4MIPs_CVs
 """
+
 from __future__ import annotations
 
 from pathlib import Path

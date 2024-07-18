@@ -1,4 +1,5 @@
 """Tools for getting values from the CVs"""
+
 from __future__ import annotations
 
 import json

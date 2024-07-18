@@ -1,4 +1,5 @@
 """Data model for input4MIPs' controlled vocabularies (CVs)"""
+
 from __future__ import annotations
 
 import string

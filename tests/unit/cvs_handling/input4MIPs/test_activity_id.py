@@ -1,6 +1,7 @@
 """
 Test handling of the activity ID CV
 """
+
 from __future__ import annotations
 
 import collections

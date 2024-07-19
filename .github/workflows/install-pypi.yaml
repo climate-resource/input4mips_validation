@@ -25,11 +25,17 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: "${{ matrix.python-version }}"
-    - name: Install
+    - name: Install (non-windows)
+      if: matrix.os != 'windows-latest'
       run: |
         pip install --upgrade pip
         pip install "${{ matrix.install-target }}" 2>stderr.txt
         if grep -q "WARN" stderr.txt; then echo "Warnings in pip install output" && cat stderr.txt && exit 1; else exit 0; fi
+    - name: Install (windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        pip install --upgrade pip
+        pip install "${{ matrix.install-target }}"
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Test installation

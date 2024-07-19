@@ -2,7 +2,7 @@
 # Please do not edit it manually.
 
 click==8.1.7
-colorama==0.4.6; platform_system == "Windows"
+colorama==0.4.6; sys_platform == "win32" or platform_system == "Windows"
 markdown-it-py==3.0.0
 mdurl==0.1.2
 pygments==2.18.0

@@ -25,6 +25,9 @@ docs = [
 notebooks = [
 ]
 tests = [
+    "pytest>=8.2.2",
+    "coverage>=7.6.0",
+    "pytest-cov>=5.0.0",
 ]
 
 [project.scripts]

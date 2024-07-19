@@ -71,7 +71,9 @@ jobs:
           # version as the tagged commit)
           BASE_VERSION=`sed -ne 's/^version = "\([0-9\.a]*\)"/\1/p' pyproject.toml`
 
-          # Bump
+          # Bump (need two commands because of a bug in pdm-bump)
+          # TODO: make issue
+          pdm bump micro
           pdm bump pre-release --pre alpha
 
           NEW_VERSION=`sed -ne 's/^version = "\([0-9\.a]*\)"/\1/p' pyproject.toml`

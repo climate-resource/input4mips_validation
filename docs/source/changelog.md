@@ -19,6 +19,14 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.5.1 (2024-07-19)
+
+
+### Trivial/Internal Changes
+
+- [#20](https://github.com/climate-resource/input4mips_validation/pulls/20), [#22](https://github.com/climate-resource/input4mips_validation/pulls/22)
+
+
 ## input4mips-validation v0.6.0 (2024-07-18)
 
 

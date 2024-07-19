@@ -19,7 +19,7 @@ dependencies = [
     "cattrs>=23.2.3",
 ]
 name = "input4mips-validation"
-version = "0.7.0"
+version = "0.7.1a1"
 description = "Validation of input4MIPs data (checking file formats, metadata etc.)."
 readme = "README.md"
 

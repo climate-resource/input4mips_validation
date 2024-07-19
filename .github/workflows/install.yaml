@@ -29,7 +29,8 @@ jobs:
     - name: Install
       run: |
         pip install --upgrade pip
-        pip install "${{ matrix.install-target }}"
+        pip install "${{ matrix.install-target }}" >/dev/null 2>tmp.txt
+        grep "WARN" tmp.txt && echo "Warnings in pip install output" && cat tmp.txt && exit 1
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Test installation

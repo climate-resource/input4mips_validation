@@ -44,6 +44,17 @@ code base. Our commit messages are written using written to follow the
 [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) standard which makes it easy to find the
 commits that matter when traversing through the commit history.
 
+## Dependency management
+
+We manage our dependencies using [pixi](https://pixi.sh/).
+This allows us to use conda dependencies within our workflows.
+However, we also need to release packages for PyPI.
+To faciliate this, we use [pdm](https://pdm-project.org/en/latest/).
+This is generally pretty straightforward as the two package managers don't fight each other.
+The key thing to check is that any dependencies which are listed in both
+`project.dependencies` and `tool.pixi.dependencies` should agree.
+This ensures that our conda and PyPI installs will target consistent versions of dependencies.
+
 (releasing-reference)=
 ## Releasing
 

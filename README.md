@@ -26,7 +26,7 @@ Validation of input4MIPs data (checking file formats, metadata etc.).
 [![Conda install](https://github.com/climate-resource/input4mips_validation/workflows/Test%20conda%20install/badge.svg)](https://github.com/climate-resource/input4mips_validation/actions?query=workflow%3A%22Test+conda+install%22)
 
 **Other info :**
-[![Licence](https://img.shields.io/badge/Licence-003366)](https://github.com/climate-resource/input4mips_validation/blob/main/LICENCE)
+[![Licence](https://img.shields.io/badge/Licence-8a8d8f)](https://github.com/climate-resource/input4mips_validation/blob/main/LICENCE)
 [![Last Commit](https://img.shields.io/github/last-commit/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/commits/main)
 [![Contributors](https://img.shields.io/github/contributors/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/graphs/contributors)
 

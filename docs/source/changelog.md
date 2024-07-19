@@ -19,6 +19,26 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.7.0 (2024-07-19)
+
+
+### Features
+
+- Added configuration so that a locked version of the package will be built too.
+
+  The instructions in the README for installation from PyPI should now be valid.
+  The instructions for installation from conda are still waiting on
+  https://github.com/conda-forge/staged-recipes/pull/26986. ([#25](https://github.com/climate-resource/input4mips_validation/pulls/25))
+
+### Bug Fixes
+
+- Fixed up version number, putting it back in line with PyPI ([#27](https://github.com/climate-resource/input4mips_validation/pulls/27))
+
+### Trivial/Internal Changes
+
+- [#24](https://github.com/climate-resource/input4mips_validation/pulls/24)
+
+
 ## input4mips-validation v0.5.2 (2024-07-19)
 
 

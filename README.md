@@ -14,16 +14,17 @@ Validation of input4MIPs data (checking file formats, metadata etc.).
 [![CI](https://github.com/climate-resource/input4mips_validation/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/climate-resource/input4mips_validation/actions/workflows/ci.yaml)
 [![Coverage](https://codecov.io/gh/climate-resource/input4mips_validation/branch/main/graph/badge.svg)](https://codecov.io/gh/climate-resource/input4mips_validation)
 [![Docs](https://readthedocs.org/projects/input4mips-validation/badge/?version=latest)](https://input4mips-validation.readthedocs.io)
+[![Main branch: support Python versions](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fclimate-resource%2Finput4mips_validation%2Fmain%2Fpyproject.toml
+)](https://github.com/climate-resource/input4mips_validation/blob/main/pyproject.toml)
 
 **PyPI :**
 [![PyPI](https://img.shields.io/pypi/v/input4mips-validation.svg)](https://pypi.org/project/input4mips-validation/)
-[![PyPI: Supported Python versions](https://img.shields.io/pypi/pyversions/input4mips-validation.svg)](https://pypi.org/project/input4mips-validation/)
-[![PyPI install](https://github.com/climate-resource/input4mips_validation/actions/workflows/install.yaml/badge.svg?branch=main)](https://github.com/climate-resource/input4mips_validation/actions/workflows/install.yaml)
+[![PyPI install](https://github.com/climate-resource/input4mips_validation/actions/workflows/install-pypi.yaml/badge.svg?branch=main)](https://github.com/climate-resource/input4mips_validation/actions/workflows/install-pypi.yaml)
 
 **Conda :**
 [![Conda](https://img.shields.io/conda/vn/conda-forge/input4mips-validation.svg)](https://anaconda.org/conda-forge/input4mips-validation)
 [![Conda platforms](https://img.shields.io/conda/pn/conda-forge/input4mips-validation.svg)](https://anaconda.org/conda-forge/input4mips-validation)
-[![Conda install](https://github.com/climate-resource/input4mips_validation/workflows/Test%20conda%20install/badge.svg)](https://github.com/climate-resource/input4mips_validation/actions?query=workflow%3A%22Test+conda+install%22)
+[![Conda install](https://github.com/climate-resource/input4mips_validation/workflows/install-conda.yaml/badge.svg)](https://github.com/climate-resource/input4mips_validation/actions/workflows/install-conda.yaml)
 
 **Other info :**
 [![Licence](https://img.shields.io/badge/Licence-5a5a5a)](https://github.com/climate-resource/input4mips_validation/blob/main/LICENCE)

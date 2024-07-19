@@ -8,11 +8,9 @@ dependencies = [
     "cf-xarray>=0.8",
     "xarray>=2022.0",
     "pint-xarray>=0.3",
-    "numpy<2.0,>=1.23",
     "cftime>=1.6",
     "typing-extensions>=4.0",
     "pooch>=1.0",
-    "netcdf4>=1.0",
     "attrs>=22.0",
     "typer<1.0.0,>=0.9.0",
     "validators<1.0.0,>=0.28.3",
@@ -145,6 +143,8 @@ editable = true
 [tool.pixi.tasks]
 
 [tool.pixi.dependencies]
+netcdf4 = ">=1.7.1,<1.8"
+numpy = "<2.0"
 
 [tool.pdm.dev-dependencies]
 

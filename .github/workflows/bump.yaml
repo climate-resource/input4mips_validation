@@ -60,9 +60,6 @@ jobs:
           NEW_VERSION=`sed -ne 's/^version = "\([0-9\.a]*\)"/\1/p' pyproject.toml`
           echo "Bumping to version $NEW_VERSION"
 
-          # Re-install because we've changed the CHANGELOG
-          pixi install
-
           # Build CHANGELOG
           pixi run -e all-dev towncrier build --yes --version v$NEW_VERSION
 
@@ -75,7 +72,7 @@ jobs:
           BASE_VERSION=`sed -ne 's/^version = "\([0-9\.a]*\)"/\1/p' pyproject.toml`
 
           # Bump
-          pdm bump "pre-release --pre alpha"
+          pdm bump pre-release --pre alpha
 
           NEW_VERSION=`sed -ne 's/^version = "\([0-9\.a]*\)"/\1/p' pyproject.toml`
           echo "Bumping version $BASE_VERSION > $NEW_VERSION"

@@ -10,7 +10,7 @@ on:
 
 jobs:
   test-pypi-install:
-    name: Test PyPI install (${{ matrix.python-version }}, ${{ matrix.os }})
+    name: Test PyPI install ${{ matrix.install-target }} (${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: "${{ matrix.os }}"
     strategy:
       fail-fast: false
@@ -18,9 +18,7 @@ jobs:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: [ "3.9", "3.10", "3.11" ]
         # Check both 'library' install and the 'application' (i.e. locked) install
-        # Re-activate after next release
-        # install-target: ["input4mips-validation", "input4mips-validation[locked]"]
-        install-target: ["input4mips-validation"]
+        install-target: ["input4mips-validation", "input4mips-validation[locked]"]
     steps:
     - name: Set up Python "${{ matrix.python-version }}"
       id: setup-python
@@ -30,7 +28,8 @@ jobs:
     - name: Install
       run: |
         pip install --upgrade pip
-        pip install "${{ matrix.install-target }}"
+        pip install "${{ matrix.install-target }}" 2>stderr.txt
+        if grep -q "WARN" stderr.txt; then echo "Warnings in pip install output" && cat stderr.txt && exit 1; else exit 0; fi
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Test installation
@@ -45,7 +44,7 @@ jobs:
         pytest tests -r a -vv
 
   test-micromamba-installation:
-    name: Test (micro)mamba install (${{ matrix.python-version }}, ${{ matrix.os }})
+    name: Test (micro)mamba install ${{ matrix.install-target }} (${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: "${{ matrix.os }}"
     strategy:
       fail-fast: false
@@ -53,9 +52,7 @@ jobs:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: [ "3.9", "3.10", "3.11" ]
         # Check both 'library' install and the 'application' (i.e. locked) install
-        # Re-activate after next release
-        # install-target: ["input4mips-validation", "input4mips-validation-locked"]
-        install-target: ["input4mips-validation"]
+        install-target: ["input4mips-validation", "input4mips-validation-locked"]
 
     steps:
     - name: Setup (micro)mamba and install package

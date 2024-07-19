@@ -18,6 +18,7 @@ text = "BSD-3-Clause"
 dev = [
     "pre-commit>=3.7.1",
     "mypy>=1.10.1",
+    "towncrier>=23.11.0",
 ]
 docs = [
 ]
@@ -220,13 +221,13 @@ underlines = [
 ]
 issue_format = "[#{issue}](https://github.com/climate-resource/input4mips_validation/pulls/{issue})"
 type = [
-    { directory = "breaking", name = "Breaking Changes", showcontent = true },
-    { directory = "deprecation", name = "Deprecations", showcontent = true },
-    { directory = "feature", name = "Features", showcontent = true },
-    { directory = "improvement", name = "Improvements", showcontent = true },
-    { directory = "fix", name = "Bug Fixes", showcontent = true },
-    { directory = "docs", name = "Improved Documentation", showcontent = true },
-    { directory = "trivial", name = "Trivial/Internal Changes", showcontent = false },
+    { directory = "breaking", name = "⚠️ Breaking Changes", showcontent = true },
+    { directory = "deprecation", name = "🗑️ Deprecations", showcontent = true },
+    { directory = "feature", name = "🆕 Features", showcontent = true },
+    { directory = "improvement", name = "🎉 Improvements", showcontent = true },
+    { directory = "fix", name = "🐛 Bug Fixes", showcontent = true },
+    { directory = "docs", name = "📚 Improved Documentation", showcontent = true },
+    { directory = "trivial", name = "🔧 Trivial/Internal Changes", showcontent = false },
 ]
 
 [tool.liccheck]

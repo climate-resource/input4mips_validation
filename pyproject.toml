@@ -6,9 +6,10 @@ requires-python = ">=3.9"
 dependencies = [
     "scitools-iris",
     "netcdf4",
-    "typer",
+    "loguru",
     "pint",
     "pint-xarray",
+    "typer",
     "xarray",
 ]
 name = "input4mips-validation"

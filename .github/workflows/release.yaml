@@ -34,6 +34,7 @@ jobs:
           echo "" >> ".github/release_template.md"
           echo "## Changelog" >> ".github/release_template.md"
           echo "" >> ".github/release_template.md"
+          pdm run python scripts/changelog-to-release-template.py >> ".github/release_template.md"
           cat docs/source/changelog.md >> ".github/release_template.md"
           echo "" >> ".github/release_template.md"
           echo "## Changes" >> ".github/release_template.md"

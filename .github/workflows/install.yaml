@@ -1,6 +1,7 @@
 name: Test installation
 
 on:
+  pull_request:
   workflow_dispatch:
   schedule:
     # * is a special character in YAML so you have to quote this string
@@ -18,9 +19,7 @@ jobs:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: [ "3.9", "3.10", "3.11" ]
         # Check both 'library' install and the 'application' (i.e. locked) install
-        # Re-activate after next release
-        # install-target: ["input4mips-validation", "input4mips-validation[locked]"]
-        install-target: ["input4mips-validation"]
+        install-target: ["input4mips-validation", "input4mips-validation[locked]"]
     steps:
     - name: Set up Python "${{ matrix.python-version }}"
       id: setup-python
@@ -53,9 +52,7 @@ jobs:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: [ "3.9", "3.10", "3.11" ]
         # Check both 'library' install and the 'application' (i.e. locked) install
-        # Re-activate after next release
-        # install-target: ["input4mips-validation", "input4mips-validation-locked"]
-        install-target: ["input4mips-validation"]
+        install-target: ["input4mips-validation", "input4mips-validation-locked"]
 
     steps:
     - name: Setup (micro)mamba and install package

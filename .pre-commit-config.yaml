@@ -40,7 +40,7 @@ repos:
         args: [ --fix, --exit-non-zero-on-fix ]
       - id: ruff-format
   - repo: https://github.com/pdm-project/pdm
-    rev: 2.16.1
+    rev: 2.17.0
     hooks:
       # Check that the lock file is up to date.
       # We need the pdm lock file too
@@ -49,7 +49,7 @@ repos:
         args: [ --dev, --group, ":all" ]
       # Put a requirements.txt file in the repo too
       - id: pdm-export
-        args: ['-o', 'requirements.txt', '--without-hashes']
+        args: ['--prod', '-o', 'requirements.txt', '--without-hashes']
       # - id: pdm-sync  # not used here because we manage environments with pixi
   - repo: local
     hooks:

@@ -1,6 +1,7 @@
 name: Test installation
 
 on:
+  pull_request:
   workflow_dispatch:
   schedule:
     # * is a special character in YAML so you have to quote this string
@@ -26,11 +27,17 @@ jobs:
         pip install --upgrade pip
         pip install input4mips-validation
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Test installation
       run: |
         which python
         python scripts/test-install.py
+    - name: Install pytest
+      run: |
+        pip install pytest
+    - name: Run tests
+      run: |
+        pytest tests -r a -vv
 
   test-micromamba-installation:
     name: Test (micro)mamba install (${{ matrix.python-version }}, ${{ matrix.os }})
@@ -52,9 +59,17 @@ jobs:
           input4mips-validation
         init-shell: bash
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Test installation
       shell: bash -leo pipefail {0}
       run: |
         which python
         python scripts/test-install.py
+    - name: Install pytest
+      shell: bash -leo pipefail {0}
+      run: |
+        mamba install pytest
+    - name: Run tests
+      shell: bash -leo pipefail {0}
+      run: |
+        pytest tests -r a -vv

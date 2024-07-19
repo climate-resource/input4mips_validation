@@ -35,6 +35,13 @@ see [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDat
 # Adding docstrings like this is a hack while this issue is ongoing:
 # https://github.com/python-attrs/attrs/issues/1309
 
+# multi-variable minimum
+
+# metadata class
+
+# CV handling
+# - can also pull those tests back in
+
 
 @frozen
 class Input4MIPsDataset:

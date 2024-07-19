@@ -32,11 +32,11 @@ jobs:
           fetch-depth: 0
           token: "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
 
-      # Also need pdm for the bump
       - name: Setup PDM
         uses: pdm-project/setup-pdm@v4
         with:
           python-version: "3.9"
+      # Also need pdm for the bump
       - name: Install pdm-bump
         run: |
           pdm self add pdm-bump

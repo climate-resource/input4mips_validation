@@ -21,7 +21,7 @@ dependencies = [
     "numpy<2.0,>=1.20",
 ]
 name = "input4mips-validation"
-version = "0.5.3a1"
+version = "0.6.0a1"
 description = "Validation of input4MIPs data (checking file formats, metadata etc.)."
 readme = "README.md"
 

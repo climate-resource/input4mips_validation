@@ -11,11 +11,10 @@ Validation of input4MIPs data (checking file formats, metadata etc.).
 
 
 
-[![CI](https://github.com/climate-resource/input4mips_validation/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/climate-resource/input4mips_validation/actions/workflows/ci.yaml)
-[![Coverage](https://codecov.io/gh/climate-resource/input4mips_validation/branch/main/graph/badge.svg)](https://codecov.io/gh/climate-resource/input4mips_validation)
+**Key info :**
 [![Docs](https://readthedocs.org/projects/input4mips-validation/badge/?version=latest)](https://input4mips-validation.readthedocs.io)
-[![Main branch: support Python versions](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fclimate-resource%2Finput4mips_validation%2Fmain%2Fpyproject.toml
-)](https://github.com/climate-resource/input4mips_validation/blob/main/pyproject.toml)
+[![Main branch: supported Python versions](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fclimate-resource%2Finput4mips_validation%2Fmain%2Fpyproject.toml)](https://github.com/climate-resource/input4mips_validation/blob/main/pyproject.toml)
+[![Licence](https://img.shields.io/pypi/l/input4mips-validation?label=licence)](https://github.com/climate-resource/input4mips_validation/blob/main/LICENCE)
 
 **PyPI :**
 [![PyPI](https://img.shields.io/pypi/v/input4mips-validation.svg)](https://pypi.org/project/input4mips-validation/)
@@ -26,11 +25,13 @@ Validation of input4MIPs data (checking file formats, metadata etc.).
 [![Conda platforms](https://img.shields.io/conda/pn/conda-forge/input4mips-validation.svg)](https://anaconda.org/conda-forge/input4mips-validation)
 [![Conda install](https://github.com/climate-resource/input4mips_validation/actions/workflows/install-conda.yaml/badge.svg?branch=main)](https://github.com/climate-resource/input4mips_validation/actions/workflows/install-conda.yaml)
 
+**Tests :**
+[![CI](https://github.com/climate-resource/input4mips_validation/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/climate-resource/input4mips_validation/actions/workflows/ci.yaml)
+[![Coverage](https://codecov.io/gh/climate-resource/input4mips_validation/branch/main/graph/badge.svg)](https://codecov.io/gh/climate-resource/input4mips_validation)
+
 **Other info :**
-[![Licence](https://img.shields.io/badge/Licence-5a5a5a)](https://github.com/climate-resource/input4mips_validation/blob/main/LICENCE)
 [![Last Commit](https://img.shields.io/github/last-commit/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/commits/main)
 [![Contributors](https://img.shields.io/github/contributors/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/graphs/contributors)
-
 
 <!--- sec-end-description -->
 

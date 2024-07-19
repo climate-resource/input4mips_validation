@@ -15,4 +15,9 @@ runs:
       with:
         cache: true
         environments: ${{ inputs.pixi-environments }}
-        locked: true  # ensure that pixi.lock is up to date with pyproject.toml
+        # pre-commit ensures that pixi.lock is up to date with pyproject.toml,
+        # hence here we can just follow the lock file exactly
+        frozen: true
+        # Pixi breaks our CI if we use `locked: true` here
+        # because it thinks we need to update our lock file
+        # when we update our version number in `pyproject.toml`.

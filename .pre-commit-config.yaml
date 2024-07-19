@@ -47,6 +47,10 @@ repos:
       - id: pixi-install
         name: pixi-install
         entry: pixi install
+        # Don't use this, we want pixi to run
+        # and update pixi.lock automatically if it is not up to date,
+        # rather than just failing and exiting.
+        # args: ["--locked"]
         language: system
         require_serial: true
         pass_filenames: false

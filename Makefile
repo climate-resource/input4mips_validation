@@ -59,16 +59,17 @@ docs:  ## build the docs
 changelog-draft:  ## compile a draft of the next changelog
 	pixi run -e all-dev towncrier build --draft
 
-# # Doesn't work with conda dependencies/pixi
-# .PHONY: licence-check
-# licence-check:  ## Check that licences of the dependencies are suitable
-# 	# Will likely fail on Windows, but Makefiles are in general not Windows
-# 	# compatible so we're not too worried
-# 	pdm export --without=tests --without=docs --without=dev > $(TEMP_FILE)
-# 	pdm run liccheck -r $(TEMP_FILE) -R licence-check.txt
-# 	rm $(TEMP_FILE)
+.PHONY: licence-check
+licence-check:  ## Check that licences of the dependencies are suitable
+	# Will likely fail on Windows, but Makefiles are in general not Windows
+	# compatible so we're not too worried
+	pdm export -o $(TEMP_FILE) --without=tests --without=docs --without=dev
+	pdm run liccheck -r $(TEMP_FILE) -R licence-check.txt
+	rm $(TEMP_FILE)
 
 .PHONY: virtual-environment
 virtual-environment:  ## update virtual environment, create a new one if it doesn't already exist
 	pixi install
 	pixi run -e all-dev pre-commit install
+	# Make sure pdm lock file is up to date too
+	pdm lock --strategy=inherit_metadata --dev --group :all

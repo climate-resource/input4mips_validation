@@ -4,7 +4,12 @@ authors = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "typer>=0.12.3",
+    "scitools-iris",
+    "netcdf4",
+    "typer",
+    "pint",
+    "pint-xarray",
+    "xarray",
 ]
 name = "input4mips-validation"
 version = "0.7.1a1"
@@ -115,6 +120,8 @@ editable = true
 [tool.pixi.tasks]
 
 [tool.pixi.dependencies]
+iris = ">=3.0"
+netcdf4 = ">=1.0"
 
 [tool.pdm.build]
 locked = true

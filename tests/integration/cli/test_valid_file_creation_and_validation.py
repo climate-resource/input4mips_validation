@@ -8,8 +8,8 @@ import os
 from pathlib import Path
 from unittest.mock import patch
 
+import cftime
 import numpy as np
-import pandas as pd
 import pint
 import pint_xarray  # noqa: F401 # required to activate pint accessor
 import xarray as xr
@@ -59,7 +59,9 @@ def test_validate_written_single_variable_file(tmp_path):
 
     lon = np.arange(-165.0, 180.0, 30.0, dtype=np.float64)
     lat = np.arange(-82.5, 90.0, 15.0, dtype=np.float64)
-    time = pd.date_range("2000-01-15", periods=120, freq="MS")
+    time = [
+        cftime.datetime(y, m, 1) for y in range(2000, 2010 + 1) for m in range(1, 13)
+    ]
 
     rng = np.random.default_rng()
     ds_data = UR.Quantity(
@@ -120,7 +122,9 @@ def test_validate_written_multi_variable_file(tmp_path):
     """
     lon = np.arange(-165.0, 180.0, 30.0, dtype=np.float64)
     lat = np.arange(-82.5, 90.0, 15.0, dtype=np.float64)
-    time = pd.date_range("2000-01-15", periods=120, freq="MS")
+    time = [
+        cftime.datetime(y, m, 1) for y in range(2000, 2010 + 1) for m in range(1, 13)
+    ]
 
     rng = np.random.default_rng()
     ds_data = UR.Quantity(

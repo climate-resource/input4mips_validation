@@ -11,7 +11,7 @@ on:
 
 jobs:
   test-pypi-install:
-    name: Test PyPI install (${{ matrix.python-version }}, ${{ matrix.os }})
+    name: Test PyPI install ${{ matrix.install-target }} (${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: "${{ matrix.os }}"
     strategy:
       fail-fast: false
@@ -44,7 +44,7 @@ jobs:
         pytest tests -r a -vv
 
   test-micromamba-installation:
-    name: Test (micro)mamba install (${{ matrix.python-version }}, ${{ matrix.os }})
+    name: Test (micro)mamba install ${{ matrix.install-target }} (${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: "${{ matrix.os }}"
     strategy:
       fail-fast: false

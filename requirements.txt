@@ -3,6 +3,7 @@
 
 antlr4-python3-runtime==4.7.2
 appdirs==1.4.4
+attrs==23.2.0
 cartopy==0.23.0
 certifi==2024.7.4
 cf-units==3.2.0
@@ -18,7 +19,7 @@ flexcache==0.3
 flexparser==0.3.1
 fonttools==4.53.1
 fsspec==2024.6.1
-importlib-metadata==8.0.0; python_version < "3.12"
+importlib-metadata==8.0.0
 importlib-resources==6.4.0; python_version < "3.10"
 jinja2==3.1.4
 kiwisolver==1.4.5
@@ -56,4 +57,4 @@ tzdata==2024.1
 win32-setctime==1.1.0; sys_platform == "win32"
 xarray==2024.6.0
 xxhash==3.4.1
-zipp==3.19.2; python_version < "3.12"
+zipp==3.19.2

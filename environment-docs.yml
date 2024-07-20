@@ -113,6 +113,7 @@ dependencies:
   - Babel==2.15.0
   - beautifulsoup4==4.12.3
   - cattrs==23.2.3
+  - cf_xarray==0.9.4
   - charset_normalizer==3.3.2
   - comm==0.2.2
   - debugpy==1.8.2
@@ -175,9 +176,9 @@ dependencies:
   - sphinx_copybutton==0.5.2
   - sphinxcontrib_applehelp==1.0.8
   - sphinxcontrib_devhelp==1.0.6
-  - sphinxcontrib_htmlhelp==2.0.5
+  - sphinxcontrib_htmlhelp==2.0.6
   - sphinxcontrib_jsmath==1.0.1
-  - sphinxcontrib_qthelp==1.0.7
+  - sphinxcontrib_qthelp==1.0.8
   - sphinxcontrib_serializinghtml==1.1.10
   - SQLAlchemy==2.0.31
   - stack_data==0.6.3

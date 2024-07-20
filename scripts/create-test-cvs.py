@@ -114,7 +114,7 @@ def main() -> None:
     source_id_entries = SourceIDEntries(
         (
             SourceIDEntry(
-                source_id="CR-CMP-2-0",
+                source_id="CR-CMIP-0-2-0",
                 values=SourceIDValues(
                     contact="zebedee.nicholls@climate-resource.com;malte.meinshausen@climate-resource.com",
                     further_info_url="http://www.tbd.invalid",

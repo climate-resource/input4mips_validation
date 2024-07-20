@@ -8,6 +8,7 @@ cartopy==0.23.0
 cattrs==23.2.3
 certifi==2024.7.4
 cf-units==3.2.0
+cf-xarray==0.9.4
 cftime==1.6.4
 charset-normalizer==3.3.2
 click==8.1.7

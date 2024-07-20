@@ -8,6 +8,7 @@ dependencies = [
     "netcdf4",
     "attrs",
     "cattrs",
+    "cf-xarray",
     "loguru",
     "pint",
     "pint-xarray",

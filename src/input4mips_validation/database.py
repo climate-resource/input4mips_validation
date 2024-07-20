@@ -4,10 +4,11 @@ Data model of our input4MIPs database
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from collections.abc import Iterable
 
 import attr._make
-from attrs import Attribute, define, field, fields, make_class
+from attrs import NOTHING, Attribute, define, field, fields, make_class
 
 
 @define
@@ -227,14 +228,22 @@ def make_class_from_database_entry_file_fields(
     -------
         Created class
     """
+    properties_no_default = []
+    properties_default = []
+    for ff in fields_to_include:
+        if database_entry_file_fields[ff].default == NOTHING:
+            properties_no_default.append(database_entry_file_fields[ff])
+
+        else:
+            properties_default.append(database_entry_file_fields[ff])
+
+    properties = OrderedDict()
+    for v in [*properties_no_default, *properties_default]:
+        properties[v.name] = attr_to_field(v)
+
     created = make_class(
         class_name,
-        {
-            database_entry_file_fields[k].name: attr_to_field(
-                database_entry_file_fields[k]
-            )
-            for k in fields_to_include
-        },
+        properties,
     )
 
     return created

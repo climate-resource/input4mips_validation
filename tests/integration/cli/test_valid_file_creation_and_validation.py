@@ -93,7 +93,7 @@ def test_validate_written_single_variable_file(tmp_path):
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
         input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
-            ds=ds,
+            data=ds,
             metadata_minimum=metadata_minimum,
             dimensions=("time", "lat", "lon"),
             standard_and_or_long_names={

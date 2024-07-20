@@ -5,7 +5,7 @@
 groups = ["default", "dev", "docs", "notebooks", "tests"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:5514d77559083c5e15c2a8e870a2b86cc6396197085ce10ad3a3cca12f8a4171"
+content_hash = "sha256:8a5fd3afbbfb3eae50fada36c4345415cd4c79ef3f86da233a8dc093df5780e6"
 
 [[metadata.targets]]
 requires_python = ">=3.9"
@@ -209,6 +209,20 @@ files = [
     {file = "cf_units-3.2.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:7d493a04634e46f7c1ee27354ec0c6c9d9130ba40625a9967bb5637dd8633ba8"},
     {file = "cf_units-3.2.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:16bf2e298c79fccdb7301d13c14550117f66d0e2d12aa1925f6404a07e1b0297"},
     {file = "cf_units-3.2.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2cbaeae505c185f43e0d33aa6173161cfc47ad5f333c16cce7de79b6209a2bd1"},
+]
+
+[[package]]
+name = "cf-xarray"
+version = "0.9.4"
+requires_python = ">=3.9"
+summary = "A convenience wrapper for using CF attributes on xarray objects"
+groups = ["default"]
+dependencies = [
+    "xarray",
+]
+files = [
+    {file = "cf_xarray-0.9.4-py3-none-any.whl", hash = "sha256:9f7acf73fe14bed66680bdb135682656ea8451e1f6c59221bc31a912b62ea46a"},
+    {file = "cf_xarray-0.9.4.tar.gz", hash = "sha256:23833bce5ddffc31ec95258c82a62c848c15332696d91abbf960a4325bc6accb"},
 ]
 
 [[package]]
@@ -2658,13 +2672,13 @@ files = [
 
 [[package]]
 name = "sphinxcontrib-htmlhelp"
-version = "2.0.5"
+version = "2.0.6"
 requires_python = ">=3.9"
 summary = "sphinxcontrib-htmlhelp is a sphinx extension which renders HTML help files"
 groups = ["docs"]
 files = [
-    {file = "sphinxcontrib_htmlhelp-2.0.5-py3-none-any.whl", hash = "sha256:393f04f112b4d2f53d93448d4bce35842f62b307ccdc549ec1585e950bc35e04"},
-    {file = "sphinxcontrib_htmlhelp-2.0.5.tar.gz", hash = "sha256:0dc87637d5de53dd5eec3a6a01753b1ccf99494bd756aafecd74b4fa9e729015"},
+    {file = "sphinxcontrib_htmlhelp-2.0.6-py3-none-any.whl", hash = "sha256:1b9af5a2671a61410a868fce050cab7ca393c218e6205cbc7f590136f207395c"},
+    {file = "sphinxcontrib_htmlhelp-2.0.6.tar.gz", hash = "sha256:c6597da06185f0e3b4dc952777a04200611ef563882e0c244d27a15ee22afa73"},
 ]
 
 [[package]]
@@ -2680,13 +2694,13 @@ files = [
 
 [[package]]
 name = "sphinxcontrib-qthelp"
-version = "1.0.7"
+version = "1.0.8"
 requires_python = ">=3.9"
 summary = "sphinxcontrib-qthelp is a sphinx extension which outputs QtHelp documents"
 groups = ["docs"]
 files = [
-    {file = "sphinxcontrib_qthelp-1.0.7-py3-none-any.whl", hash = "sha256:e2ae3b5c492d58fcbd73281fbd27e34b8393ec34a073c792642cd8e529288182"},
-    {file = "sphinxcontrib_qthelp-1.0.7.tar.gz", hash = "sha256:053dedc38823a80a7209a80860b16b722e9e0209e32fea98c90e4e6624588ed6"},
+    {file = "sphinxcontrib_qthelp-1.0.8-py3-none-any.whl", hash = "sha256:323d6acc4189af76dfe94edd2a27d458902319b60fcca2aeef3b2180c106a75f"},
+    {file = "sphinxcontrib_qthelp-1.0.8.tar.gz", hash = "sha256:db3f8fa10789c7a8e76d173c23364bdf0ebcd9449969a9e6a3dd31b8b7469f03"},
 ]
 
 [[package]]

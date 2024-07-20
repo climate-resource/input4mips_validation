@@ -19,7 +19,7 @@ from input4mips_validation.cli import app
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
     Input4MIPsDatasetMetadataDataProducerMinimum,
-    Input4MIPsDatasetMetadataDataProducerMinimumMultipleVariable,
+    Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum,
 )
 
 UR = pint.get_application_registry()
@@ -65,7 +65,7 @@ def test_validate_written_single_variable_file(tmp_path):
 
     rng = np.random.default_rng()
     ds_data = UR.Quantity(
-        rng.random((lon.size, lat.size, time.size)),
+        rng.random((lon.size, lat.size, len(time))),
         "ppm",
     )
 
@@ -128,7 +128,7 @@ def test_validate_written_multi_variable_file(tmp_path):
 
     rng = np.random.default_rng()
     ds_data = UR.Quantity(
-        rng.random((lon.size, lat.size, time.size)),
+        rng.random((lon.size, lat.size, len(time))),
         "ppm",
     )
 
@@ -157,7 +157,7 @@ def test_validate_written_multi_variable_file(tmp_path):
         "dtype": np.dtypes.Float32DType,
     }
 
-    metadata_minimum = Input4MIPsDatasetMetadataDataProducerMinimumMultipleVariable(
+    metadata_minimum = Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum(
         dataset_category="GHGConcentrations",
         grid_label="gn",
         nominal_resolution="10000 km",

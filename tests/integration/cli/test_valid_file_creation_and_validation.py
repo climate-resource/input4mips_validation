@@ -98,7 +98,7 @@ def test_validate_written_single_variable_file(tmp_path):
             ds=ds,
             metadata_minimum=metadata_minimum,
             dimensions=("time", "lat", "lon"),
-            standard_long_names={
+            standard_and_or_long_names={
                 "mole_fraction_of_carbon_dioxide_in_air": {
                     "standard_name": "mole_fraction_of_carbon_dioxide_in_air"
                 }
@@ -177,7 +177,7 @@ def test_validate_written_multi_variable_file(tmp_path):
                 ds=ds,
                 metadata_minimum=metadata_minimum,
                 dimensions=("time", "lat", "lon"),
-                standard_long_names={
+                standard_and_or_long_names={
                     "mole_fraction_of_carbon_dioxide_in_air": {
                         "standard_name": "mole_fraction_of_carbon_dioxide_in_air"
                     },

@@ -7,10 +7,13 @@ dependencies = [
     "scitools-iris",
     "netcdf4",
     "attrs",
+    "cattrs",
     "loguru",
     "pint",
     "pint-xarray",
+    "pooch",
     "typer",
+    "validators",
     "xarray",
 ]
 name = "input4mips-validation"

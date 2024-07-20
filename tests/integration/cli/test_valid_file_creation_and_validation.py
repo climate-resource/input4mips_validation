@@ -28,9 +28,7 @@ UR.define("ppb = ppm * 1000")
 runner = CliRunner()
 
 DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
-    (
-        Path(__file__).parent / ".." / "test-data" / "cvs" / "input4MIPs" / "default"
-    ).absolute()
+    (Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default").absolute()
 )
 # Tests to write:
 # - quasi-unit test of passing to function and handling of error raising

@@ -197,7 +197,13 @@ def attr_to_field(
     -------
         Output of [`field`][attrs.field], called with information from `attr`.
     """
-    return field(**{k: getattr(attr, k) for k in attributes_to_copy})
+    field_kwargs = {k: getattr(attr, k) for k in attributes_to_copy}
+
+    # Hate this, but see if it will work for now
+    if field_kwargs["type"] == "str":
+        field_kwargs["type"] = str
+
+    return field(**field_kwargs)
 
 
 def make_class_from_database_entry_file_fields(

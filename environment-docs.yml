@@ -112,6 +112,7 @@ dependencies:
   - attrs==23.2.0
   - Babel==2.15.0
   - beautifulsoup4==4.12.3
+  - cattrs==23.2.3
   - charset_normalizer==3.3.2
   - comm==0.2.2
   - debugpy==1.8.2
@@ -150,6 +151,7 @@ dependencies:
   - Pint==0.24.3
   - pint_xarray==0.4
   - platformdirs==4.2.2
+  - pooch==1.8.2
   - prompt_toolkit==3.0.47
   - psutil==6.0.0
   - ptyprocess==0.7.0
@@ -186,5 +188,6 @@ dependencies:
   - typer==0.12.3
   - typing_extensions==4.12.2
   - urllib3==2.2.2
+  - validators==0.33.0
   - wcwidth==0.2.13
   - xarray==2024.6.0

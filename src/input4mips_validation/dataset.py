@@ -10,6 +10,7 @@ import xarray as xr
 from attrs import field, frozen
 
 import input4mips_validation.xarray_helpers as iv_xr_helpers
+from input4mips_validation.cvs import load_cvs
 from input4mips_validation.database import make_class_from_database_entry_file_fields
 
 DATASET_PRODUCER_MINIMUM_FIELDS = (

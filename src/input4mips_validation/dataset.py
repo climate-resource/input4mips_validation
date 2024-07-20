@@ -4,11 +4,12 @@ Classes that define an input4MIPs dataset and associated metadata
 
 from __future__ import annotations
 
-from typing import Callable
+from pathlib import Path
+from typing import Any, Callable
 
 import cf_xarray  # noqa: F401
 import xarray as xr
-from attrs import field, frozen
+from attrs import asdict, field, frozen
 
 import input4mips_validation.xarray_helpers as iv_xr_helpers
 from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
@@ -17,6 +18,11 @@ from input4mips_validation.inference.from_data import (
     VARIABLE_DATASET_CATEGORY_MAP,
     VARIABLE_REALM_MAP,
     infer_frequency,
+)
+from input4mips_validation.io import (
+    generate_creation_timestamp,
+    generate_tracking_id,
+    write_ds_to_disk,
 )
 
 DATASET_PRODUCER_MINIMUM_FIELDS = (
@@ -405,6 +411,74 @@ class Input4MIPsDataset:
         """
         raise NotImplementedError()
 
+    def write(
+        self,
+        root_data_dir: Path,
+        pint_dequantify_format: str = "cf",
+        unlimited_dimensions: tuple[str, ...] = ("time",),
+        encoding_kwargs: dict[str, Any] | None = None,
+    ) -> Path:
+        """
+        Write to disk
+
+        Parameters
+        ----------
+        root_data_dir
+            Root directory in which to write the file
+
+        pint_dequantify_format
+            Format to use when dequantifying variables with Pint.
+
+            It is unlikely that you will want to change this.
+
+        unlimited_dimensions
+            Dimensions which should be unlimited in the written file
+
+            This is passed to [iris.save][].
+
+        encoding_kwargs
+            Kwargs to use when encoding to disk.
+
+            These are passed as arguments to
+            [`write`][input4mips_validation.io.write_input4mips_ds_to_disk].
+
+        Returns
+        -------
+            Path in which the file was written
+        """
+        cvs = self.cvs
+
+        # Can shallow copy as we don't alter the data from here on
+        ds_disk = self.data.copy(deep=False).pint.dequantify(
+            format=pint_dequantify_format
+        )
+
+        # Add all the metadata
+        ds_disk.attrs = convert_input4mips_metadata_to_ds_attrs(self.metadata)
+
+        # Must be unique for every written file,
+        # so we deliberately don't provide a way
+        # for the user to overwrite this at present
+        ds_disk.attrs["tracking_id"] = generate_tracking_id()
+        ds_disk.attrs["creation_date"] = generate_creation_timestamp()
+
+        # Put get_file_path on CVs
+        out_path = root_data_dir / get_file_path(
+            cvs=cvs,
+            input4mips_ds_metadata=self.metadata,
+            # esgf_version=None,
+        )
+
+        written_path = write_ds_to_disk(
+            ds=ds_disk,
+            out_path=out_path,
+            cvs=cvs,
+            unlimited_dimensions=unlimited_dimensions,
+            **encoding_kwargs,
+        )
+
+        return written_path
+
 
 def handle_ds_standard_long_names(
     ds: xr.Dataset,
@@ -515,3 +589,22 @@ def get_ds_var_assert_single(ds: xr.Dataset) -> str:
         raise AssertionError(msg)
 
     return ds_var_l[0]
+
+
+def convert_input4mips_metadata_to_ds_attrs(
+    metadata: Input4MIPsDatasetMetadata,
+) -> dict[str, str]:
+    """
+    Convert [Input4MIPsDatasetMetadata][] to [xarray.Dataset.attrs][] compatible values
+
+    Returns
+    -------
+        [xarray.Dataset.attrs][] compatible values
+    """
+    res = {k: v for k, v in asdict(metadata).items() if v is not None}
+
+    # if self.metadata_non_cvs is not None:
+    #     # Add other keys in too
+    #     res = self.metadata_non_cvs | res
+
+    return res

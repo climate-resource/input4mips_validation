@@ -45,6 +45,13 @@ Default value for CV source at the CLI
 If cv_source equals this value, we assume that it wasn't passed by the user.
 """
 
+WRITE_IN_DRS_UNSET_VALUE: str = "nowhere_idjunk"
+"""
+Default value for write-in-drs at the CLI
+
+If write_in_drs equals this value, we assume that it wasn't passed by the user.
+"""
+
 
 @app.callback()
 def cli(setup_logging: bool = True) -> None:
@@ -94,6 +101,19 @@ def validate_file_command(
         ),
     ],
     cv_source: CV_SOURCE_TYPE = CV_SOURCE_UNSET_VALUE,
+    write_in_drs: Annotated[
+        str,
+        typer.Option(
+            help=(
+                "If supplied, we assume "
+                "that the file has not been written in the DRS already. "
+                "The file will be re-written into the DRS if it passes validation."
+                "The supplied value is assumed to be the root directory "
+                "into which the write the file (following the DRS)."
+            ),
+            show_default=False,
+        ),
+    ] = WRITE_IN_DRS_UNSET_VALUE,
 ) -> None:
     """
     Validate a single file
@@ -106,7 +126,10 @@ def validate_file_command(
         cv_source, cv_source_unset_value=CV_SOURCE_UNSET_VALUE
     )
 
-    validate_file(file, cv_source=cv_source_use)
+    if write_in_drs == WRITE_IN_DRS_UNSET_VALUE:
+        write_in_drs = None
+
+    validate_file(file, cv_source=cv_source_use, write_in_drs=write_in_drs)
 
 
 @app.command(name="validate-tree")

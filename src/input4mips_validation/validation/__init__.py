@@ -168,7 +168,10 @@ def load_cvs_here(cv_source: str | None) -> Input4MIPsCVs:
 
 
 def validate_file(
-    infile: Path | str, cv_source: str | None, bnds_coord_indicator: str = "bnds"
+    infile: Path | str,
+    cv_source: str | None,
+    write_in_drs: Path | None = None,
+    bnds_coord_indicator: str = "bnds",
 ) -> Input4MIPsDatabaseEntryFile:
     """
     Validate a file
@@ -186,6 +189,12 @@ def validate_file(
 
         For full details on options for loading CVs,
         see {py:func}`input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading`.
+
+    write_in_drs
+        If supplied and the file passes validation,
+        we re-write the file following the DRS.
+        In this case, `write_in_drs`
+        specifies the root directory in which the file will be written.
 
     bnds_coord_indicator
         String that indicates that a variable is a bounds co-ordinate
@@ -249,6 +258,9 @@ def validate_file(
     #     validate_ds,
     #     call_purpose="Check the dataset's data and metadata",
     # )(ds_careful_load, cvs=cvs)
+
+    # Check that the filename and metadata are consistent
+    # Checking of the directory and metadata is only done in validate_tree
 
     # CF-checker
     # catch_error(check_with_cf_checker, call_purpose="Check data with cf-checker")(

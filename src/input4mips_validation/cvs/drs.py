@@ -209,7 +209,7 @@ class DataReferenceSyntax:
         return root_data_dir / generated_path
 
     @functools.cache
-    def parse_drs_template(self, drs_template: str) -> tuple[DRSSubstitution, ...]:
+    def parse_drs_template(self, drs_template: str) -> tuple[DRSSubstitution, ...]:  # noqa: PLR0912, PLR0915
         """
         Parse a DRS template string
 

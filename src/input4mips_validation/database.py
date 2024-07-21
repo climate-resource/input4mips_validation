@@ -8,7 +8,7 @@ import datetime as dt
 from collections import OrderedDict
 from collections.abc import Iterable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, Union
 
 import cftime
 import numpy as np
@@ -165,19 +165,19 @@ class Input4MIPsDatabaseEntryFile:
     # Should be "vYYYYMMDD", where YYYYMMDD is the date that it was put into the DRS
     # (which is unverifiable)
 
-    grid: str | None = None
+    grid: Union[str, None] = None
     """Long-form description of the grid referred to by `grid_label`"""
     # No validation, any string is fine
 
-    institution: str | None = None
+    institution: Union[str, None] = None
     """Long-form description of the institute referred to by `institution_id`"""
     # No validation, any string is fine
 
-    references: str | None = None
+    references: Union[str, None] = None
     """References relevant to the file"""
     # TODO: validation (?) e.g. expect only DOIs?
 
-    source: str | None = None
+    source: Union[str, None] = None
     """Long-form description of the source referred to by `source_id`"""
     # No validation, any string is fine
 
@@ -228,9 +228,9 @@ class Input4MIPsDatabaseEntryFile:
         ds = xr.load_dataset(file)
         # Having to re-infer all of this is silly,
         # would be much simpler if all data was just in the file.
-        metadata_attributes: dict[str, str | None] = ds.attrs
+        metadata_attributes: dict[str, Union[str, None]] = ds.attrs
 
-        metadata_data: dict[str, str | None] = {}
+        metadata_data: dict[str, Union[str, None]] = {}
 
         frequency = metadata_attributes[frequency_metadata_key]
         if frequency is not None and frequency != no_time_axis_frequency:
@@ -238,10 +238,10 @@ class Input4MIPsDatabaseEntryFile:
             time_start = xr_time_min_max_to_single_value(ds[time_dimension].min())
             time_end = xr_time_min_max_to_single_value(ds[time_dimension].max())
 
-            md_datetime_start: str | None = format_datetime_for_db(time_start)
-            md_datetime_end: str | None = format_datetime_for_db(time_end)
+            md_datetime_start: Union[str, None] = format_datetime_for_db(time_start)
+            md_datetime_end: Union[str, None] = format_datetime_for_db(time_end)
 
-            md_datetime_time_range: str | None = create_time_range(
+            md_datetime_time_range: Union[str, None] = create_time_range(
                 time_start=time_start,
                 time_end=time_end,
                 ds_frequency=frequency,
@@ -269,7 +269,7 @@ class Input4MIPsDatabaseEntryFile:
             k: metadata_directories_all[k] for k in metadata_directories_keys_to_use
         }
 
-        all_metadata: dict[str, str | None] = {}
+        all_metadata: dict[str, Union[str, None]] = {}
         for md in (metadata_attributes, metadata_data, metadata_directories):
             keys_to_check = md.keys() & all_metadata
             for ktc in keys_to_check:

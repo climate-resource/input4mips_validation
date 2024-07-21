@@ -5,17 +5,19 @@ Validation module
 from __future__ import annotations
 
 import subprocess
-from functools import partial, wraps
+from functools import wraps
 from pathlib import Path
 from typing import Callable, Protocol, TypeVar
 
+import iris
+import xarray as xr
 from loguru import logger
 from typing_extensions import ParamSpec
 
 from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
-from input4mips_validation.database import Input4MIPsDatabaseEntryFile
+from input4mips_validation.validation.cf_checker import check_with_cf_checker
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -144,7 +146,7 @@ def get_catch_error_decorator(
     return catch_error_decorator
 
 
-def load_cvs_here(cv_source: str | None) -> Input4MIPsCVs:
+def load_cvs_in_validation(cv_source: str | None) -> Input4MIPsCVs:
     """
     Load the controlled vocabularies (CVs)
 
@@ -170,9 +172,8 @@ def load_cvs_here(cv_source: str | None) -> Input4MIPsCVs:
 def validate_file(
     infile: Path | str,
     cv_source: str | None,
-    write_in_drs: Path | None = None,
     bnds_coord_indicator: str = "bnds",
-) -> Input4MIPsDatabaseEntryFile:
+) -> None:
     """
     Validate a file
 
@@ -189,12 +190,6 @@ def validate_file(
 
         For full details on options for loading CVs,
         see {py:func}`input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading`.
-
-    write_in_drs
-        If supplied and the file passes validation,
-        we re-write the file following the DRS.
-        In this case, `write_in_drs`
-        specifies the root directory in which the file will be written.
 
     bnds_coord_indicator
         String that indicates that a variable is a bounds co-ordinate
@@ -217,43 +212,34 @@ def validate_file(
     caught_errors: list[tuple[str, Exception]] = []
     catch_error = get_catch_error_decorator(caught_errors)
 
-    # Basic loading
-    # ds_xr_load = catch_error(
-    #     xr.load_dataset, call_purpose="Load data with `xr.load_dataset`"
-    # )(infile)
+    # Basic loading - xarray
+    ds_xr_load = catch_error(
+        xr.load_dataset, call_purpose="Load data with `xr.load_dataset`"
+    )(infile)
 
+    # Basic loading - iris
     # cubes = catch_error(iris.load, call_purpose="Load data with `iris.load`")(infile)
-    # if ds_xr_load.attrs["variable_id"] != "multiple":
-    #     catch_error(iris.load_cube, call_purpose="Load data with `iris.load_cube`")(
-    #         infile
-    #     )
+    cubes = catch_error(iris.load, call_purpose="Load data with `iris.load`")(infile)
+    if len(cubes) == 1:
+        catch_error(iris.load_cube, call_purpose="Load data with `iris.load_cube`")(
+            infile
+        )
+
+    # CF-checker
+    catch_error(check_with_cf_checker, call_purpose="Check data with cf-checker")(
+        infile, ds=ds_xr_load
+    )
 
     # Check we can load CVs, we need them for the following steps
     cvs = catch_error(
-        load_cvs_here,
+        load_cvs_in_validation,
         call_purpose="Load controlled vocabularies to use during validation",
     )(cv_source)
 
-    if cvs is None:
-        logger.error("Skipping creation of database entry because cvs loading failed")
-
-    else:
-        # Check we can create a database entry
-        database_entry = catch_error(
-            partial(Input4MIPsDatabaseEntryFile.from_file, cvs=cvs),
-            call_purpose="Create input4MIPs database entry for the file",
-        )(infile)
-
-    # Check that the data, metadata and CVs are all consistent
-    # # Convert with ncdata as it is generally better at this
-    # ds_careful_load = ncdata.iris_xarray.cubes_to_xarray(cubes)
-    # # Guess that everything which has "bnds" in it is a co-ordinate.
-    # # This is definitely a pain point when loading data from iris written.
-    # # TODO: issue in [ncdata](https://github.com/pp-mo/ncdata)
-    # # to see whether a true expert has any ideas.
-    # bnds_guess = [v for v in ds_careful_load.data_vars if bnds_coord_indicator in v]
-    # ds_careful_load = ds_careful_load.set_coords(bnds_guess)
-    #
+    # TODO: Check that the data, metadata and CVs are all consistent
+    # ds_careful_load = from_iris_cubes(
+    #   cubes, bnds_coord_indicator=bnds_coord_indicator
+    # )
     # catch_error(
     #     validate_ds,
     #     call_purpose="Check the dataset's data and metadata",
@@ -262,15 +248,15 @@ def validate_file(
     # Check that the filename and metadata are consistent
     # Checking of the directory and metadata is only done in validate_tree
 
-    # CF-checker
-    # catch_error(check_with_cf_checker, call_purpose="Check data with cf-checker")(
-    #     infile, ds=ds_xr_load
-    # )
+    if cvs is None:
+        logger.error("Skipping checks of CV consistency because cvs loading failed")
 
-    if caught_errors or database_entry is None:
+    else:
+        # TODO: check consistency with CVs
+        pass
+
+    if caught_errors:
         logger.info("Validation failed")
         raise InvalidFileError(filepath=infile, error_container=caught_errors)
 
     logger.info("Validation passed")
-
-    return database_entry

@@ -110,8 +110,10 @@ def test_validate_written_single_variable_file(tmp_path):
 
     assert result.exit_code == 0, result.exc_info
 
-    database_entry = validate_file(
-        written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+    validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
+
+    database_entry = Input4MIPsDatabaseEntryFile.from_file(
+        written_file, cvs=input4mips_ds.cvs
     )
 
     ds_attrs = xr.load_dataset(written_file).attrs
@@ -248,8 +250,10 @@ def test_validate_written_multi_variable_file(tmp_path):
 
     assert result.exit_code == 0, result.exc_info
 
-    database_entry = validate_file(
-        written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+    validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
+
+    database_entry = Input4MIPsDatabaseEntryFile.from_file(
+        written_file, cvs=input4mips_ds.cvs
     )
 
     ds_attrs = xr.load_dataset(written_file).attrs

@@ -2,13 +2,29 @@
 Command-line interface
 """
 
+# # Do not use this here, it breaks typer's annotations
+# from __future__ import annotations
+
+import datetime as dt
+import shutil
 from pathlib import Path
 from typing import Annotated, Union
 
+import cftime
+import iris
+import numpy as np
+import rich
 import typer
+from loguru import logger
 
 import input4mips_validation.cli.logging
+from input4mips_validation.cvs.loading import load_cvs
+from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
+from input4mips_validation.database import Input4MIPsDatabaseEntryFile
+from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
 from input4mips_validation.validation import validate_file
+from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
+from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
 app = typer.Typer()
 
@@ -93,7 +109,7 @@ def get_cv_source(cv_source: str, cv_source_unset_value: str) -> Union[str, None
 
 
 @app.command(name="validate-file")
-def validate_file_command(
+def validate_file_command(  # noqa: PLR0913
     file: Annotated[
         Path,
         typer.Argument(
@@ -105,15 +121,68 @@ def validate_file_command(
         str,
         typer.Option(
             help=(
-                "If supplied, we assume "
-                "that the file has not been written in the DRS already. "
-                "The file will be re-written into the DRS if it passes validation."
+                "If supplied, "
+                "the file will be re-written into the DRS if it passes validation."
                 "The supplied value is assumed to be the root directory "
-                "into which the write the file (following the DRS)."
+                "into which to write the file (following the DRS)."
             ),
             show_default=False,
         ),
     ] = WRITE_IN_DRS_UNSET_VALUE,
+    create_db_entry: Annotated[
+        bool,
+        typer.Option(
+            help=(
+                "Should a database entry be created? "
+                "If `True`, we will attempt to create a database entry. "
+                "This database entry will be logged to the screen. "
+                "For creation of a database based on a tree, "
+                "use the `validate-tree` command."
+            ),
+        ),
+    ] = False,
+    bnds_coord_indicator: Annotated[
+        str,
+        typer.Option(
+            help=(
+                "String that indicates that a variable is a bounds co-ordinate. "
+                "This helps us with identifying `infile`'s variables correctly "
+                "in the absence of an agreed convention for doing this "
+                "(xarray has a way, "
+                "but it conflicts with the CF-conventions hence iris, "
+                "so here we are)."
+            )
+        ),
+    ] = "bnds",
+    frequency_metadata_key: Annotated[
+        str,
+        typer.Option(
+            help=(
+                "The key in the data's metadata "
+                "which points to information about the data's frequency. "
+                "Only required if --write-in-drs or --create-db-entry are supplied."
+            )
+        ),
+    ] = "frequency",
+    no_time_axis_frequency: Annotated[
+        str,
+        typer.Option(
+            help=(
+                "The value of 'frequency' in the metadata which indicates "
+                "that the file has no time axis i.e. is fixed in time."
+                "Only required if --write-in-drs or --create-db-entry are supplied."
+            )
+        ),
+    ] = "fx",
+    time_dimension: Annotated[
+        str,
+        typer.Option(
+            help=(
+                "The time dimension of the data. "
+                "Only required if --write-in-drs or --create-db-entry are supplied."
+            )
+        ),
+    ] = "time",
 ) -> None:
     """
     Validate a single file
@@ -129,7 +198,57 @@ def validate_file_command(
     if write_in_drs == WRITE_IN_DRS_UNSET_VALUE:
         write_in_drs = None
 
-    validate_file(file, cv_source=cv_source_use, write_in_drs=write_in_drs)
+    validate_file(file, cv_source=cv_source_use)
+
+    if write_in_drs:
+        raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source_use)
+        cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+
+        ds = ds_from_iris_cubes(
+            iris.load(file), bnds_coord_indicator=bnds_coord_indicator
+        )
+
+        if ds.attrs[frequency_metadata_key] != no_time_axis_frequency:
+            time_start: cftime.datetime | dt.datetime | np.datetime64 | None = (
+                xr_time_min_max_to_single_value(ds[time_dimension].min())
+            )
+            time_end: cftime.datetime | dt.datetime | np.datetime64 | None = (
+                xr_time_min_max_to_single_value(ds[time_dimension].max())
+            )
+        else:
+            time_start = time_end = None
+
+        full_file_path = cvs.DRS.get_file_path(
+            root_data_dir=write_in_drs,
+            available_attributes=ds.attrs,
+            time_start=time_start,
+            time_end=time_end,
+        )
+        write_path = full_file_path.parent / file.name
+
+        if write_path.exists():
+            raise NotImplementedError()
+
+        write_path.parent.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Copying {file} to {write_path}")
+        shutil.copy(file, write_path)
+
+    if create_db_entry:
+        if write_in_drs:
+            db_entry_creation_file = write_path
+        else:
+            raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source_use)
+            cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+
+            db_entry_creation_file = file
+
+        database_entry = Input4MIPsDatabaseEntryFile.from_file(
+            db_entry_creation_file, cvs=cvs
+        )
+
+        logger.info(f"{database_entry=}")
+        rich.print("Database entry as JSON:")
+        rich.print(json_dumps_cv_style(converter_json.unstructure(database_entry)))
 
 
 @app.command(name="validate-tree")

@@ -7,6 +7,7 @@ dependencies = [
     "scitools-iris>=3.0",
     "netcdf4>=1.0",
     "numpy<2.0",
+    "cfchecker>=4.1.0",
     "attrs",
     "cattrs",
     "cf-xarray",
@@ -139,6 +140,7 @@ editable = true
 [tool.pixi.tasks]
 
 [tool.pixi.dependencies]
+cfchecker = ">=4.1.0"
 iris = ">=3.0"
 netcdf4 = ">=1.0"
 numpy = "<2.0"
@@ -207,6 +209,7 @@ unfixable = [
 ignore = [
     "D200",
     "D400",
+    "UP007",  # While we still support Python 3.9
 ]
 
 [tool.ruff.lint.per-file-ignores]

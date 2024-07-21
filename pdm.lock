@@ -5,7 +5,7 @@
 groups = ["default", "dev", "docs", "notebooks", "tests"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:4866472f39404b40c7aadc57bcb6d3f28a3e26d0e0bbea7678eb1c4fa3c04b0b"
+content_hash = "sha256:0cf2c3d57ee3392bd528e02e54b69a2dd89275b15ee97c48bf719560cd4d8702"
 
 [[metadata.targets]]
 requires_python = ">=3.9"
@@ -226,6 +226,23 @@ files = [
 ]
 
 [[package]]
+name = "cfchecker"
+version = "4.1.0"
+requires_python = ">3"
+summary = "The NetCDF Climate Forecast Conventions compliance checker"
+groups = ["default"]
+dependencies = [
+    "cfunits>=3.0.0",
+    "future",
+    "netCDF4",
+    "numpy>=1.7",
+]
+files = [
+    {file = "cfchecker-4.1.0-py3-none-any.whl", hash = "sha256:97d58377acda15f34977e14928329e6311081d6a56e0bcaee06f516724b66873"},
+    {file = "cfchecker-4.1.0.tar.gz", hash = "sha256:10b86748565c9e0f4c959e4d82fe83b00344551db3db3c7d0d2f8c31449aa1b9"},
+]
+
+[[package]]
 name = "cffi"
 version = "1.16.0"
 requires_python = ">=3.8"
@@ -329,6 +346,21 @@ files = [
     {file = "cftime-1.6.4-cp39-cp39-musllinux_1_2_x86_64.whl", hash = "sha256:f9acc272df1022f24fe7dbe9de43fa5d8271985161df14549e4d8d28c90dc9ea"},
     {file = "cftime-1.6.4-cp39-cp39-win_amd64.whl", hash = "sha256:e8467b6fbf8dbfe0be8c04d61180765fdd3b9ab0fe51313a0bbf87e63634a3d8"},
     {file = "cftime-1.6.4.tar.gz", hash = "sha256:e325406193758a7ed67308deb52e727782a19e384e183378e7ff62098be0aedc"},
+]
+
+[[package]]
+name = "cfunits"
+version = "3.3.7"
+requires_python = ">=3.6"
+summary = "A python interface to UNIDATA's UDUNITS-2 package with CF extensions "
+groups = ["default"]
+dependencies = [
+    "cftime>=1.5.0",
+    "numpy>=1.15",
+    "packaging>=20.0",
+]
+files = [
+    {file = "cfunits-3.3.7.tar.gz", hash = "sha256:e271ae2c01765cc437e7eefd802846894367179e3208653ab9b520ade48286d6"},
 ]
 
 [[package]]
@@ -848,6 +880,17 @@ groups = ["default"]
 files = [
     {file = "fsspec-2024.6.1-py3-none-any.whl", hash = "sha256:3cb443f8bcd2efb31295a5b9fdb02aee81d8452c80d28f97a6d0959e6cee101e"},
     {file = "fsspec-2024.6.1.tar.gz", hash = "sha256:fad7d7e209dd4c1208e3bbfda706620e0da5142bebbd9c384afb95b07e798e49"},
+]
+
+[[package]]
+name = "future"
+version = "1.0.0"
+requires_python = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+summary = "Clean single-source support for Python 3 and 2"
+groups = ["default"]
+files = [
+    {file = "future-1.0.0-py3-none-any.whl", hash = "sha256:929292d34f5872e70396626ef385ec22355a1fae8ad29e1a734c3e43f9fbc216"},
+    {file = "future-1.0.0.tar.gz", hash = "sha256:bd2968309307861edae1458a4f8a4f3598c03be43b97521076aebf5d94c07b05"},
 ]
 
 [[package]]

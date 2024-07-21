@@ -27,7 +27,6 @@ from input4mips_validation.dataset import (
     Input4MIPsDataset,
     Input4MIPsDatasetMetadataDataProducerMinimum,
 )
-from input4mips_validation.validation import validate_file
 
 # Docs to write:
 # - how to use the Paul workflow
@@ -124,20 +123,24 @@ def test_validate_write_in_drs(tmp_path):
     ):
         result = runner.invoke(
             app,
-            ["validate-file", str(start_file), "--write-in-drs", str(write_root_path)],
+            [
+                "validate-file",
+                str(start_file),
+                "--write-in-drs",
+                str(write_root_path),
+                "--create-db-entry",
+            ],
         )
 
     if result.exit_code != 0:
         msg = f"{result.stdout=}\n{result.exc_info=}"
         raise AssertionError(msg)
 
-    written_files = list(write_root_path.glob("*.nc"))
+    written_files = list(write_root_path.rglob("*.nc"))
     assert len(written_files) == 1
     written_file = written_files[0]
 
-    database_entry = validate_file(
-        written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
-    )
+    database_entry = Input4MIPsDatabaseEntryFile.from_file(written_file, cvs=cvs)
 
     ds_attrs = xr.load_dataset(written_file).attrs
     # If this gets run just at the turn of midnight, this may fail.

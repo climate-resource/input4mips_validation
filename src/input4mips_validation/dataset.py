@@ -160,11 +160,9 @@ class Input4MIPsDataset:
         metadata_minimum: Input4MIPsDatasetMetadataDataProducerMinimum,
         dimensions: tuple[str, ...] | None = None,
         time_dimension: str = "time",
-        # Make this an argument of write or an attribute of self
-        # metadata_non_cvs: dict[str, Any] | None = None,
         add_time_bounds: Callable[[xr.Dataset], xr.Dataset] | None = None,
         copy_ds: bool = True,
-        cvs: CVsInput4MIPs | None = None,
+        cvs: Input4MIPsCVs | None = None,
         activity_id: str = "input4MIPs",
         standard_and_or_long_names: dict[str, dict[str, str]] | None = None,
         dataset_category: str | None = None,
@@ -327,8 +325,6 @@ class Input4MIPsDataset:
         metadata_minimum: Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum,
         dimensions: tuple[str, ...] | None = None,
         time_dimension: str = "time",
-        # Make this an argument of write or an attribute of self
-        # metadata_non_cvs: dict[str, Any] | None = None,
         add_time_bounds: Callable[[xr.Dataset], xr.Dataset] | None = None,
         copy_ds: bool = True,
         cvs: CVsInput4MIPs | None = None,
@@ -410,7 +406,68 @@ class Input4MIPsDataset:
         -------
             Initialised `Input4MIPsDataset` instance
         """
-        raise NotImplementedError()
+        if dimensions is None:
+            dimensions: tuple[str, ...] = tuple(data.dims)
+
+        if add_time_bounds is None:
+            add_time_bounds = iv_xr_helpers.add_time_bounds
+
+        if cvs is None:
+            cvs = load_cvs()
+
+        # Add bounds to dimensions.
+        # It feels like there should be a better way to do this.
+        bounds_dim = "bounds"
+        for dim in dimensions:
+            if dim == time_dimension:
+                data = add_time_bounds(data, output_dim_bounds=bounds_dim)
+            else:
+                data = data.cf.add_bounds(dim, output_dim=bounds_dim)
+
+        # Get whatever other metadata information we can for free from cf-xarray.
+        # TODO: check if any of this conflicts with CF-conventions,
+        # given that naming of bounds seems to be wrong.
+        data = data.cf.guess_coord_axis().cf.add_canonical_attributes()
+
+        data = handle_ds_standard_long_names(
+            data,
+            standard_and_or_long_names=standard_and_or_long_names,
+            bounds_dim=bounds_dim,
+            # No need to copy here as that is already handled on entry
+            copy_ds=False,
+        )
+
+        cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]
+        cvs_values = cvs_source_id_entry.values
+
+        # cf-xarray uses suffix bounds, hence hard-code this
+        frequency = infer_frequency(data, time_bounds=f"{time_dimension}_bounds")
+
+        metadata = Input4MIPsDatasetMetadata(
+            activity_id=activity_id,
+            contact=cvs_values.contact,
+            dataset_category=metadata_minimum.dataset_category,
+            frequency=frequency,
+            further_info_url=cvs_values.further_info_url,
+            grid_label=metadata_minimum.grid_label,
+            # # TODO: look this up from central CVs
+            # institution=cvs_values.institution,
+            institution_id=cvs_values.institution_id,
+            license=cvs.license_entries[cvs_values.license_id].values.conditions,
+            license_id=cvs_values.license_id,
+            mip_era=cvs_values.mip_era,
+            nominal_resolution=metadata_minimum.nominal_resolution,
+            product=metadata_minimum.product,
+            realm=metadata_minimum.realm,
+            region=metadata_minimum.region,
+            source_id=metadata_minimum.source_id,
+            source_version=cvs_values.source_version,
+            target_mip=metadata_minimum.target_mip,
+            variable_id=variable_id,
+        )
+
+        # Make sure time appears first as this is what CF conventions expect
+        return cls(data=data.transpose(time_dimension, ...), metadata=metadata, cvs=cvs)
 
     def write(
         self,

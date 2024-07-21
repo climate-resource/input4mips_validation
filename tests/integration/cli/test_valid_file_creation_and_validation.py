@@ -136,7 +136,20 @@ def test_validate_written_single_variable_file(tmp_path):
         further_info_url="http://www.tbd.invalid",
         grid_label="gn",
         institution_id="CR",
-        license="The input4MIPs data linked to this entry is licensed under a Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6Plus output, including citation requirements and proper acknowledgment. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
+        license=(
+            "The input4MIPs data linked to this entry "
+            "is licensed under a Creative Commons Attribution 4.0 International "
+            "(https://creativecommons.org/licenses/by/4.0/). "
+            "Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse "
+            "for terms of use governing CMIP6Plus output, "
+            "including citation requirements and proper acknowledgment. "
+            "The data producers and data providers make no warranty, "
+            "either express or implied, including, but not limited to, "
+            "warranties of merchantability and fitness for a particular purpose. "
+            "All liabilities arising from the supply of the information "
+            "(including any liability arising in negligence) "
+            "are excluded to the fullest extent permitted by law."
+        ),
         license_id="CC BY 4.0",
         mip_era="CMIP6Plus",
         nominal_resolution="10000 km",
@@ -261,7 +274,20 @@ def test_validate_written_multi_variable_file(tmp_path):
         further_info_url="http://www.tbd.invalid",
         grid_label="gn",
         institution_id="CR",
-        license="The input4MIPs data linked to this entry is licensed under a Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6Plus output, including citation requirements and proper acknowledgment. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
+        license=(
+            "The input4MIPs data linked to this entry "
+            "is licensed under a Creative Commons Attribution 4.0 International "
+            "(https://creativecommons.org/licenses/by/4.0/). "
+            "Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse "
+            "for terms of use governing CMIP6Plus output, "
+            "including citation requirements and proper acknowledgment. "
+            "The data producers and data providers make no warranty, "
+            "either express or implied, including, but not limited to, "
+            "warranties of merchantability and fitness for a particular purpose. "
+            "All liabilities arising from the supply of the information "
+            "(including any liability arising in negligence) "
+            "are excluded to the fullest extent permitted by law."
+        ),
         license_id="CC BY 4.0",
         mip_era="CMIP6Plus",
         nominal_resolution="10000 km",
@@ -273,7 +299,7 @@ def test_validate_written_multi_variable_file(tmp_path):
         target_mip="CMIP",
         time_range="200001-201012",
         tracking_id=ds_attrs["tracking_id"],
-        variable_id="mole_fraction_of_carbon_dioxide_in_air",
+        variable_id="multiple",
         version=version_exp,
         grid=None,
         institution=None,

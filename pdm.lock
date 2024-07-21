@@ -5,7 +5,7 @@
 groups = ["default", "dev", "docs", "notebooks", "tests"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:8a5fd3afbbfb3eae50fada36c4345415cd4c79ef3f86da233a8dc093df5780e6"
+content_hash = "sha256:6ee7b9812dc1d45681c5b40b0690b27944f2c2f1e5554d9ef74782d77aa52101"
 
 [[metadata.targets]]
 requires_python = ">=3.9"
@@ -1551,6 +1551,22 @@ files = [
 ]
 
 [[package]]
+name = "ncdata"
+version = "0.1.1"
+requires_python = ">=3.7"
+summary = "Abstract NetCDF data objects, providing fast data transfer between analysis packages."
+groups = ["default"]
+dependencies = [
+    "dask",
+    "netCDF4",
+    "numpy",
+]
+files = [
+    {file = "ncdata-0.1.1-py3-none-any.whl", hash = "sha256:b3baf54b6e0f67ee630c8f17823b47a62b1cc2e580b6d5e434b4c87c06f16411"},
+    {file = "ncdata-0.1.1.tar.gz", hash = "sha256:90e0a609c7053205e24b90520ce06568239435ca58b0c7afa1b4129d73ca60ec"},
+]
+
+[[package]]
 name = "nest-asyncio"
 version = "1.6.0"
 requires_python = ">=3.5"
@@ -2085,7 +2101,7 @@ files = [
 
 [[package]]
 name = "pytest"
-version = "8.2.2"
+version = "8.3.1"
 requires_python = ">=3.8"
 summary = "pytest: simple powerful testing with Python"
 groups = ["tests"]
@@ -2094,12 +2110,12 @@ dependencies = [
     "exceptiongroup>=1.0.0rc8; python_version < \"3.11\"",
     "iniconfig",
     "packaging",
-    "pluggy<2.0,>=1.5",
+    "pluggy<2,>=1.5",
     "tomli>=1; python_version < \"3.11\"",
 ]
 files = [
-    {file = "pytest-8.2.2-py3-none-any.whl", hash = "sha256:c434598117762e2bd304e526244f67bf66bbd7b5d6cf22138be51ff661980343"},
-    {file = "pytest-8.2.2.tar.gz", hash = "sha256:de4bb8104e201939ccdc688b27a89a7be2079b22e2bd2b07f806b6ba71117977"},
+    {file = "pytest-8.3.1-py3-none-any.whl", hash = "sha256:e9600ccf4f563976e2c99fa02c7624ab938296551f280835ee6516df8bc4ae8c"},
+    {file = "pytest-8.3.1.tar.gz", hash = "sha256:7e8e5c5abd6e93cb1cc151f23e57adc31fcf8cfd2a3ff2da63e23f732de35db6"},
 ]
 
 [[package]]
@@ -2547,7 +2563,7 @@ files = [
 
 [[package]]
 name = "sphinx"
-version = "7.4.6"
+version = "7.4.7"
 requires_python = ">=3.9"
 summary = "Python documentation generator"
 groups = ["docs"]
@@ -2572,8 +2588,8 @@ dependencies = [
     "tomli>=2; python_version < \"3.11\"",
 ]
 files = [
-    {file = "sphinx-7.4.6-py3-none-any.whl", hash = "sha256:915760d6188288a1e30c2cd0d9fa31b1b009bc6e6019cc0c32d16c77d20e86d9"},
-    {file = "sphinx-7.4.6.tar.gz", hash = "sha256:116918d455c493fff3178edea12b4fe1c1e4894680fd81e7b7431ea21d47ca52"},
+    {file = "sphinx-7.4.7-py3-none-any.whl", hash = "sha256:c2419e2135d11f1951cd994d6eb18a1835bd8fdd8429f9ca375dc1f3281bd239"},
+    {file = "sphinx-7.4.7.tar.gz", hash = "sha256:242f92a7ea7e6c5b406fdc2615413890ba9f699114a9c09192d7dfead2ee9cfe"},
 ]
 
 [[package]]

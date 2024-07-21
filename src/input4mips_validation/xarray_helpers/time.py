@@ -4,6 +4,7 @@ Helpers for time handling
 
 from __future__ import annotations
 
+import datetime as dt
 from collections.abc import Iterable
 from typing import Callable
 
@@ -253,3 +254,23 @@ def add_time_bounds(
     ds.coords[bname].encoding = ds[variable].encoding
 
     return ds
+
+
+def xr_time_min_max_to_single_value(
+    v: xr.DataArray,
+) -> cftime.datetime | dt.datetime | np.datetime64:
+    """
+    Convert the results from calling `min` or `max` to a single value
+
+    Parameters
+    ----------
+    v
+        The results of calling `min` or `max`
+
+    Returns
+    -------
+        The single minimum or maximum value,
+        converted from being an [xarray.DataArray][].
+    """
+    # TODO: work out what right access is. There must be a better way than this.
+    return v.to_dict()["data"]

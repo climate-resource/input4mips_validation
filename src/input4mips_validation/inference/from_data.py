@@ -4,14 +4,12 @@ Inference of metadata from data
 
 from __future__ import annotations
 
-import datetime as dt
 from functools import partial
 
-import cftime
-import numpy as np
 import xarray as xr
 
 from input4mips_validation.serialisation import format_date_for_time_range
+from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
 
 def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
@@ -68,26 +66,6 @@ def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
         return "yr"
 
     raise NotImplementedError(ds)
-
-
-def xr_time_min_max_to_single_value(
-    v: xr.DataArray,
-) -> cftime.datetime | dt.datetime | np.datetime64:
-    """
-    Convert the results from calling `min` or `max` to a single value
-
-    Parameters
-    ----------
-    v
-        The results of calling `min` or `max`
-
-    Returns
-    -------
-        The single minimum or maximum value,
-        converted from being an [xarray.DataArray][].
-    """
-    # TODO: work out what right access is. There must be a better way than this.
-    return v.to_dict()["data"]
 
 
 def infer_time_range(

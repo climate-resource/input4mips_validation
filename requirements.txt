@@ -34,6 +34,7 @@ markdown-it-py==3.0.0
 markupsafe==2.1.5
 matplotlib==3.9.1
 mdurl==0.1.2
+ncdata==0.1.1
 netcdf4==1.7.1.post1
 numpy==2.0.0
 packaging==24.1

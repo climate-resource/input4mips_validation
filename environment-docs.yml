@@ -145,6 +145,7 @@ dependencies:
   - myst_parser==3.0.1
   - nbclient==0.10.0
   - nbformat==5.10.4
+  - ncdata==0.1.1
   - nest_asyncio==1.6.0
   - pandas==2.2.2
   - parso==0.8.4

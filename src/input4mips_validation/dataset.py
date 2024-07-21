@@ -24,6 +24,7 @@ from input4mips_validation.io import (
     generate_tracking_id,
     write_ds_to_disk,
 )
+from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
 DATASET_PRODUCER_MINIMUM_FIELDS = (
     "grid_label",
@@ -417,6 +418,9 @@ class Input4MIPsDataset:
         pint_dequantify_format: str = "cf",
         unlimited_dimensions: tuple[str, ...] = ("time",),
         encoding_kwargs: dict[str, Any] | None = None,
+        frequency_metadata_key: str = "frequency",
+        no_time_axis_frequency: str = "fx",
+        time_dimension: str = "time",
     ) -> Path:
         """
         Write to disk
@@ -442,6 +446,21 @@ class Input4MIPsDataset:
             These are passed as arguments to
             [`write`][input4mips_validation.io.write_input4mips_ds_to_disk].
 
+        frequency_metadata_key
+            The key in the data's metadata
+            which points to information about the data's frequency.
+
+        no_time_axis_frequency
+            The value of "frequency" in the metadata which indicates
+            that the file has no time axis i.e. is fixed in time.
+
+        time_dimension
+            The time dimension of the data.
+
+            Required so that we know
+            what information to pass to the path generating algorithm,
+            in case the path generating algorithm requires time axis information.
+
         Returns
         -------
             Path in which the file was written
@@ -462,9 +481,17 @@ class Input4MIPsDataset:
         ds_disk.attrs["tracking_id"] = generate_tracking_id()
         ds_disk.attrs["creation_date"] = generate_creation_timestamp()
 
-        out_path = root_data_dir / cvs.DRS.get_file_path(
+        if ds_disk.attrs[frequency_metadata_key] != no_time_axis_frequency:
+            time_start = xr_time_min_max_to_single_value(ds_disk[time_dimension].min())
+            time_end = xr_time_min_max_to_single_value(ds_disk[time_dimension].max())
+        else:
+            time_start = time_end = None
+
+        out_path = cvs.DRS.get_file_path(
+            root_data_dir=root_data_dir,
             available_attributes=ds_disk.attrs,
-            # esgf_version=None,
+            time_start=time_start,
+            time_end=time_end,
         )
 
         written_path = write_ds_to_disk(
@@ -472,7 +499,7 @@ class Input4MIPsDataset:
             out_path=out_path,
             cvs=cvs,
             unlimited_dimensions=unlimited_dimensions,
-            **encoding_kwargs,
+            **(encoding_kwargs if encoding_kwargs else {}),
         )
 
         return written_path

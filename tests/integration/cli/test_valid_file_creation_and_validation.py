@@ -21,6 +21,7 @@ from input4mips_validation.dataset import (
     Input4MIPsDatasetMetadataDataProducerMinimum,
     Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum,
 )
+from input4mips_validation.validation import validate_file
 
 UR = pint.get_application_registry()
 UR.define("ppb = ppm * 1000")
@@ -112,6 +113,12 @@ def test_validate_written_single_variable_file(tmp_path):
         result = runner.invoke(app, ["validate-file", str(written_file)])
 
     assert result.exit_code == 0, result.exc_info
+
+    database_entry = validate_file(
+        written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+    )
+
+    assert database_entry == database_entry_exp
 
 
 def test_validate_written_multi_variable_file(tmp_path):

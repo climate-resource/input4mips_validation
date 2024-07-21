@@ -161,10 +161,8 @@ class DataReferenceSyntax:
             version = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")
             all_available_metadata["version"] = version
 
-        time_information_provided = (time_start is not None) and (time_end is not None)
-        if (
-            key_required_for_substitutions("time_range", all_substitutions)
-            and not time_information_provided
+        if key_required_for_substitutions("time_range", all_substitutions) and (
+            time_start is None or time_end is None
         ):
             msg = (
                 "The DRS requires time range information "
@@ -175,7 +173,8 @@ class DataReferenceSyntax:
 
         if (
             key_in_substitutions("time_range", all_substitutions)
-            and time_information_provided
+            and time_start is not None
+            and time_end is not None
         ):
             # Hard-code here for now because the rules about time-range
             # creation cannot be inferred from the DRS as currently written.
@@ -243,8 +242,8 @@ class DataReferenceSyntax:
         substitutions_l = []
         in_optional_section = False
         in_placeholder = False
-        placeholder_pieces = []
-        optional_pieces = []
+        placeholder_pieces: list[str] = []
+        optional_pieces: list[str] = []
         for i, c in enumerate(drs_template):
             if c == start_optional:
                 if optional_pieces:
@@ -358,6 +357,10 @@ class DataReferenceSyntax:
             root_data_dir_group=root_data_dir_key
         )
         match = re.match(directory_regexp, str(path))
+        if match is None:
+            msg = "regexp failed"
+            raise AssertionError(msg)
+
         match_groups = match.groupdict()
 
         res = {k: v for k, v in match_groups.items() if k != root_data_dir_key}
@@ -457,7 +460,7 @@ class DRSSubstitution:
         start: str,
         metadata: dict[str, str],
         validate_substituted_metadata: bool = True,
-    ):
+    ) -> str:
         """
         Apply the substitution
 
@@ -643,7 +646,7 @@ def assert_full_filepath_only_contains_valid_characters(
 
 def apply_substitutions(
     drs_template: str,
-    substitutions: Iterable[DRSSubstitution, ...],
+    substitutions: Iterable[DRSSubstitution],
     metadata: dict[str, str],
     validate_substituted_metadata: bool = True,
 ) -> str:
@@ -686,7 +689,7 @@ def apply_substitutions(
 
 
 def key_required_for_substitutions(
-    key: str, substitutions: tuple[DRSSubstitution]
+    key: str, substitutions: tuple[DRSSubstitution, ...]
 ) -> bool:
     """
     Return whether a key is required metadata or not for populating the DRS
@@ -706,7 +709,7 @@ def key_required_for_substitutions(
     return any(key in v.required_metadata and not v.optional for v in substitutions)
 
 
-def key_in_substitutions(key: str, substitutions: tuple[DRSSubstitution]) -> bool:
+def key_in_substitutions(key: str, substitutions: tuple[DRSSubstitution, ...]) -> bool:
     """
     Return whether a key is in the DRS or not
 
@@ -797,7 +800,7 @@ def convert_drs_to_unstructured_cv(
     -------
         Raw CV data
     """
-    raw_cv_form = converter_json.unstructure(drs)
+    raw_cv_form: DataReferenceSyntaxUnstructured = converter_json.unstructure(drs)
 
     return raw_cv_form
 

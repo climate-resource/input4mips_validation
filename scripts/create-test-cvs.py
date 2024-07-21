@@ -86,6 +86,7 @@ def main() -> None:
     )
     with open(TEST_CVS_PATH / DATA_REFERENCE_SYNTAX_FILENAME, "w") as fh:
         fh.write(json_dumps_cv_style(convert_drs_to_unstructured_cv(drs)))
+        fh.write("\n")
 
     institution_ids = ("CR",)
     with open(TEST_CVS_PATH / INSTITUTION_ID_FILENAME, "w") as fh:
@@ -151,6 +152,7 @@ def main() -> None:
                 convert_source_id_entries_to_unstructured_cv(source_id_entries)
             )
         )
+        fh.write("\n")
 
 
 if __name__ == "__main__":

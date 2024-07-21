@@ -273,4 +273,6 @@ def xr_time_min_max_to_single_value(
         converted from being an [xarray.DataArray][].
     """
     # TODO: work out what right access is. There must be a better way than this.
-    return v.to_dict()["data"]
+    res: cftime.datetime | dt.datetime | np.datetime64 = v.to_dict()["data"]
+
+    return res

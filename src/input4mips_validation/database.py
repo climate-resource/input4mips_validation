@@ -8,9 +8,8 @@ import datetime as dt
 from collections import OrderedDict
 from collections.abc import Iterable
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Protocol
 
-import attr._make
 import cftime
 import numpy as np
 import pandas as pd
@@ -229,26 +228,33 @@ class Input4MIPsDatabaseEntryFile:
         ds = xr.load_dataset(file)
         # Having to re-infer all of this is silly,
         # would be much simpler if all data was just in the file.
-        metadata_attributes = ds.attrs
+        metadata_attributes: dict[str, str | None] = ds.attrs
 
-        metadata_data = {}
-        if metadata_attributes[frequency_metadata_key] != no_time_axis_frequency:
+        metadata_data: dict[str, str | None] = {}
+
+        frequency = metadata_attributes[frequency_metadata_key]
+        if frequency is not None and frequency != no_time_axis_frequency:
             # Technically, this should probably use the bounds...
             time_start = xr_time_min_max_to_single_value(ds[time_dimension].min())
             time_end = xr_time_min_max_to_single_value(ds[time_dimension].max())
 
-            metadata_data["datetime_start"] = format_datetime_for_db(time_start)
-            metadata_data["datetime_end"] = format_datetime_for_db(time_end)
-            metadata_data["time_range"] = create_time_range(
+            md_datetime_start: str | None = format_datetime_for_db(time_start)
+            md_datetime_end: str | None = format_datetime_for_db(time_end)
+
+            md_datetime_time_range: str | None = create_time_range(
                 time_start=time_start,
                 time_end=time_end,
-                ds_frequency=metadata_attributes[frequency_metadata_key],
+                ds_frequency=frequency,
             )
 
         else:
-            metadata_data["datetime_start"] = None
-            metadata_data["datetime_end"] = None
-            metadata_data["time_range"] = None
+            md_datetime_start = None
+            md_datetime_end = None
+            md_datetime_time_range = None
+
+        metadata_data["datetime_start"] = md_datetime_start
+        metadata_data["datetime_end"] = md_datetime_end
+        metadata_data["time_range"] = md_datetime_time_range
 
         metadata_directories_all = cvs.DRS.extract_metadata_from_path(file.parent)
         # Only get metadata from directories/files that we don't have elsewhere.
@@ -263,7 +269,7 @@ class Input4MIPsDatabaseEntryFile:
             k: metadata_directories_all[k] for k in metadata_directories_keys_to_use
         }
 
-        all_metadata = {}
+        all_metadata: dict[str, str | None] = {}
         for md in (metadata_attributes, metadata_data, metadata_directories):
             keys_to_check = md.keys() & all_metadata
             for ktc in keys_to_check:
@@ -271,13 +277,13 @@ class Input4MIPsDatabaseEntryFile:
                     msg = f"Value clash for {ktc}. {all_metadata[ktc]=}, {md[ktc]=}"
                     raise AssertionError(msg)
 
-            all_metadata = all_metadata | md
+            all_metadata = all_metadata | md  # type: ignore # mypy confused by dict types
 
         # Make sure we only pass metadata that is actully of interest to the database
         cls_fields = [v.name for v in fields(cls)]
         init_kwargs = {k: v for k, v in all_metadata.items() if k in cls_fields}
 
-        return cls(**init_kwargs)
+        return cls(**init_kwargs)  # type: ignore # mypy confused for some reason
 
 
 def format_datetime_for_db(time: cftime.datetime | dt.datetime | np.datetime64) -> str:
@@ -294,7 +300,7 @@ def format_datetime_for_db(time: cftime.datetime | dt.datetime | np.datetime64) 
         Formatted time value
     """
     if isinstance(time, np.datetime64):
-        ts: cftime.datetime | dt.datetime = pd.to_datetime(str(time))
+        ts: cftime.datetime | dt.datetime | pd.Timestamp = pd.to_datetime(str(time))
 
     else:
         ts = time
@@ -305,9 +311,17 @@ def format_datetime_for_db(time: cftime.datetime | dt.datetime | np.datetime64) 
 database_entry_file_fields = {f.name: f for f in fields(Input4MIPsDatabaseEntryFile)}
 
 
+class AttrFieldLike(Protocol):
+    """
+    An attr's field-like
+
+    More explicitly, something like the result of calling `attrs.field`.
+    """
+
+
 def attr_to_field(
-    attr: Attribute, attributes_to_copy: tuple[str, ...] = ("default", "type")
-) -> attr._make._CountingAttr:
+    attr: Attribute[Any], attributes_to_copy: tuple[str, ...] = ("default", "type")
+) -> AttrFieldLike:
     """
     Convert an attribute into a field which can be used to create a new class
 
@@ -328,7 +342,9 @@ def attr_to_field(
     if field_kwargs["type"] == "str":
         field_kwargs["type"] = str
 
-    return field(**field_kwargs)
+    res: AttrFieldLike = field(**field_kwargs)
+
+    return res
 
 
 def make_class_from_database_entry_file_fields(

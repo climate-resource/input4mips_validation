@@ -53,7 +53,7 @@ def convert_institution_ids_to_unstructured_cv(
     -------
         Raw CV data
     """
-    raw_cv_form = {"institution_id": institution_ids}
+    raw_cv_form = list(institution_ids)
 
     return raw_cv_form
 

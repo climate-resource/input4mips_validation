@@ -56,7 +56,10 @@ class SourceIDEntry:
     source_id: str
     """The unique value which identifies this source ID"""
 
-    values: SourceIDValues
+    # Have to use templating to fix type hinting properly I think.
+    # Although let's see where this issue ends up:
+    # https://github.com/python-attrs/attrs/issues/1309
+    values: SourceIDValues  # type: ignore
     """The values defined by this source ID"""
 
 

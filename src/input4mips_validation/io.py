@@ -7,6 +7,7 @@ from __future__ import annotations
 import datetime as dt
 import uuid
 from pathlib import Path
+from typing import Any
 
 import iris
 import ncdata.iris_xarray
@@ -18,7 +19,7 @@ iris.FUTURE.save_split_attrs = True
 
 
 def write_ds_to_disk(
-    ds: xr.Dataset, out_path: Path, cvs: Input4MIPsCVs, **kwargs
+    ds: xr.Dataset, out_path: Path, cvs: Input4MIPsCVs, **kwargs: Any
 ) -> Path:
     """
     Write a dataset to disk

@@ -7,7 +7,7 @@ from __future__ import annotations
 import subprocess
 from functools import partial, wraps
 from pathlib import Path
-from typing import Callable, TypeVar
+from typing import Callable, Protocol, TypeVar
 
 from loguru import logger
 from typing_extensions import ParamSpec
@@ -70,9 +70,22 @@ class InvalidFileError(ValueError):
         super().__init__(error_msg)
 
 
+class CatchErrorDecoratorLike(Protocol):
+    """
+    A callable like what we return from [get_catch_error_decorator][]
+    """
+
+    def __call__(
+        self, func_to_call: Callable[P, T], call_purpose: str
+    ) -> Callable[P, T | None]:
+        """
+        Get wrapped version of a function
+        """
+
+
 def get_catch_error_decorator(
     error_container: list[tuple[str, Exception]],
-) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
+) -> CatchErrorDecoratorLike:
     """
     Get a decorator which can be used to collect errors without stopping the program
 
@@ -131,7 +144,7 @@ def get_catch_error_decorator(
     return catch_error_decorator
 
 
-def load_cvs_here(cv_source: str) -> Input4MIPsCVs:
+def load_cvs_here(cv_source: str | None) -> Input4MIPsCVs:
     """
     Load the controlled vocabularies (CVs)
 
@@ -192,7 +205,7 @@ def validate_file(
         The file does not pass all of the validation.
     """
     logger.info(f"Validating {infile}")
-    caught_errors = []
+    caught_errors: list[tuple[str, Exception]] = []
     catch_error = get_catch_error_decorator(caught_errors)
 
     # Basic loading
@@ -212,11 +225,15 @@ def validate_file(
         call_purpose="Load controlled vocabularies to use during validation",
     )(cv_source)
 
-    # Check we can create a database entry
-    database_entry = catch_error(
-        partial(Input4MIPsDatabaseEntryFile.from_file, cvs=cvs),
-        call_purpose="Create input4MIPs database entry for the file",
-    )(infile)
+    if cvs is None:
+        logger.error("Skipping creation of database entry because cvs loading failed")
+
+    else:
+        # Check we can create a database entry
+        database_entry = catch_error(
+            partial(Input4MIPsDatabaseEntryFile.from_file, cvs=cvs),
+            call_purpose="Create input4MIPs database entry for the file",
+        )(infile)
 
     # Check that the data, metadata and CVs are all consistent
     # # Convert with ncdata as it is generally better at this
@@ -238,11 +255,10 @@ def validate_file(
     #     infile, ds=ds_xr_load
     # )
 
-    if caught_errors:
+    if caught_errors or database_entry is None:
         logger.info("Validation failed")
         raise InvalidFileError(filepath=infile, error_container=caught_errors)
 
-    else:
-        logger.info("Validation passed")
+    logger.info("Validation passed")
 
     return database_entry

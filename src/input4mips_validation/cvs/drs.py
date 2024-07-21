@@ -226,7 +226,8 @@ class DataReferenceSyntax:
             Substitutions defined by `drs_template`
         """
         # This is a pretty yuck implementation.
-        # PRs welcome to improve it (will need quite some tests too to ensure correctness)
+        # PRs welcome to improve it
+        # (will need quite some tests too to ensure correctness)
         # For now, we are ok with this because
         # a) it is relatively easy to follow
         # b) we use caching so it doesn't matter too much that it is slow
@@ -526,7 +527,7 @@ def apply_known_replacements(
     Result
     ------
         `inp` with known replacements applied.
-    """
+    """  # noqa: E501
     if known_replacements is None:
         known_replacements = {"_": "-", ".": "-"}
 
@@ -661,7 +662,8 @@ def apply_substitutions(
         Metadata from which the substitution values can be retrieved
 
     validate_substituted_metadata
-        Passed to [`DRSSubstitution.apply_substitution`][DRSSubstitution.apply_substitution].
+        Passed to
+        [`DRSSubstitution.apply_substitution`][DRSSubstitution.apply_substitution].
 
     Returns
     -------

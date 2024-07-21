@@ -12,6 +12,7 @@ from typing import Callable, TypeVar
 from loguru import logger
 from typing_extensions import ParamSpec
 
+from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
@@ -130,7 +131,7 @@ def get_catch_error_decorator(
     return catch_error_decorator
 
 
-def load_cvs_here(cv_source: str) -> CVsInput4MIPs:
+def load_cvs_here(cv_source: str) -> Input4MIPsCVs:
     """
     Load the controlled vocabularies (CVs)
 

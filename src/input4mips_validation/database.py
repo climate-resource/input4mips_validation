@@ -191,7 +191,7 @@ class Input4MIPsDatabaseEntryFile:
     #   - seems to make little sense to track this in the database
 
     @classmethod
-    def from_file(
+    def from_file(  # noqa: PLR0913
         cls,
         file: Path,
         cvs: Input4MIPsCVs,
@@ -336,7 +336,10 @@ def make_class_from_database_entry_file_fields(
     fields_to_include: Iterable[str],
 ) -> type:
     """
-    Make a class from the fields of [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile]
+    Make a class from the fields of a database entry for a file
+
+    Specifically, the fields of
+    [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile].
 
     Parameters
     ----------

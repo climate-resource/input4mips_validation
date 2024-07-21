@@ -50,7 +50,7 @@ This is the minimum metadata required to create a valid
 
 For an explanation of the required fields,
 see [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile]
-"""
+"""  # noqa: E501
 # Adding docstrings like this is a hack while this issue is ongoing:
 # https://github.com/python-attrs/attrs/issues/1309
 
@@ -77,7 +77,7 @@ This is the minimum metadata required to create a valid
 
 For an explanation of the required fields,
 see [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile]
-"""
+"""  # noqa: E501
 # Adding docstrings like this is a hack while this issue is ongoing:
 # https://github.com/python-attrs/attrs/issues/1309
 
@@ -112,7 +112,7 @@ Metadata for an input4MIPs dataset
 
 For an explanation of the fields,
 see [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile]
-"""
+"""  # noqa: E501
 # Adding docstrings like this is a hack while this issue is ongoing:
 # https://github.com/python-attrs/attrs/issues/1309
 
@@ -125,7 +125,8 @@ class Input4MIPsDataset:
     """
     Representation of an input4MIPs dataset
 
-    For validation, see [`validate_ds`][input4mips_validation.validation.validate_input4mips_ds].
+    For validation, see
+    [`validate_ds`][input4mips_validation.validation.validate_input4mips_ds].
     TODO: check cross-reference once we switch to mkdocs,
     help here I think https://pypi.org/project/mkdocstrings/0.9.0/
     maybe also here https://mkdocstrings.github.io/usage/
@@ -198,7 +199,8 @@ class Input4MIPsDataset:
         add_time_bounds
             Function that adds bounds to the time variable.
             If not supplied,
-            we use [`add_time_bounds`][input4mips_validation.xarray_helpers.add_time_bounds].
+            we use
+            [`add_time_bounds`][input4mips_validation.xarray_helpers.add_time_bounds].
 
         copy_ds
             Should `ds` be copied before we create the `Input4MIPsDataset`?
@@ -327,7 +329,7 @@ class Input4MIPsDataset:
         time_dimension: str = "time",
         add_time_bounds: Callable[[xr.Dataset], xr.Dataset] | None = None,
         copy_ds: bool = True,
-        cvs: CVsInput4MIPs | None = None,
+        cvs: Input4MIPsCVs | None = None,
         activity_id: str = "input4MIPs",
         standard_and_or_long_names: dict[str, dict[str, str]] | None = None,
         variable_id: str = "multiple",
@@ -362,7 +364,8 @@ class Input4MIPsDataset:
         add_time_bounds
             Function that adds bounds to the time variable.
             If not supplied,
-            we use [`add_time_bounds`][input4mips_validation.xarray_helpers.add_time_bounds].
+            we use
+            [`add_time_bounds`][input4mips_validation.xarray_helpers.add_time_bounds].
 
         copy_ds
             Should `ds` be copied before we create the `Input4MIPsDataset`?
@@ -469,7 +472,7 @@ class Input4MIPsDataset:
         # Make sure time appears first as this is what CF conventions expect
         return cls(data=data.transpose(time_dimension, ...), metadata=metadata, cvs=cvs)
 
-    def write(
+    def write(  # noqa: PLR0913
         self,
         root_data_dir: Path,
         pint_dequantify_format: str = "cf",

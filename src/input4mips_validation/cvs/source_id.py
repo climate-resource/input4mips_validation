@@ -42,7 +42,7 @@ Values defined by an source ID
 
 For an explanation of the required fields,
 see [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile]
-"""
+"""  # noqa: E501
 # Adding docstrings like this is a hack while this issue is ongoing:
 # https://github.com/python-attrs/attrs/issues/1309
 

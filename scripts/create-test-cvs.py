@@ -63,7 +63,9 @@ def main() -> None:
                 activity_id="input4MIPs",
                 values=ActivityIDValues(
                     URL="https://pcmdi.llnl.gov/mips/input4MIPs/",
-                    long_name="input forcing datasets for Model Intercomparison Projects",
+                    long_name=(
+                        "input forcing datasets for Model Intercomparison Projects"
+                    ),
                 ),
             ),
         )

@@ -37,12 +37,6 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
 # - quasi-unit test of passing to function and handling of error raising
 # - help messages
 # - logging
-# - (in another file) --write-in-drs-path
-#   - test that the flag above causes the file to be written in the correct
-#     DRS before the validation is applied
-#     (this is the Paul workflow)
-# Docs to write:
-# - how to use the Paul workflow
 
 
 def test_validate_written_single_variable_file(tmp_path):

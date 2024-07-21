@@ -220,15 +220,19 @@ def validate_file(
     # Basic loading - iris
     # cubes = catch_error(iris.load, call_purpose="Load data with `iris.load`")(infile)
     cubes = catch_error(iris.load, call_purpose="Load data with `iris.load`")(infile)
-    if len(cubes) == 1:
+    if cubes is not None and len(cubes) == 1:
         catch_error(iris.load_cube, call_purpose="Load data with `iris.load_cube`")(
             infile
         )
 
-    # CF-checker
-    catch_error(check_with_cf_checker, call_purpose="Check data with cf-checker")(
-        infile, ds=ds_xr_load
-    )
+    if ds_xr_load is None:
+        logger.error("Not running cf-checker, file wouldn't load with xarray")
+
+    else:
+        # CF-checker
+        catch_error(check_with_cf_checker, call_purpose="Check data with cf-checker")(
+            infile, ds=ds_xr_load
+        )
 
     # Check we can load CVs, we need them for the following steps
     cvs = catch_error(

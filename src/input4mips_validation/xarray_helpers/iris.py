@@ -41,7 +41,7 @@ def ds_from_iris_cubes(
     # Guess that everything which has "bnds" in it is a co-ordinate.
     # This is definitely a pain point when loading data from iris written.
     # to see whether a true expert has any ideas.
-    bnds_guess = [v for v in ds.data_vars if bnds_coord_indicator in v]
+    bnds_guess = [v for v in ds.data_vars if bnds_coord_indicator in str(v)]
     ds = ds.set_coords(bnds_guess)
 
     return ds

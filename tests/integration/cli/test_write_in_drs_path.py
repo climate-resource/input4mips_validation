@@ -1,7 +1,7 @@
 """
 Tests of handling of files that are not in the DRS path, but otherwise correct
 
-This tests the 'Paul' workflow.
+This tests a step in the 'Paul' workflow.
 """
 
 from __future__ import annotations
@@ -27,9 +27,6 @@ from input4mips_validation.dataset import (
     Input4MIPsDataset,
     Input4MIPsDatasetMetadataDataProducerMinimum,
 )
-
-# Docs to write:
-# - how to use the Paul workflow
 
 UR = pint.get_application_registry()
 

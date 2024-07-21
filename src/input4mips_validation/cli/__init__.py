@@ -85,7 +85,7 @@ def get_cv_source(cv_source: str, cv_source_unset_value: str) -> Union[str, None
     Get CV source as the type we actually want.
 
     This is a workaround
-    for the fact that typer does not support an input with type `str | None` yet.
+    for the fact that typer does not support an input with type `Union[str, None]` yet.
 
     Parameters
     ----------
@@ -99,7 +99,8 @@ def get_cv_source(cv_source: str, cv_source_unset_value: str) -> Union[str, None
     -------
         CV source, translated into the type we actually want.
     """
-    # Work around the fact typer does not support an input with type str | None yet
+    # TODO: remove this
+    # I think typer supports Union[str, None] or Optional[str] annotations
     if cv_source == cv_source_unset_value:
         cv_source_use = None
     else:
@@ -196,11 +197,14 @@ def validate_file_command(  # noqa: PLR0913
     )
 
     if write_in_drs == WRITE_IN_DRS_UNSET_VALUE:
-        write_in_drs = None
+        write_in_drs_use: Union[Path, None] = None
+
+    else:
+        write_in_drs_use = Path(write_in_drs)
 
     validate_file(file, cv_source=cv_source_use)
 
-    if write_in_drs:
+    if write_in_drs_use:
         raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source_use)
         cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
 
@@ -209,17 +213,17 @@ def validate_file_command(  # noqa: PLR0913
         )
 
         if ds.attrs[frequency_metadata_key] != no_time_axis_frequency:
-            time_start: cftime.datetime | dt.datetime | np.datetime64 | None = (
-                xr_time_min_max_to_single_value(ds[time_dimension].min())
-            )
-            time_end: cftime.datetime | dt.datetime | np.datetime64 | None = (
-                xr_time_min_max_to_single_value(ds[time_dimension].max())
-            )
+            time_start: Union[
+                cftime.datetime, dt.datetime, np.datetime64, None
+            ] = xr_time_min_max_to_single_value(ds[time_dimension].min())
+            time_end: Union[
+                cftime.datetime, dt.datetime, np.datetime64, None
+            ] = xr_time_min_max_to_single_value(ds[time_dimension].max())
         else:
             time_start = time_end = None
 
         full_file_path = cvs.DRS.get_file_path(
-            root_data_dir=write_in_drs,
+            root_data_dir=write_in_drs_use,
             available_attributes=ds.attrs,
             time_start=time_start,
             time_end=time_end,
@@ -234,7 +238,7 @@ def validate_file_command(  # noqa: PLR0913
         shutil.copy(file, write_path)
 
     if create_db_entry:
-        if write_in_drs:
+        if write_in_drs_use:
             db_entry_creation_file = write_path
         else:
             raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source_use)

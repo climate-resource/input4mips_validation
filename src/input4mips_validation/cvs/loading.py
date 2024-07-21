@@ -25,7 +25,7 @@ def load_cvs(
         Loader of the raw CVs data
 
         If not supplied, this will be retrieved with
-        `get_raw_cvs_loader`[input4mips_validation.cvs.loading_raw.get_raw_cvs_loader].
+        [`get_raw_cvs_loader`][input4mips_validation.cvs.loading_raw.get_raw_cvs_loader].
 
     Returns
     -------

@@ -7,7 +7,10 @@ from __future__ import annotations
 from attrs import define
 
 from input4mips_validation.cvs.activity_id import ActivityIDEntries
+from input4mips_validation.cvs.drs import DataReferenceSyntax
+from input4mips_validation.cvs.license import LicenseEntries
 from input4mips_validation.cvs.loading_raw import RawCVLoader
+from input4mips_validation.cvs.source_id import SourceIDEntries
 
 
 @define
@@ -19,12 +22,12 @@ class Input4MIPsCVs:
     raw_loader: RawCVLoader
     """Object used to load the raw CVs"""
 
-    # DRS: DataReferenceSyntax
-    # """Data reference syntax used with these CVs"""
-    # # TODO: validation - check that all bits of the DRS
-    # #       are known in the metadata universe
-    # #        e.g. are required fields of files or something
-    # #        (may have to maintain list of 'known stuff' by hand).
+    DRS: DataReferenceSyntax
+    """Data reference syntax used with these CVs"""
+    # TODO: validation - check that all bits of the DRS
+    #       are known in the metadata universe
+    #        e.g. are required fields of files or something
+    #        (may have to maintain list of 'known stuff' by hand).
 
     activity_id_entries: ActivityIDEntries
     """Activity ID entries"""

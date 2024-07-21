@@ -39,7 +39,7 @@ def convert_unstructured_cv_to_institution_ids(
 
 
 def convert_institution_ids_to_unstructured_cv(
-    institution_ids: list[str],
+    institution_ids: tuple[str, ...],
 ) -> InstitutionIDEntriesUnstructured:
     """
     Convert the structured institution_id entries to the raw CV form
@@ -60,6 +60,7 @@ def convert_institution_ids_to_unstructured_cv(
 
 def load_institution_ids(
     raw_cvs_loader: RawCVLoader,
+    filename: str = INSTITUTION_ID_FILENAME,
 ) -> tuple[str, ...]:
     """
     Load the instution IDs in the CVs
@@ -69,10 +70,16 @@ def load_institution_ids(
     raw_cvs_loader
         Loader of raw CVs data.
 
+    filename
+        Name of the file from which to load the CVs.
+
+        Passed to
+        [`raw_cvs_loader.load_raw`][input4mips_validation.loading_raw.RawCVLoader.load_raw].
+
     Returns
     -------
-        Valid values for ``cvs_key`` according to the  CVs defined in ``cvs_root``
+        Institution IDs
     """
     return convert_unstructured_cv_to_institution_ids(
-        json.loads(raw_cvs_loader.load_raw(filename=INSTITUTION_ID_FILENAME))
+        json.loads(raw_cvs_loader.load_raw(filename=filename))
     )

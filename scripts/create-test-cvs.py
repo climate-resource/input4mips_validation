@@ -15,6 +15,11 @@ from input4mips_validation.cvs.activity_id import (
     ActivityIDValues,
     convert_activity_id_entries_to_unstructured_cv,
 )
+from input4mips_validation.cvs.drs import (
+    DATA_REFERENCE_SYNTAX_FILENAME,
+    DataReferenceSyntax,
+    convert_drs_to_unstructured_cv,
+)
 from input4mips_validation.cvs.institution_id import (
     INSTITUTION_ID_FILENAME,
     convert_institution_ids_to_unstructured_cv,
@@ -71,9 +76,21 @@ def main() -> None:
         )
         fh.write("\n")
 
+    drs = DataReferenceSyntax(
+        directory_path_example="input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-1-9/ocean/mon/tos/gn/v20230512/",
+        directory_path_template="<activity_id>/<mip_era>/<target_mip>/<institution_id>/<source_id>/<realm>/<frequency>/<variable_id>/<grid_label>/v<version>",
+        filename_example="tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-9_gn_187001-202212.nc",
+        filename_template="<variable_id>_<activity_id>_<dataset_category>_<target_mip>_<source_id>_<grid_label>[_<time_range>].nc",
+    )
+    with open(TEST_CVS_PATH / DATA_REFERENCE_SYNTAX_FILENAME, "w") as fh:
+        fh.write(json_dumps_cv_style(convert_drs_to_unstructured_cv(drs)))
+
+    institution_ids = ("CR",)
     with open(TEST_CVS_PATH / INSTITUTION_ID_FILENAME, "w") as fh:
         fh.write(
-            json_dumps_cv_style(convert_institution_ids_to_unstructured_cv(("CR",)))
+            json_dumps_cv_style(
+                convert_institution_ids_to_unstructured_cv(institution_ids)
+            )
         )
         fh.write("\n")
 

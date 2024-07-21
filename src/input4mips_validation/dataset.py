@@ -462,10 +462,8 @@ class Input4MIPsDataset:
         ds_disk.attrs["tracking_id"] = generate_tracking_id()
         ds_disk.attrs["creation_date"] = generate_creation_timestamp()
 
-        # Put get_file_path on CVs
-        out_path = root_data_dir / get_file_path(
-            cvs=cvs,
-            input4mips_ds_metadata=self.metadata,
+        out_path = root_data_dir / cvs.DRS.get_file_path(
+            available_attributes=ds_disk.attrs,
             # esgf_version=None,
         )
 

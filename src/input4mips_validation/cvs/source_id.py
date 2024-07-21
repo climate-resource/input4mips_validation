@@ -177,6 +177,7 @@ def convert_source_id_entries_to_unstructured_cv(
 
 def load_source_id_entries(
     raw_cvs_loader: RawCVLoader,
+    filename: str = SOURCE_ID_FILENAME,
 ) -> SourceIDEntries:
     """
     Load the source_id entries in the CVs
@@ -186,10 +187,16 @@ def load_source_id_entries(
     raw_cvs_loader
         Loader of raw CVs data.
 
+    filename
+        Name of the file from which to load the CVs.
+
+        Passed to
+        [`raw_cvs_loader.load_raw`][input4mips_validation.loading_raw.RawCVLoader.load_raw].
+
     Returns
     -------
         Loaded source ID entries
     """
     return convert_unstructured_cv_to_source_id_entries(
-        json.loads(raw_cvs_loader.load_raw(filename=SOURCE_ID_FILENAME))
+        json.loads(raw_cvs_loader.load_raw(filename=filename))
     )

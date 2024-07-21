@@ -36,7 +36,7 @@ matplotlib==3.9.1
 mdurl==0.1.2
 ncdata==0.1.1
 netcdf4==1.7.1.post1
-numpy==2.0.0
+numpy==1.26.4
 packaging==24.1
 pandas==2.2.2
 partd==1.4.2

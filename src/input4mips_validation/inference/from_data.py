@@ -4,12 +4,14 @@ Inference of metadata from data
 
 from __future__ import annotations
 
+import datetime as dt
 from functools import partial
 
+import cftime
+import numpy as np
 import xarray as xr
 
 from input4mips_validation.serialisation import format_date_for_time_range
-from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
 
 def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
@@ -68,37 +70,39 @@ def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
     raise NotImplementedError(ds)
 
 
-def infer_time_range(
-    ds: xr.Dataset, frequency: str, time_dimension: str, start_end_separator: str = "-"
+def create_time_range(
+    time_start: cftime.datetime | dt.datetime | np.datetime64,
+    time_end: cftime.datetime | dt.datetime | np.datetime64,
+    ds_frequency: str,
+    start_end_separator: str = "-",
 ) -> str:
     """
-    Infer time range information
+    Create the time range information
 
     Parameters
     ----------
-    ds
-        Dataset for which to infer the information
+    time_start
+        The start time (of the underlying dataset)
 
-    frequency
-        Frequency of `ds`
+    time_end
+        The end time (of the underlying dataset)
 
-    time_dimension
-        Time dimension of `ds`
+    ds_frequency
+        The frequency of the underlying dataset
 
     start_end_separator
-        Separator between the start and end time information
+        The string(s) to use to separate the start and end time.
 
     Returns
     -------
-        Time range information
+        The time-range information,
+        formatted correctly given the underlying dataset's frequency.
     """
-    fd = partial(format_date_for_time_range, ds_frequency=frequency)
-    return start_end_separator.join(
-        [
-            fd(xr_time_min_max_to_single_value(t))
-            for t in [ds[time_dimension].min(), ds[time_dimension].max()]
-        ]
-    )
+    fd = partial(format_date_for_time_range, ds_frequency=ds_frequency)
+    time_start_formatted = fd(time_start)
+    time_end_formatted = fd(time_end)
+
+    return start_end_separator.join([time_start_formatted, time_end_formatted])
 
 
 VARIABLE_DATASET_CATEGORY_MAP = {

@@ -14,6 +14,8 @@ import xarray as xr
 
 from input4mips_validation.cvs import Input4MIPsCVs
 
+iris.FUTURE.save_split_attrs = True
+
 
 def write_ds_to_disk(
     ds: xr.Dataset, out_path: Path, cvs: Input4MIPsCVs, **kwargs
@@ -57,6 +59,10 @@ def write_ds_to_disk(
     # Having validated, make the target directory and write
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # This raises a warning,
+    # because xarray uses a coordinates attribute
+    # and iris says this is not allowed.
+    # TODO: MR into ncdata to fix/discuss fixing this.
     cubes = ncdata.iris_xarray.cubes_from_xarray(ds)
     iris.save(cubes, out_path, **kwargs)
 

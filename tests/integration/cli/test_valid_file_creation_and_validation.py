@@ -4,6 +4,7 @@ Test that we can create a file which passes our validation tests
 
 from __future__ import annotations
 
+import datetime as dt
 import os
 from pathlib import Path
 from unittest.mock import patch
@@ -16,6 +17,7 @@ import xarray as xr
 from typer.testing import CliRunner
 
 from input4mips_validation.cli import app
+from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
     Input4MIPsDatasetMetadataDataProducerMinimum,
@@ -118,6 +120,42 @@ def test_validate_written_single_variable_file(tmp_path):
         written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
     )
 
+    ds_attrs = xr.load_dataset(written_file).attrs
+    # If this gets run just at the turn of midnight, this may fail.
+    # That is a risk I am willing to take.
+    version_exp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")
+    database_entry_exp = Input4MIPsDatabaseEntryFile(
+        Conventions="CF-1.7",
+        activity_id="input4MIPs",
+        contact="zebedee.nicholls@climate-resource.com;malte.meinshausen@climate-resource.com",
+        creation_date=ds_attrs["creation_date"],
+        dataset_category="GHGConcentrations",
+        datetime_end="2010-12-01T00:00:00Z",
+        datetime_start="2000-01-01T00:00:00Z",
+        frequency="mon",
+        further_info_url="http://www.tbd.invalid",
+        grid_label="gn",
+        institution_id="CR",
+        license="The input4MIPs data linked to this entry is licensed under a Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6Plus output, including citation requirements and proper acknowledgment. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
+        license_id="CC BY 4.0",
+        mip_era="CMIP6Plus",
+        nominal_resolution="10000 km",
+        product="derived",
+        realm="atmos",
+        region="global",
+        source_id="CR-CMIP-0-2-0",
+        source_version="0.2.0",
+        target_mip="CMIP",
+        time_range="200001-201012",
+        tracking_id=ds_attrs["tracking_id"],
+        variable_id="mole_fraction_of_carbon_dioxide_in_air",
+        version=version_exp,
+        grid=None,
+        institution=None,
+        references=None,
+        source=None,
+    )
+
     assert database_entry == database_entry_exp
 
 
@@ -125,6 +163,17 @@ def test_validate_written_multi_variable_file(tmp_path):
     """
     Test that we can write a multi-variable file that passes our validate-file CLI
     """
+    metadata_minimum = Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum(
+        dataset_category="GHGConcentrations",
+        grid_label="gn",
+        nominal_resolution="10000 km",
+        product="derived",
+        realm="atmos",
+        region="global",
+        source_id="CR-CMIP-0-2-0",
+        target_mip="CMIP",
+    )
+
     lon = np.arange(-165.0, 180.0, 30.0, dtype=np.float64)
     lat = np.arange(-82.5, 90.0, 15.0, dtype=np.float64)
     time = [
@@ -162,24 +211,13 @@ def test_validate_written_multi_variable_file(tmp_path):
         "dtype": np.dtypes.Float32DType,
     }
 
-    metadata_minimum = Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum(
-        dataset_category="GHGConcentrations",
-        grid_label="gn",
-        nominal_resolution="10000 km",
-        product="derived",
-        realm="atmos",
-        region="global",
-        source_id="CR-CMIP-0-2-0",
-        target_mip="CMIP",
-    )
-
     with patch.dict(
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
         input4mips_ds = (
             Input4MIPsDataset.from_data_producer_minimum_information_multiple_variable(
-                ds=ds,
+                data=ds,
                 metadata_minimum=metadata_minimum,
                 dimensions=("time", "lat", "lon"),
                 standard_and_or_long_names={
@@ -202,3 +240,45 @@ def test_validate_written_multi_variable_file(tmp_path):
         result = runner.invoke(app, ["validate-file", str(written_file)])
 
     assert result.exit_code == 0, result.exc_info
+
+    database_entry = validate_file(
+        written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+    )
+
+    ds_attrs = xr.load_dataset(written_file).attrs
+    # If this gets run just at the turn of midnight, this may fail.
+    # That is a risk I am willing to take.
+    version_exp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")
+    database_entry_exp = Input4MIPsDatabaseEntryFile(
+        Conventions="CF-1.7",
+        activity_id="input4MIPs",
+        contact="zebedee.nicholls@climate-resource.com;malte.meinshausen@climate-resource.com",
+        creation_date=ds_attrs["creation_date"],
+        dataset_category="GHGConcentrations",
+        datetime_end="2010-12-01T00:00:00Z",
+        datetime_start="2000-01-01T00:00:00Z",
+        frequency="mon",
+        further_info_url="http://www.tbd.invalid",
+        grid_label="gn",
+        institution_id="CR",
+        license="The input4MIPs data linked to this entry is licensed under a Creative Commons Attribution 4.0 International (https://creativecommons.org/licenses/by/4.0/). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6Plus output, including citation requirements and proper acknowledgment. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.",
+        license_id="CC BY 4.0",
+        mip_era="CMIP6Plus",
+        nominal_resolution="10000 km",
+        product="derived",
+        realm="atmos",
+        region="global",
+        source_id="CR-CMIP-0-2-0",
+        source_version="0.2.0",
+        target_mip="CMIP",
+        time_range="200001-201012",
+        tracking_id=ds_attrs["tracking_id"],
+        variable_id="mole_fraction_of_carbon_dioxide_in_air",
+        version=version_exp,
+        grid=None,
+        institution=None,
+        references=None,
+        source=None,
+    )
+
+    assert database_entry == database_entry_exp

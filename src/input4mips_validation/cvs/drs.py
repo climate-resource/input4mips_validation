@@ -7,6 +7,8 @@ from __future__ import annotations
 import datetime as dt
 import functools
 import json
+import os
+import re
 import string
 from collections.abc import Iterable
 from pathlib import Path
@@ -18,6 +20,7 @@ from attrs import frozen
 from typing_extensions import TypeAlias
 
 from input4mips_validation.cvs.loading_raw import RawCVLoader
+from input4mips_validation.inference.from_data import create_time_range
 from input4mips_validation.serialisation import converter_json
 
 DATA_REFERENCE_SYNTAX_FILENAME: str = "input4MIPs_DRS.json"
@@ -71,6 +74,7 @@ class DataReferenceSyntax:
         available_attributes: dict[str, str],
         time_start: cftime.datetime | dt.datetime | np.datetime64 | None = None,
         time_end: cftime.datetime | dt.datetime | np.datetime64 | None = None,
+        frequency_metadata_key: str = "frequency",
         version: str | None = None,
     ) -> Path:
         """
@@ -109,6 +113,10 @@ class DataReferenceSyntax:
             but this metadata is not contained in any of the file's metadata,
             hence the end time must be supplied
             so that the time range information can be included.
+
+        frequency_metadata_key
+            The key in the data's metadata
+            which points to information about the data's frequency.
 
         version
             The version to use when creating the path.
@@ -174,7 +182,7 @@ class DataReferenceSyntax:
             all_available_metadata["time_range"] = create_time_range(
                 time_start=time_start,
                 time_end=time_end,
-                ds_frequency=all_available_metadata["frequency"],
+                ds_frequency=all_available_metadata[frequency_metadata_key],
             )
 
         apply_subs = functools.partial(
@@ -323,6 +331,92 @@ class DataReferenceSyntax:
                 optional_pieces.append(c)
 
         return tuple(substitutions_l)
+
+    def extract_metadata_from_path(self, path: Path) -> dict[str, str]:
+        """
+        Extract metadata from a path
+
+        To be specific, the bit of the path
+        that corresponds to `self.directory_path_template`.
+        In other words,
+        `path` should only be the directory/folder bit of the full filepath,
+        the filename should not be part of `path`.
+
+        Parameters
+        ----------
+        directory
+            Directory from which to extract the metadata
+
+        Returns
+        -------
+            Extracted metadata
+        """
+        root_data_dir_key = "root_data_dir"
+
+        directory_regexp = self.get_regexp_for_capturing_directory_information(
+            root_data_dir_group=root_data_dir_key
+        )
+        match = re.match(directory_regexp, str(path))
+        match_groups = match.groupdict()
+
+        res = {k: v for k, v in match_groups.items() if k != root_data_dir_key}
+
+        return res
+
+    @functools.cache
+    def get_regexp_for_capturing_directory_information(
+        self, root_data_dir_group: str = "root_data_dir"
+    ) -> str:
+        """
+        Get a regular expression for capturing information from a directory
+
+        Parameters
+        ----------
+        root_data_dir_group
+            Group name for the group which captures the root data directory.
+
+        Returns
+        -------
+            Regular expression which can be used to capture information
+            from a directory.
+
+        Notes
+        -----
+        According to [the DRS description](https://docs.google.com/document/d/1h0r8RZr_f3-8egBMMh7aqLwy3snpD6_MrDz1q8n5XUk):
+
+        - only [a-zA-Z0-9-] are allowed in file path names
+          except where underscore is used as a separator.
+
+        We use this to significantly simplify our regular expression.
+        """
+        # Hard-code according to the spec
+        valid_chars_names = "[a-zA-Z0-9-]"
+
+        drs_template = self.directory_path_template
+        directory_substitutions = self.parse_drs_template(drs_template=drs_template)
+
+        capturing_regexp = drs_template
+        for substitution in directory_substitutions:
+            if substitution.optional:
+                raise NotImplementedError()
+
+            capturing_group = substitution.replacement_string.replace(
+                "}", f">{valid_chars_names}+)"
+            ).replace("{", "(?P<")
+            capturing_regexp = capturing_regexp.replace(
+                substitution.string_to_replace,
+                capturing_group,
+            )
+
+        # Make sure that the separators will behave
+        sep_escape = re.escape(os.sep)
+        capturing_regexp = capturing_regexp.replace("/", sep_escape)
+        # And that our regexp allows for the root directory
+        capturing_regexp = (
+            f"(?P<{root_data_dir_group}>.*){sep_escape}{capturing_regexp}"
+        )
+
+        return capturing_regexp
 
 
 @frozen
@@ -666,41 +760,6 @@ def format_date_for_time_range(
         return date_safe.strftime("%Y%m%d%H%M")
 
     raise NotImplementedError(ds_frequency)
-
-
-def create_time_range(
-    time_start: cftime.datetime | dt.datetime | np.datetime64,
-    time_end: cftime.datetime | dt.datetime | np.datetime64,
-    ds_frequency: str,
-    start_end_separator: str = "-",
-) -> str:
-    """
-    Create the time range information
-
-    Parameters
-    ----------
-    time_start
-        The start time (of the underlying dataset)
-
-    time_end
-        The end time (of the underlying dataset)
-
-    ds_frequency
-        The frequency of the underlying dataset
-
-    start_end_separator
-        The string(s) to use to separate the start and end time.
-
-    Returns
-    -------
-        The time-range information,
-        formatted correctly given the underlying dataset's frequency.
-    """
-    fd = functools.partial(format_date_for_time_range, ds_frequency=ds_frequency)
-    time_start_formatted = fd(time_start)
-    time_end_formatted = fd(time_end)
-
-    return start_end_separator.join([time_start_formatted, time_end_formatted])
 
 
 def convert_unstructured_cv_to_drs(

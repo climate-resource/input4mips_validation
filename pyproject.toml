@@ -4,8 +4,9 @@ authors = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "scitools-iris",
-    "netcdf4",
+    "scitools-iris>=3.0",
+    "netcdf4>=1.0",
+    "numpy<2.0",
     "attrs",
     "cattrs",
     "cf-xarray",
@@ -139,6 +140,7 @@ editable = true
 [tool.pixi.dependencies]
 iris = ">=3.0"
 netcdf4 = ">=1.0"
+numpy = "<2.0"
 
 [tool.pdm.build]
 locked = true

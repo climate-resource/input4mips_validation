@@ -62,7 +62,8 @@ jobs:
         pip install pytest
     - name: Run tests
       run: |
-        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/runner/work/input4mips_validation/input4mips_validation/udunits/lib/.libs"
+        ls /home/runner/work/input4mips_validation/input4mips_validation/udunits/lib/
+        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/runner/work/input4mips_validation/input4mips_validation/udunits/lib/"
         echo $LD_LIBRARY_PATH
-        ls /home/runner/work/input4mips_validation/input4mips_validation/udunits/lib/.libs
+        python -c 'import ctypes.util; print(ctypes.util.find_library("udunits2"))'
         pytest tests -r a -vv -s

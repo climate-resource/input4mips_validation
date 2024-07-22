@@ -430,7 +430,6 @@ For a more useful class, see
         "frequency",
         "further_info_url",
         "grid_label",
-        "institution",
         "institution_id",
         "license",
         "license_id",
@@ -439,11 +438,13 @@ For a more useful class, see
         "product",
         "realm",
         "region",
-        "source",
         "source_id",
         "source_version",
         "target_mip",
         "variable_id",
+        # Fields with default values have to go at the end
+        "institution",
+        "source",
     )
     file_input4mips_dataset_metadata = FileToWrite(
         SRC / "dataset" / "metadata.py",

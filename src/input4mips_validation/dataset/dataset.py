@@ -1,5 +1,5 @@
 """
-Classes that define an input4MIPs dataset and associated metadata
+Dataset class definition
 """
 
 from __future__ import annotations
@@ -16,7 +16,13 @@ from attrs import asdict, field, frozen
 
 import input4mips_validation.xarray_helpers as iv_xr_helpers
 from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
-from input4mips_validation.database import make_class_from_database_entry_file_fields
+from input4mips_validation.dataset.metadata import Input4MIPsDatasetMetadata
+from input4mips_validation.dataset.metadata_data_producer_minimum import (
+    Input4MIPsDatasetMetadataDataProducerMinimum,
+)
+from input4mips_validation.dataset.metadata_data_producer_multiple_variable_minimum import (  # noqa: E501
+    Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum,
+)
 from input4mips_validation.inference.from_data import (
     VARIABLE_DATASET_CATEGORY_MAP,
     VARIABLE_REALM_MAP,
@@ -28,99 +34,6 @@ from input4mips_validation.io import (
     write_ds_to_disk,
 )
 from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
-
-DATASET_PRODUCER_MINIMUM_FIELDS = (
-    "grid_label",
-    "nominal_resolution",
-    "product",
-    "region",
-    "source_id",
-    "target_mip",
-)
-
-Input4MIPsDatasetMetadataDataProducerMinimum = (
-    make_class_from_database_entry_file_fields(
-        "Input4MIPsDatasetMetadataDataProducerMinimum",
-        DATASET_PRODUCER_MINIMUM_FIELDS,
-    )
-)
-"""
-Minimum metadata from input4MIPs dataset producer
-
-This is the minimum metadata required to create a valid
-[`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset] object using
-[`from_data_producer_minimum_information`][input4mips_validation.dataset.Input4MIPsDataset.from_data_producer_minimum_information].
-
-For an explanation of the required fields,
-see [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile]
-"""  # noqa: E501
-# Adding docstrings like this is a hack while this issue is ongoing:
-# https://github.com/python-attrs/attrs/issues/1309
-
-# multi-variable minimum
-
-DATASET_PRODUCER_MULTI_VARIABLE_MINIMUM_FIELDS = (
-    *DATASET_PRODUCER_MINIMUM_FIELDS,
-    "dataset_category",
-    "realm",
-)
-
-Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum = (
-    make_class_from_database_entry_file_fields(
-        "Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum",
-        DATASET_PRODUCER_MULTI_VARIABLE_MINIMUM_FIELDS,
-    )
-)
-"""
-Minimum metadata from input4MIPs dataset producer for a multi-variable file
-
-This is the minimum metadata required to create a valid
-[`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset] object using
-[`from_data_producer_minimum_information_multiple_variable`][input4mips_validation.dataset.Input4MIPsDataset.from_data_producer_minimum_information_multiple_variable].
-
-For an explanation of the required fields,
-see [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile]
-"""  # noqa: E501
-# Adding docstrings like this is a hack while this issue is ongoing:
-# https://github.com/python-attrs/attrs/issues/1309
-
-DATASET_METADATA_FIELDS = (
-    "activity_id",
-    "contact",
-    "dataset_category",
-    "frequency",
-    "further_info_url",
-    "grid_label",
-    "institution",
-    "institution_id",
-    "license",
-    "license_id",
-    "mip_era",
-    "nominal_resolution",
-    "product",
-    "realm",
-    "region",
-    "source",
-    "source_id",
-    "source_version",
-    "target_mip",
-    "variable_id",
-)
-Input4MIPsDatasetMetadata = make_class_from_database_entry_file_fields(
-    "Input4MIPsDatasetMetadata",
-    DATASET_METADATA_FIELDS,
-)
-"""
-Metadata for an input4MIPs dataset
-
-For an explanation of the fields,
-see [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile]
-"""  # noqa: E501
-# Adding docstrings like this is a hack while this issue is ongoing:
-# https://github.com/python-attrs/attrs/issues/1309
-
-# CV handling
-# - can also pull those tests back in
 
 
 class AddTimeBoundsLike(Protocol):
@@ -151,10 +64,7 @@ class Input4MIPsDataset:
     Data
     """
 
-    # Have to use templating to fix type hinting properly I think.
-    # Although let's see where this issue ends up:
-    # https://github.com/python-attrs/attrs/issues/1309
-    metadata: Input4MIPsDatasetMetadata  # type: ignore
+    metadata: Input4MIPsDatasetMetadata
     """
     Metadata
     """
@@ -175,10 +85,7 @@ class Input4MIPsDataset:
     def from_data_producer_minimum_information(  # noqa: PLR0913
         cls,
         data: xr.Dataset,
-        # Have to use templating to fix type hinting properly I think.
-        # Although let's see where this issue ends up:
-        # https://github.com/python-attrs/attrs/issues/1309
-        metadata_minimum: Input4MIPsDatasetMetadataDataProducerMinimum,  # type: ignore
+        metadata_minimum: Input4MIPsDatasetMetadataDataProducerMinimum,
         dimensions: tuple[str, ...] | None = None,
         time_dimension: str = "time",
         add_time_bounds: AddTimeBoundsLike | None = None,
@@ -310,7 +217,7 @@ class Input4MIPsDataset:
         # Have to use templating to fix type hinting properly I think.
         # Although let's see where this issue ends up:
         # https://github.com/python-attrs/attrs/issues/1309
-        cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]  # type: ignore
+        cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]
         cvs_values = cvs_source_id_entry.values
         variable_id = get_ds_var_assert_single(data)
 
@@ -325,24 +232,24 @@ class Input4MIPsDataset:
 
         metadata = Input4MIPsDatasetMetadata(
             activity_id=activity_id,
-            contact=cvs_values.contact,  # type: ignore
+            contact=cvs_values.contact,
             dataset_category=dataset_category,
             frequency=frequency,
-            further_info_url=cvs_values.further_info_url,  # type: ignore
-            grid_label=metadata_minimum.grid_label,  # type: ignore
+            further_info_url=cvs_values.further_info_url,
+            grid_label=metadata_minimum.grid_label,
             # # TODO: look this up from central CVs
             # institution=cvs_values.institution,
-            institution_id=cvs_values.institution_id,  # type: ignore
-            license=cvs.license_entries[cvs_values.license_id].values.conditions,  # type: ignore
-            license_id=cvs_values.license_id,  # type: ignore
-            mip_era=cvs_values.mip_era,  # type: ignore
-            nominal_resolution=metadata_minimum.nominal_resolution,  # type: ignore
-            product=metadata_minimum.product,  # type: ignore
+            institution_id=cvs_values.institution_id,
+            license=cvs.license_entries[cvs_values.license_id].values.conditions,
+            license_id=cvs_values.license_id,
+            mip_era=cvs_values.mip_era,
+            nominal_resolution=metadata_minimum.nominal_resolution,
+            product=metadata_minimum.product,
             realm=realm,
-            region=metadata_minimum.region,  # type: ignore
-            source_id=metadata_minimum.source_id,  # type: ignore
-            source_version=cvs_values.source_version,  # type: ignore
-            target_mip=metadata_minimum.target_mip,  # type: ignore
+            region=metadata_minimum.region,
+            source_id=metadata_minimum.source_id,
+            source_version=cvs_values.source_version,
+            target_mip=metadata_minimum.target_mip,
             variable_id=variable_id,
         )
 
@@ -353,10 +260,7 @@ class Input4MIPsDataset:
     def from_data_producer_minimum_information_multiple_variable(  # noqa: PLR0913
         cls,
         data: xr.Dataset,
-        # Have to use templating to fix type hinting properly I think.
-        # Although let's see where this issue ends up:
-        # https://github.com/python-attrs/attrs/issues/1309
-        metadata_minimum: Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum,  # type: ignore
+        metadata_minimum: Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum,
         dimensions: tuple[str, ...] | None = None,
         time_dimension: str = "time",
         add_time_bounds: AddTimeBoundsLike | None = None,
@@ -481,7 +385,7 @@ class Input4MIPsDataset:
         # Have to use templating to fix type hinting properly I think.
         # Although let's see where this issue ends up:
         # https://github.com/python-attrs/attrs/issues/1309
-        cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]  # type: ignore
+        cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]
         cvs_values = cvs_source_id_entry.values
 
         # cf-xarray uses suffix bounds, hence hard-code this
@@ -489,24 +393,24 @@ class Input4MIPsDataset:
 
         metadata = Input4MIPsDatasetMetadata(
             activity_id=activity_id,
-            contact=cvs_values.contact,  # type: ignore
-            dataset_category=metadata_minimum.dataset_category,  # type: ignore
+            contact=cvs_values.contact,
+            dataset_category=metadata_minimum.dataset_category,
             frequency=frequency,
-            further_info_url=cvs_values.further_info_url,  # type: ignore
-            grid_label=metadata_minimum.grid_label,  # type: ignore
+            further_info_url=cvs_values.further_info_url,
+            grid_label=metadata_minimum.grid_label,
             # # TODO: look this up from central CVs
             # institution=cvs_values.institution,
-            institution_id=cvs_values.institution_id,  # type: ignore
-            license=cvs.license_entries[cvs_values.license_id].values.conditions,  # type: ignore
-            license_id=cvs_values.license_id,  # type: ignore
-            mip_era=cvs_values.mip_era,  # type: ignore
-            nominal_resolution=metadata_minimum.nominal_resolution,  # type: ignore
-            product=metadata_minimum.product,  # type: ignore
-            realm=metadata_minimum.realm,  # type: ignore
-            region=metadata_minimum.region,  # type: ignore
-            source_id=metadata_minimum.source_id,  # type: ignore
-            source_version=cvs_values.source_version,  # type: ignore
-            target_mip=metadata_minimum.target_mip,  # type: ignore
+            institution_id=cvs_values.institution_id,
+            license=cvs.license_entries[cvs_values.license_id].values.conditions,
+            license_id=cvs_values.license_id,
+            mip_era=cvs_values.mip_era,
+            nominal_resolution=metadata_minimum.nominal_resolution,
+            product=metadata_minimum.product,
+            realm=metadata_minimum.realm,
+            region=metadata_minimum.region,
+            source_id=metadata_minimum.source_id,
+            source_version=cvs_values.source_version,
+            target_mip=metadata_minimum.target_mip,
             variable_id=variable_id,
         )
 
@@ -721,11 +625,8 @@ def get_ds_var_assert_single(ds: xr.Dataset) -> str:
     return ds_var_l[0]
 
 
-# Have to use templating to fix type hinting properly I think.
-# Although let's see where this issue ends up:
-# https://github.com/python-attrs/attrs/issues/1309
 def convert_input4mips_metadata_to_ds_attrs(
-    metadata: Input4MIPsDatasetMetadata,  # type: ignore
+    metadata: Input4MIPsDatasetMetadata,
 ) -> dict[str, str]:
     """
     Convert [Input4MIPsDatasetMetadata][] to [xarray.Dataset.attrs][] compatible values
@@ -736,6 +637,7 @@ def convert_input4mips_metadata_to_ds_attrs(
     """
     res = {k: v for k, v in asdict(metadata).items() if v is not None}
 
+    # Put back in if/when we add non CVs metadata handling back in
     # if self.metadata_non_cvs is not None:
     #     # Add other keys in too
     #     res = self.metadata_non_cvs | res

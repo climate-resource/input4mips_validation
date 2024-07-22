@@ -34,9 +34,6 @@ class Input4MIPsDatasetMetadata:
     [TODO: cross-ref to the CVs]
     """
 
-    institution: Union[str, None] = None
-    """Long-form description of the institute referred to by `institution_id`"""
-
     institution_id: str
     """ID of the institute that created the file"""
 
@@ -61,9 +58,6 @@ class Input4MIPsDatasetMetadata:
     region: str
     """The region of the data in the file"""
 
-    source: Union[str, None] = None
-    """Long-form description of the source referred to by `source_id`"""
-
     source_id: str
     """The ID of the file's source"""
 
@@ -75,3 +69,9 @@ class Input4MIPsDatasetMetadata:
 
     variable_id: str
     """The ID of the variable contained in the file"""
+
+    institution: Union[str, None] = None
+    """Long-form description of the institute referred to by `institution_id`"""
+
+    source: Union[str, None] = None
+    """Long-form description of the source referred to by `source_id`"""

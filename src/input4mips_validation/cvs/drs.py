@@ -747,6 +747,17 @@ def format_date_for_time_range(
     Returns
     -------
         Formatted date
+
+    Examples
+    --------
+    >>> format_date_for_time_range(dt.datetime(2024, 7, 12), "yr")
+    '2024'
+    >>> format_date_for_time_range(dt.datetime(2024, 7, 12), "mon")
+    '202407'
+    >>> format_date_for_time_range(dt.datetime(2024, 7, 12), "day")
+    '20240712'
+    >>> format_date_for_time_range(dt.datetime(2024, 7, 12, 4, 30, 30), "3hr")
+    '202407120430'
     """
     if isinstance(date, np.datetime64):
         date_safe: cftime.datetime | dt.datetime = pd.to_datetime(str(date))

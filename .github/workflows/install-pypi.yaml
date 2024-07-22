@@ -35,6 +35,7 @@ jobs:
         make all install check
         cd ..
         cd ..
+        find /home/runner/work/input4mips_validation/input4mips_validation/udunits/lib -name 'libudunits2.so.0'
     - name: Set up Python "${{ matrix.python-version }}"
       id: setup-python
       uses: actions/setup-python@v4

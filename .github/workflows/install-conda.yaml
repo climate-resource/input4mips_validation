@@ -16,10 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        # python-version: [ "3.9", "3.10", "3.11" ]
-        os: ["ubuntu-latest"]
-        python-version: [ "3.10" ]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        python-version: [ "3.9", "3.10", "3.11" ]
         # Check both 'library' install and the 'application' (i.e. locked) install
         # While we wait for conda-forge release
         # (https://github.com/conda-forge/staged-recipes/pull/26986)

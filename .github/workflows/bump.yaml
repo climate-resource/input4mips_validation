@@ -37,7 +37,7 @@ jobs:
         uses: pdm-project/setup-pdm@v4
         with:
           python-version: "3.9"
-      # Also need pdm for the bump
+
       - name: Install pdm-bump
         run: |
           pdm self add pdm-bump
@@ -56,13 +56,14 @@ jobs:
           echo "Bumping from version $BASE_VERSION"
 
           # Bump
-          pdm bump ${{ github.event.inputs.bump_rule }}
+          # pdm bump ${{ github.event.inputs.bump_rule }}
+          pdm bump minor
 
           NEW_VERSION=`sed -ne 's/^version = "\([0-9\.a]*\)"/\1/p' pyproject.toml`
           echo "Bumping to version $NEW_VERSION"
 
           # Build CHANGELOG
-          pixi run -e all-dev towncrier build --yes --version v$NEW_VERSION
+          pixi run --frozen -e all-dev towncrier build --yes --version v$NEW_VERSION
 
           # Commit and tag
           # git commit -a -m "bump: version $BASE_VERSION -> $NEW_VERSION"

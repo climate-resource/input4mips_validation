@@ -36,6 +36,7 @@ jobs:
       shell: bash -leo pipefail {0}
       run: |
         which python
+        which cfchecks
         python scripts/test-install.py
     - name: Install pytest
       shell: bash -leo pipefail {0}

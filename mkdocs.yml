@@ -77,6 +77,11 @@ plugins:
   # https://oprypin.github.io/mkdocs-section-index/
   # This won't work properly until we write a nav file too, job for another day
   - section-index
+  # Working out how to make this play with nb-exec would be nice,
+  # then it wouldn't run every time.
+  # We could also get the nb-exec-table mentioned here:
+  # https://myst-nb.readthedocs.io/en/v0.12.2/use/execute.html
+  # One for another day.
   - mkdocs-jupyter:
       execute: true
       ignore: ["*.ipynb", "docs/gen_doc_stubs.py"]

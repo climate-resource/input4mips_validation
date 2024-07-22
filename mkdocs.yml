@@ -6,9 +6,15 @@ repo_name: climate-resource/input4mips_validation
 repo_url: https://github.com/climate-resource/input4mips_validation
 
 plugins:
+  - search
+  - autorefs
   - mkdocstrings:
       handlers:
         python:
+          import:
+            - https://ncdata.readthedocs.io/en/stable/objects.inv
+            - https://scitools-iris.readthedocs.io/en/stable/objects.inv
+            - http://xarray.pydata.org/en/stable/objects.inv
           options:
             docstring_style: numpy
 

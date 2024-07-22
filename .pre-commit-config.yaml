@@ -3,9 +3,15 @@ ci:
   autofix_prs: false
   autoupdate_schedule: quarterly
   autoupdate_branch: pre-commit-autoupdate
-  # Don't have pixi in CI
-  # and this lock file check happens elsewhere so we can skip it here
-  skip: [pixi-install, environment-docs, pdm-export, pdm-lock-check]
+  # Skip steps that won't run on pre-commit CI for various reasons,
+  # mostly because they rely on local things.
+  skip: [
+    pixi-install,
+    environment-docs,
+    pdm-export,
+    pdm-lock-check,
+    auto-generated-classes,
+  ]
 
 # See https://pre-commit.com/hooks.html for more hooks
 repos:

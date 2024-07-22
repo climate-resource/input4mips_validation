@@ -32,9 +32,9 @@ checks:  ## run all the linting checks of the codebase
 ruff-fixes:  ## fix the code using ruff
     # format before and after checking so that the formatted stuff is checked and
     # the fixed stuff is formatted
-	pixi run -e all-dev ruff format src tests scripts docs/source/conf.py docs/source/notebooks/*.py
-	pixi run -e all-dev ruff check src tests scripts docs/source/conf.py docs/source/notebooks/*.py --fix
-	pixi run -e all-dev ruff format src tests scripts docs/source/conf.py docs/source/notebooks/*.py
+	pixi run -e all-dev ruff format src tests scripts
+	pixi run -e all-dev ruff check src tests scripts --fix
+	pixi run -e all-dev ruff format src tests scripts
 
 
 .PHONY: test

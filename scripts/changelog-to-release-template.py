@@ -17,7 +17,7 @@ def main() -> None:
 
     They are printed to stdout
     """
-    CHANGELOG = Path("docs") / "source" / "changelog.md"
+    CHANGELOG = Path("docs") / "changelog.md"
 
     with open(CHANGELOG) as fh:
         changelog_raw = fh.read()

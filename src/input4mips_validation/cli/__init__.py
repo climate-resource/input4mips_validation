@@ -32,23 +32,22 @@ CV_SOURCE_TYPE = Annotated[
     str,
     typer.Option(
         help=(
-            """String identifying the source of the CVs.
-
-If not supplied, this is retrieved from the environment variable
-``INPUT4MIPS_VALIDATION_CV_SOURCE``.
-
-If this environment variable is also not set,
-we raise a ``NotImplementedError``.
-
-If this starts with "gh:", we retrieve the data from PCMD's GitHub,
-using everything after the colon as the ID for the Git object to use
-(where the ID can be a branch name, a tag or a commit ID).
-
-Otherwise we simply return the path as provided
-and use the {py:mod}`validators` package
-to decide if the source points to a URL or not
-(i.e. whether we should look for the CVs locally or retrieve them from a URL).
-"""
+            "String identifying the source of the CVs. "
+            "If not supplied, this is retrieved from the environment variable "
+            "``INPUT4MIPS_VALIDATION_CV_SOURCE``. "
+            ""
+            "If this environment variable is also not set, "
+            "we raise a ``NotImplementedError``. "
+            ""
+            "If this starts with 'gh:', we retrieve the data from PCMD's GitHub, "
+            "using everything after the colon as the ID for the Git object to use "
+            "(where the ID can be a branch name, a tag or a commit ID). "
+            ""
+            "Otherwise we simply return the path as provided "
+            "and use the {py:mod}`validators` package "
+            "to decide if the source points to a URL or not "
+            "(i.e. whether we should look for the CVs locally "
+            "or retrieve them from a URL)."
         ),
         show_default=False,
     ),
@@ -281,14 +280,6 @@ def validate_tree_command(
     #
     # validate_tree(root=tree_root, cv_source=cv_source_use)
 
-
-_typer_click_object = typer.main.get_command(app)
-"""
-Click object, only created so we can use sphinx-click for documentation.
-
-May be removed if there is a better answer to this,
-see https://github.com/tiangolo/typer/issues/200.
-"""
 
 if __name__ == "__main__":
     app()

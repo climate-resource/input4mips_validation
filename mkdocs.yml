@@ -14,6 +14,7 @@ nav:
   - Tutorials: tutorials.md
   - Further background:
     - Explanation: explanation.md
+  - Command-line interface: cli/index.md
   - API reference: api/input4mips_validation/
   - Development: development.md
   - Changelog: changelog.md
@@ -82,7 +83,6 @@ plugins:
 
 markdown_extensions:
   - attr_list
-  - tables
   # Code highlighting handiness
   - pymdownx.highlight:
       anchor_linenums: true
@@ -91,6 +91,7 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - tables
   # Ensure that there are links to table of contents items
   - toc:
       permalink: "#"

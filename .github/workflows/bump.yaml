@@ -1,7 +1,6 @@
 name: Bump version
 
 on:
-  pull_request:
   workflow_dispatch:
     inputs:
       bump_rule:
@@ -56,8 +55,7 @@ jobs:
           echo "Bumping from version $BASE_VERSION"
 
           # Bump
-          # pdm bump ${{ github.event.inputs.bump_rule }}
-          pdm bump minor
+          pdm bump ${{ github.event.inputs.bump_rule }}
 
           NEW_VERSION=`sed -ne 's/^version = "\([0-9\.a]*\)"/\1/p' pyproject.toml`
           echo "Bumping to version $NEW_VERSION"
@@ -66,8 +64,8 @@ jobs:
           pixi run --frozen -e all-dev towncrier build --yes --version v$NEW_VERSION
 
           # Commit and tag
-          # git commit -a -m "bump: version $BASE_VERSION -> $NEW_VERSION"
-          # git tag v$NEW_VERSION
+          git commit -a -m "bump: version $BASE_VERSION -> $NEW_VERSION"
+          git tag v$NEW_VERSION
 
           # Bump to alpha (so that future commits do not have the same
           # version as the tagged commit)
@@ -82,5 +80,5 @@ jobs:
           echo "Bumping version $BASE_VERSION > $NEW_VERSION"
 
           # Commit, tag and push
-          # git commit -a -m "bump(pre-release): version $BASE_VERSION > $NEW_VERSION"
-          # git push && git push --tags
+          git commit -a -m "bump(pre-release): version $BASE_VERSION > $NEW_VERSION"
+          git push && git push --tags

@@ -15,7 +15,7 @@ cfunits==3.3.7
 charset-normalizer==3.3.2
 click==8.1.7
 cloudpickle==3.0.0
-colorama==0.4.6; sys_platform == "win32" or platform_system == "Windows"
+colorama==0.4.6
 contourpy==1.2.1
 cycler==0.12.1
 dask==2024.7.1

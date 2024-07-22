@@ -1,1 +1,48 @@
-site_name: My Docs
+site_name: Input4MIPs validation
+site_description: Validation of input4MIPs data (checking file formats, metadata etc.).
+site_url: https://input4mips-validation.readthedocs.io
+
+repo_name: climate-resource/input4mips_validation
+repo_url: https://github.com/climate-resource/input4mips_validation
+
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+
+theme:
+  name: "material"
+  palette:
+
+    # Palette toggle for light mode
+    - scheme: default
+    # - scheme: cr-light
+      primary: white
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+    # - scheme: cr-dark
+      primary: black
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to light mode
+
+nav:
+  - Input4MIPs validation: index.md
+  - How-to guides: how-to-guides.md
+  - Tutorials: tutorials.md
+  - Further background:
+    - Explanation: explanation.md
+  - API reference: reference.md
+  - Development: development.md
+  - Changelog: changelog.md
+
+watch:
+  - src

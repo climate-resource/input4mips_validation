@@ -53,7 +53,11 @@ test:  ## run the tests
 
 .PHONY: docs
 docs:  ## build the docs
-	pixi run -e all-dev sphinx-build -T -b html docs/source docs/build/html
+	pixi run -e all-dev mkdocs build
+
+.PHONY: docs-serve
+docs-serve:  ## serve the docs locally
+	pixi run -e all-dev mkdocs serve
 
 .PHONY: changelog-draft
 changelog-draft:  ## compile a draft of the next changelog

@@ -35,6 +35,7 @@ def ds_from_iris_cubes(
 
     Returns
     -------
+    :
         Loaded dataset
     """
     ds = ncdata.iris_xarray.cubes_to_xarray(cubes)

@@ -8,7 +8,9 @@ repo_url: https://github.com/climate-resource/input4mips_validation
 
 nav:
   - Input4MIPs validation: index.md
-  - How-to guides: how-to-guides.md
+  - How-to guides:
+    - how-to-guides/index.md
+    - How to validate a file: how-to-guides/how-to-validate-file.py
   - Tutorials: tutorials.md
   - Further background:
     - Explanation: explanation.md
@@ -74,6 +76,9 @@ plugins:
   # https://oprypin.github.io/mkdocs-section-index/
   # This won't work properly until we write a nav file too, job for another day
   - section-index
+  - mkdocs-jupyter:
+      execute: true
+      ignore: ["*.ipynb", "docs/gen_doc_stubs.py"]
 
 markdown_extensions:
   - attr_list

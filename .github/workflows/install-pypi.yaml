@@ -58,6 +58,8 @@ jobs:
       run: |
         which python
         which cfchecks
+        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/udunits/lib/"
+        python -c 'import ctypes.util; print(ctypes.util.find_library("udunits2"))'
         python scripts/test-install.py
     - name: Install pytest
       run: |

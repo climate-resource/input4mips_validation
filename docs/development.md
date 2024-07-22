@@ -39,11 +39,14 @@ We do this for consistency with the broader work context of our lead developers.
 
 ## Versioning
 
-This package follows the version format described in [PEP440](https://peps.python.org/pep-0440/) and
-[Semantic Versioning](https://semver.org/) to describe how the version should change depending on the updates to the
-code base. Our commit messages are written using written to follow the
-[conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) standard which makes it easy to find the
-commits that matter when traversing through the commit history.
+This package follows the version format
+described in [PEP440](https://peps.python.org/pep-0440/)
+and [Semantic Versioning](https://semver.org/)
+to describe how the version should change
+depending on the updates to the code base.
+Our changelog entries and compiled CHANGELOG
+[TODO: docs explaining our CHANGELOG approach/reference to changelog/README.md]
+allow us to identify where key changes were made.
 
 ## Dependency management
 

@@ -22,7 +22,7 @@ dependencies = [
     "xarray",
 ]
 name = "input4mips-validation"
-version = "0.8.1"
+version = "0.8.2a1"
 description = "Validation of input4MIPs data (checking file formats, metadata etc.)."
 readme = "README.md"
 

@@ -62,7 +62,7 @@ jobs:
     - name: Install pytest
       shell: bash -leo pipefail {0}
       run: |
-        mamba install pytest
+        micromamba install pytest
     - name: Run tests
       shell: bash -leo pipefail {0}
       run: |

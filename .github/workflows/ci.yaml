@@ -29,8 +29,7 @@ jobs:
         with:
           pixi-environments: "docs"
       - name: docs
-        run: pixi run -e docs sphinx-build -W --keep-going -T -b html docs/source docs/build
-
+        run: pixi run -e docs mkdocs build --strict
   tests:
     strategy:
       fail-fast: false

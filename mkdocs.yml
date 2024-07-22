@@ -52,6 +52,7 @@ plugins:
         python:
           paths: [src]
           import:
+            - https://unidata.github.io/cftime/objects.inv
             - https://ncdata.readthedocs.io/en/stable/objects.inv
             - https://scitools-iris.readthedocs.io/en/stable/objects.inv
             - http://xarray.pydata.org/en/stable/objects.inv

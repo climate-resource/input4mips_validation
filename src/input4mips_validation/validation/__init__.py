@@ -74,8 +74,8 @@ class InvalidFileError(ValueError):
 
 class CatchErrorDecoratorLike(Protocol):
     """
-    A callable like what we return from [get_catch_error_decorator][]
-    """
+    A callable like what we return from [`get_catch_error_decorator`][input4mips_validation.validation.get_catch_error_decorator]
+    """  # noqa: E501
 
     def __call__(
         self, func_to_call: Callable[P, T], call_purpose: str

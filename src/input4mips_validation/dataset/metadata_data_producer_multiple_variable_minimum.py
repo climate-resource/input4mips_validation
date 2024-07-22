@@ -13,7 +13,7 @@ class Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum:
 
     This is the minimum metadata required to create a valid
     [`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset] object using
-    [`from_data_producer_minimum_information_multiple_variable`][from_data_producer_minimum_information_multiple_variable.dataset.Input4MIPsDataset.from_data_producer_minimum_information].
+    [`from_data_producer_minimum_information_multiple_variable`][input4mips_validation.dataset.dataset.Input4MIPsDataset.from_data_producer_minimum_information_multiple_variable].
     """
 
     grid_label: str = field()

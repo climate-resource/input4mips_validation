@@ -495,7 +495,7 @@ Minimum metadata required from an input4MIPs dataset producer for a multi-variab
 
 This is the minimum metadata required to create a valid
 [`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset] object using
-[`from_data_producer_minimum_information_multiple_variable`][from_data_producer_minimum_information_multiple_variable.dataset.Input4MIPsDataset.from_data_producer_minimum_information].""",  # noqa E501
+[`from_data_producer_minimum_information_multiple_variable`][input4mips_validation.dataset.dataset.Input4MIPsDataset.from_data_producer_minimum_information_multiple_variable].""",  # noqa E501
         class_attributes=(
             ALL_KNOWN_ATTRIBUTES[k]
             for k in [

@@ -73,3 +73,10 @@ repos:
         language: system
         require_serial: true
         pass_filenames: false
+      - id: auto-generated-classes
+        name: auto-generated-classes
+        entry: pixi run -e all-dev python scripts/write-auto-generated-classes.py
+        files: "scripts/write-auto-generated-classes.py"
+        language: system
+        require_serial: true
+        pass_filenames: false

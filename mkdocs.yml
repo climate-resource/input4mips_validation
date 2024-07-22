@@ -43,9 +43,9 @@ plugins:
   - autorefs
   # Required for auto-generating our documentation stubs,
   # a bit like sphinx autodoc gen used to do
-  # - gen-files:
-  #     scripts:
-  #       - docs/gen_doc_stubs.py
+  - gen-files:
+      scripts:
+        - docs/gen_doc_stubs.py
   - mkdocstrings:
       enable_inventory: true
       handlers:

@@ -23,6 +23,18 @@ jobs:
         # Check both 'library' install and the 'application' (i.e. locked) install
         install-target: ["input4mips-validation", "input4mips-validation[locked]"]
     steps:
+    - name: Install UDUNITS-2
+      run: |
+        mkdir udunits
+        cd udunits
+        curl -O https://downloads.unidata.ucar.edu/udunits/2.2.28/udunits-2.2.28.tar.gz
+        tar -xzvf udunits-2.2.28.tar.gz
+        ls -al
+        cd udunits-2.2.28
+        ./configure
+        make all install check
+        cd ..
+        cd ..
     - name: Set up Python "${{ matrix.python-version }}"
       id: setup-python
       uses: actions/setup-python@v4
@@ -42,8 +54,6 @@ jobs:
     - name: Test installation
       run: |
         which python
-        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/hostedtoolcache/Python/3.9.19/x64/lib/python3.9/site-packages/cf_units.libs"
-        echo $LD_LIBRARY_PATH
         which cfchecks
         python scripts/test-install.py
     - name: Install pytest

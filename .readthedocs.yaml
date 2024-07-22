@@ -21,6 +21,6 @@ build:
 conda:
   environment: environment-docs.yml
 
-# Set sphinx configuration
-sphinx:
-   configuration: docs/source/conf.py
+mkdocs:
+  configuration: mkdocs.yml
+  fail_on_warning: false

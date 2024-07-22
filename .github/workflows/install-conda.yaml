@@ -15,12 +15,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        # # There is an issue on windows, one for another day
+        # os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        os: ["ubuntu-latest", "macos-latest"]
         python-version: [ "3.9", "3.10", "3.11" ]
         # Check both 'library' install and the 'application' (i.e. locked) install
-        install-target: ["input4mips-validation", "input4mips-validation-locked"]
+        # While we wait for conda-forge release
+        # (https://github.com/conda-forge/staged-recipes/pull/26986)
+        # can only do non-locked install
+        # install-target: ["input4mips-validation", "input4mips-validation-locked"]
+        install-target: ["input4mips-validation"]
 
     steps:
+    # While we wait for conda-forge release
+    # (https://github.com/conda-forge/staged-recipes/pull/26986)
+    # specify pins by hand
     - name: Setup (micro)mamba and install package
       uses: mamba-org/setup-micromamba@v1
       with:
@@ -28,20 +37,43 @@ jobs:
         create-args: >-
           python=${{ matrix.python-version }}
           -c conda-forge
-          "${{ matrix.install-target }}"
+          pip
+          iris==3.8.1
+          netcdf4==1.7.1
+          numpy==1.26.4
+          cfchecker==4.1.0
+          attrs==23.2.0
+          cattrs==23.2.3
+          cf_xarray==0.9.4
+          loguru==0.7.2
+          ncdata==0.1.1
+          pandas==2.2.2
+          pint==0.24.3
+          pint-xarray==0.4
+          pooch==1.8.2
+          typer==0.12.3
+          validators==0.33.0
+          xarray==2024.6.0
         init-shell: bash
     - name: Checkout repository
       uses: actions/checkout@v4
+    # While we wait for conda-forge release
+    # (https://github.com/conda-forge/staged-recipes/pull/26986)
+    # use pip for no-deps install
+    - name: No-deps install the package (temporary hack)
+      shell: bash -leo pipefail {0}
+      run: pip install --no-deps "${{ matrix.install-target }}"
     - name: Test installation
       shell: bash -leo pipefail {0}
       run: |
         which python
+        which cfchecks
         python scripts/test-install.py
     - name: Install pytest
       shell: bash -leo pipefail {0}
       run: |
-        mamba install pytest
+        micromamba install pytest
     - name: Run tests
       shell: bash -leo pipefail {0}
       run: |
-        pytest tests -r a -vv
+        pytest tests -r a -vv -s

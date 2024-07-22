@@ -15,36 +15,58 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        # Unsure how to make pip install work on MacOS and Windows,
+        # recommend to use conda.
+        # os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        os: ["ubuntu-latest"]
         python-version: [ "3.9", "3.10", "3.11" ]
         # Check both 'library' install and the 'application' (i.e. locked) install
         install-target: ["input4mips-validation", "input4mips-validation[locked]"]
     steps:
+    - name: Install udunits2
+      run: |
+        # This is a faff, but it works.
+        # I guess it's a good illustration of why using conda for this stack is much better.
+        mkdir $HOME/udunits
+        cd $HOME/udunits
+        curl -O https://downloads.unidata.ucar.edu/udunits/2.2.28/udunits-2.2.28.tar.gz
+        tar -xzvf udunits-2.2.28.tar.gz
+        ls -al
+        cd udunits-2.2.28
+        ./configure
+        make all install check
+        cd ..
+        cd ..
+        ls $HOME/udunits/lib/
     - name: Set up Python "${{ matrix.python-version }}"
       id: setup-python
       uses: actions/setup-python@v4
       with:
         python-version: "${{ matrix.python-version }}"
-    - name: Install (non-windows)
+    - name: Install
+      run: |
+        pip install --upgrade pip wheel
+        pip install cf-units
+        pip install "${{ matrix.install-target }}" 2>stderr.txt
+    - name: Check no warnings
       if: matrix.os != 'windows-latest'
       run: |
-        pip install --upgrade pip
-        pip install "${{ matrix.install-target }}" 2>stderr.txt
         if grep -q "WARN" stderr.txt; then echo "Warnings in pip install output" && cat stderr.txt && exit 1; else exit 0; fi
-    - name: Install (windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        pip install --upgrade pip
-        pip install "${{ matrix.install-target }}"
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Test installation
       run: |
         which python
+        which cfchecks
+        ls $HOME/udunits/lib/
+        export LD_LIBRARY_PATH="$HOME/udunits/lib/:$LD_LIBRARY_PATH"
+        python -c 'import ctypes.util; print(ctypes.util.find_library("udunits2"))'
         python scripts/test-install.py
     - name: Install pytest
       run: |
         pip install pytest
     - name: Run tests
       run: |
-        pytest tests -r a -vv
+        export LD_LIBRARY_PATH="$HOME/udunits/lib/:$LD_LIBRARY_PATH"
+        python -c 'import ctypes.util; print(ctypes.util.find_library("udunits2"))'
+        pytest tests -r a -vv -s

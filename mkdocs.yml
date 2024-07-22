@@ -98,3 +98,4 @@ markdown_extensions:
 
 watch:
   - src
+  - README.md

@@ -47,12 +47,12 @@ jobs:
     - name: Install pytest
       run: |
         pip install pytest
-    - name: Run tests
+    - name: Install udunits2
       run: |
         # This is a faff, but it works.
         # I guess it's a good illustration of why using conda for this stack is much better.
-        mkdir udunits
-        cd udunits
+        mkdir $HOME/udunits
+        cd $HOME/udunits
         curl -O https://downloads.unidata.ucar.edu/udunits/2.2.28/udunits-2.2.28.tar.gz
         tar -xzvf udunits-2.2.28.tar.gz
         ls -al
@@ -61,7 +61,9 @@ jobs:
         make all install check
         cd ..
         cd ..
-        ls /home/runner/work/input4mips_validation/input4mips_validation/udunits/lib/
-        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/runner/work/input4mips_validation/input4mips_validation/udunits/lib/"
+        ls $HOME/udunits/lib/
+    - name: Run tests
+      run: |
+        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/udunits/lib/"
         python -c 'import ctypes.util; print(ctypes.util.find_library("udunits2"))'
         pytest tests -r a -vv -s

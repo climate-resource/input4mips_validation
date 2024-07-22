@@ -61,6 +61,6 @@ jobs:
         pip install pytest
     - name: Run tests
       run: |
-        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/hostedtoolcache/Python/3.9.19/x64/lib/python3.9/site-packages/cf_units.libs"
+        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/runner/work/input4mips_validation/input4mips_validation/udunits/lib"
         echo $LD_LIBRARY_PATH
         pytest tests -r a -vv

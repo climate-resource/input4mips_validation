@@ -21,9 +21,16 @@ jobs:
         os: ["ubuntu-latest"]
         python-version: [ "3.10" ]
         # Check both 'library' install and the 'application' (i.e. locked) install
-        install-target: ["input4mips-validation", "input4mips-validation-locked"]
+        # While we wait for conda-forge release
+        # (https://github.com/conda-forge/staged-recipes/pull/26986)
+        # can only do non-locked install
+        # install-target: ["input4mips-validation", "input4mips-validation-locked"]
+        install-target: ["input4mips-validation"]
 
     steps:
+    # While we wait for conda-forge release
+    # (https://github.com/conda-forge/staged-recipes/pull/26986)
+    # specify pins by hand
     - name: Setup (micro)mamba and install package
       uses: mamba-org/setup-micromamba@v1
       with:
@@ -51,7 +58,10 @@ jobs:
         init-shell: bash
     - name: Checkout repository
       uses: actions/checkout@v4
-    - name: No deps install the package
+    # While we wait for conda-forge release
+    # (https://github.com/conda-forge/staged-recipes/pull/26986)
+    # use pip for no-deps install
+    - name: No-deps install the package (temporary hack)
       run: pip install --no-deps "${{ matrix.install-target }}"
     - name: Test installation
       shell: bash -leo pipefail {0}

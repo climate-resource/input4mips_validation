@@ -59,6 +59,7 @@ jobs:
     # (https://github.com/conda-forge/staged-recipes/pull/26986)
     # use pip for no-deps install
     - name: No-deps install the package (temporary hack)
+      shell: bash -leo pipefail {0}
       run: pip install --no-deps "${{ matrix.install-target }}"
     - name: Test installation
       shell: bash -leo pipefail {0}

@@ -1,5 +1,5 @@
 """
-Loggin for the command-line interface
+Logging for the command-line interface
 """
 
 from __future__ import annotations

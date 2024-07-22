@@ -1,26 +1,20 @@
 site_name: Input4MIPs validation
 site_description: Validation of input4MIPs data (checking file formats, metadata etc.).
 site_url: https://input4mips-validation.readthedocs.io
+edit_uri: blob/master/docs/
 
 repo_name: climate-resource/input4mips_validation
 repo_url: https://github.com/climate-resource/input4mips_validation
 
-plugins:
-  - search
-  - autorefs
-  - mkdocstrings:
-      enable_inventory: true
-      handlers:
-        python:
-          paths: [src]
-          import:
-            - https://ncdata.readthedocs.io/en/stable/objects.inv
-            - https://scitools-iris.readthedocs.io/en/stable/objects.inv
-            - http://xarray.pydata.org/en/stable/objects.inv
-          options:
-            docstring_style: numpy
-            show_root_heading: true
-            show_source: true
+nav:
+  - Input4MIPs validation: index.md
+  - How-to guides: how-to-guides.md
+  - Tutorials: tutorials.md
+  - Further background:
+    - Explanation: explanation.md
+  - API reference: api/input4mips_validation/
+  - Development: development.md
+  - Changelog: changelog.md
 
 theme:
   name: "material"
@@ -44,15 +38,41 @@ theme:
         icon: material/brightness-7
         name: Switch to light mode
 
-nav:
-  - Input4MIPs validation: index.md
-  - How-to guides: how-to-guides.md
-  - Tutorials: tutorials.md
-  - Further background:
-    - Explanation: explanation.md
-  - API reference: reference.md
-  - Development: development.md
-  - Changelog: changelog.md
+plugins:
+  - search
+  - autorefs
+  # Required for auto-generating our documentation stubs,
+  # a bit like sphinx autodoc gen used to do
+  # - gen-files:
+  #     scripts:
+  #       - docs/gen_doc_stubs.py
+  - mkdocstrings:
+      enable_inventory: true
+      handlers:
+        python:
+          paths: [src]
+          import:
+            - https://ncdata.readthedocs.io/en/stable/objects.inv
+            - https://scitools-iris.readthedocs.io/en/stable/objects.inv
+            - http://xarray.pydata.org/en/stable/objects.inv
+          options:
+            docstring_style: numpy
+            show_root_heading: true
+            show_source: true
+  # # Make the nav recursive
+  - literate-nav
+  #     nav_file: SUMMARY.md
+  # https://oprypin.github.io/mkdocs-section-index/
+  - section-index
+
+markdown_extensions:
+  - attr_list
+  - tables
+#   # Lots of good stuff in PyMdown
+#   - pymdownx.highlight
+#   - deduplicate-toc
+  - toc:
+      permalink: "#"
 
 watch:
   - src

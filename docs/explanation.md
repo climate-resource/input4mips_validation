@@ -11,3 +11,5 @@ Points we will aim to cover:
 
 We will aim to avoid writing instructions or technical descriptions here,
 they belong elsewhere.
+
+::: input4mips_validation

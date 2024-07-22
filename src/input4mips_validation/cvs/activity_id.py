@@ -78,11 +78,11 @@ class ActivityIDEntries:
 
     def __getitem__(self, key: str) -> ActivityIDEntry:
         """
-        Get [`ActivityIDEntry`][ActivityIDEntry] by its name
+        Get [`ActivityIDEntry`][input4mips_validation.cvs.activity_id.ActivityIDEntry] by its name
 
-        We return the [`ActivityIDEntry`][ActivityIDEntry]
+        We return the [`ActivityIDEntry`][input4mips_validation.cvs.activity_id.ActivityIDEntry]
         whose activity_id matches `key`.
-        """
+        """  # noqa: E501
         matching = [v for v in self.entries if v.activity_id == key]
         if not matching:
             msg = f"{key!r}. {self.activity_ids=!r}"
@@ -124,7 +124,7 @@ def convert_unstructured_cv_to_activity_id_entries(
     unstructured: ActivityIDEntriesUnstructured,
 ) -> ActivityIDEntries:
     """
-    Convert the raw CV data to a [`ActivityIDEntries`][ActivityIDEntries]
+    Convert the raw CV data to a [`ActivityIDEntries`][input4mips_validation.cvs.activity_id.ActivityIDEntries]
 
     Parameters
     ----------
@@ -134,7 +134,7 @@ def convert_unstructured_cv_to_activity_id_entries(
     Returns
     -------
         Activity ID entries
-    """
+    """  # noqa: E501
     restructured = {
         "entries": [
             dict(activity_id=key, values=value) for key, value in unstructured.items()
@@ -148,7 +148,7 @@ def convert_activity_id_entries_to_unstructured_cv(
     activity_id_entries: ActivityIDEntries,
 ) -> ActivityIDEntriesUnstructured:
     """
-    Convert a [`ActivityIDEntries`][ActivityIDEntries] to the raw CV form
+    Convert a [`ActivityIDEntries`][input4mips_validation.cvs.activity_id.ActivityIDEntries] to the raw CV form
 
     Parameters
     ----------
@@ -158,7 +158,7 @@ def convert_activity_id_entries_to_unstructured_cv(
     Returns
     -------
         Raw CV data
-    """
+    """  # noqa: E501
     unstructured = converter_json.unstructure(activity_id_entries)
 
     raw_cv_form = {
@@ -184,7 +184,7 @@ def load_activity_id_entries(
         Name of the file from which to load the CVs.
 
         Passed to
-        [`raw_cvs_loader.load_raw`][input4mips_validation.loading_raw.RawCVLoader.load_raw].
+        [`raw_cvs_loader.load_raw`][input4mips_validation.cvs.loading_raw.RawCVLoader.load_raw].
 
     Returns
     -------

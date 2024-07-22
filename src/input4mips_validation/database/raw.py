@@ -4,7 +4,7 @@ Raw database definition
 
 This only contains the fields, no methods.
 For a more useful class, see
-[`Input4MIPsDatabaseEntryFile`][Input4MIPsDatabaseEntryFile].
+[`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile].
 """
 
 from typing import Union
@@ -21,6 +21,30 @@ class Input4MIPsDatabaseEntryFileRaw:
     Conventions: str
     """CF conventions used in the file"""
 
+    activity_id: str
+    """Activity ID that applies to the file"""
+
+    contact: str
+    """Email addresses to contact in case of questions about the file"""
+
+    creation_date: str
+    """Date the file was created"""
+
+    dataset_category: str
+    """The file's category"""
+
+    datetime_end: str
+    """The file's end time"""
+
+    datetime_start: str
+    """The file's start time"""
+
+    frequency: str
+    """Frequency of the data in the file"""
+
+    further_info_url: str
+    """URL where further information about the file/data in the file can be found"""
+
     grid_label: str = field()
     """
     Label that identfies the file's grid
@@ -28,5 +52,71 @@ class Input4MIPsDatabaseEntryFileRaw:
     [TODO: cross-ref to the CVs]
     """
 
+    institution_id: str
+    """ID of the institute that created the file"""
+
+    license: str
+    """License information for the dataset"""
+
+    license_id: str
+    """ID of the license that applies to this dataset"""
+
+    mip_era: str
+    """The MIP era to which this file belong"""
+
+    nominal_resolution: str
+    """Nominal resolution of the data in the file"""
+
+    product: str
+    """The kind of data in the file"""
+
+    realm: str
+    """The realm of the data in the file"""
+
+    region: str
+    """The region of the data in the file"""
+
+    source_id: str
+    """The ID of the file's source"""
+
+    source_version: str
+    """The version of the file, as defined by the source"""
+
+    target_mip: str
+    """The MIP that this file targets"""
+
+    time_range: str
+    """The file's time range"""
+
+    tracking_id: str
+    """
+    Tracking ID of the file
+
+    This should be unique for every file.
+    We typically use the uuid library to generate this.
+
+    ```python
+    # For example
+    import uuid  # part of the standard library
+
+    tracking_id = f"hdl:21.14100/{uuid.uuid4()}"
+    ```
+    """
+
+    variable_id: str
+    """The ID of the variable contained in the file"""
+
+    version: str
+    """The version of the file, as defined by the ESGF index"""
+
     grid: Union[str, None] = None
     """Long-form description of the grid referred to by `grid_label`"""
+
+    institution: Union[str, None] = None
+    """Long-form description of the institute referred to by `institution_id`"""
+
+    references: Union[str, None] = None
+    """References relevant to the file"""
+
+    source: Union[str, None] = None
+    """Long-form description of the source referred to by `source_id`"""

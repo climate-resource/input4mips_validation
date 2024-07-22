@@ -75,11 +75,11 @@ class SourceIDEntries:
 
     def __getitem__(self, key: str) -> SourceIDEntry:
         """
-        Get [`SourceIDEntry`][SourceIDEntry] by its name
+        Get [`SourceIDEntry`][input4mips_validation.cvs.source_id.SourceIDEntry] by its name
 
-        We return the [`SourceIDEntry`][SourceIDEntry]
+        We return the [`SourceIDEntry`][input4mips_validation.cvs.source_id.SourceIDEntry]
         whose source_id matches `key`.
-        """
+        """  # noqa: E501
         matching = [v for v in self.entries if v.source_id == key]
         if not matching:
             msg = f"{key!r}. {self.source_ids=!r}"
@@ -119,7 +119,7 @@ def convert_unstructured_cv_to_source_id_entries(
     unstructured: SourceIDEntriesUnstructured,
 ) -> SourceIDEntries:
     """
-    Convert the raw CV data to a [`SourceIDEntries`][SourceIDEntries]
+    Convert the raw CV data to a [`SourceIDEntries`][input4mips_validation.cvs.source_id.SourceIDEntries]
 
     Parameters
     ----------
@@ -129,7 +129,7 @@ def convert_unstructured_cv_to_source_id_entries(
     Returns
     -------
         Source ID entries
-    """
+    """  # noqa: E501
     restructured = {
         "entries": [
             dict(source_id=key, values=value) for key, value in unstructured.items()
@@ -143,7 +143,7 @@ def convert_source_id_entries_to_unstructured_cv(
     source_id_entries: SourceIDEntries,
 ) -> SourceIDEntriesUnstructured:
     """
-    Convert a [`SourceIDEntries`][SourceIDEntries] to the raw CV form
+    Convert [`SourceIDEntries`][input4mips_validation.cvs.source_id.SourceIDEntries] to the raw CV form
 
     Parameters
     ----------
@@ -153,7 +153,7 @@ def convert_source_id_entries_to_unstructured_cv(
     Returns
     -------
         Raw CV data
-    """
+    """  # noqa: E501
     unstructured = converter_json.unstructure(source_id_entries)
 
     raw_cv_form = {
@@ -179,7 +179,7 @@ def load_source_id_entries(
         Name of the file from which to load the CVs.
 
         Passed to
-        [`raw_cvs_loader.load_raw`][input4mips_validation.loading_raw.RawCVLoader.load_raw].
+        [`raw_cvs_loader.load_raw`][input4mips_validation.cvs.loading_raw.RawCVLoader.load_raw].
 
     Returns
     -------

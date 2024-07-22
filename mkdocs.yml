@@ -53,9 +53,12 @@ plugins:
           paths: [src]
           import:
             - https://unidata.github.io/cftime/objects.inv
-            - https://ncdata.readthedocs.io/en/stable/objects.inv
-            - https://scitools-iris.readthedocs.io/en/stable/objects.inv
-            - http://xarray.pydata.org/en/stable/objects.inv
+            - https://ncdata.readthedocs.io/en/latest/objects.inv
+            - https://www.fatiando.org/pooch/latest/objects.inv
+            - https://docs.python.org/3/objects.inv
+            - https://scitools-iris.readthedocs.io/en/latest/objects.inv
+            - https://validators.readthedocs.io/en/latest/objects.inv
+            - http://xarray.pydata.org/en/latest/objects.inv
           options:
             docstring_style: numpy
             show_root_heading: true
@@ -64,14 +67,21 @@ plugins:
   - literate-nav
   #     nav_file: SUMMARY.md
   # https://oprypin.github.io/mkdocs-section-index/
+  # This won't work properly until we write a nav file too, job for another day
   - section-index
 
 markdown_extensions:
   - attr_list
   - tables
-#   # Lots of good stuff in PyMdown
-#   - pymdownx.highlight
-#   - deduplicate-toc
+  # Code highlighting handiness
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  # Ensure that there are links to table of contents items
   - toc:
       permalink: "#"
 

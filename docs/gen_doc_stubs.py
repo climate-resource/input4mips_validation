@@ -21,7 +21,13 @@ from attrs import define
 
 ROOT_DIR = Path("api")
 PACKAGE_NAME_ROOT = "input4mips_validation"
-TITLE_RENAMINGS = {"cli": "CLI", "io": "IO", "cvs": "CVs"}
+TITLE_RENAMINGS = {
+    "cli": "CLI",
+    "io": "IO",
+    "cvs": "CVs",
+    "drs": "DRS",
+    "input4mips_validation": "input4mips_validation",
+}
 
 
 @define

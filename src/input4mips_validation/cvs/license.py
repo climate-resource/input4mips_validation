@@ -81,9 +81,9 @@ class LicenseEntries:
 
     def __getitem__(self, key: str) -> LicenseEntry:
         """
-        Get [`LicenseEntry`][LicenseEntry] by its name
+        Get [`LicenseEntry`][input4mips_validation.cvs.license.LicenseEntry] by its name
 
-        We return the [`LicenseEntry`][LicenseEntry] whose license matches ``key``.
+        We return the license entry whose license matches ``key``.
         """
         matching = [v for v in self.entries if v.license_id == key]
         if not matching:
@@ -124,7 +124,7 @@ def convert_unstructured_cv_to_license_entries(
     unstructured: LicenseEntriesUnstructured,
 ) -> LicenseEntries:
     """
-    Convert the raw CV data to a [`LicenseEntries`][LicenseEntries]
+    Convert the raw CV data to a [`LicenseEntries`][input4mips_validation.cvs.license.LicenseEntries]
 
     Parameters
     ----------
@@ -134,7 +134,7 @@ def convert_unstructured_cv_to_license_entries(
     Returns
     -------
         License entries
-    """
+    """  # noqa: E501
     restructured = {
         "entries": [
             dict(license_id=key, values=value) for key, value in unstructured.items()
@@ -148,7 +148,7 @@ def convert_license_entries_to_unstructured_cv(
     license_entries: LicenseEntries,
 ) -> LicenseEntriesUnstructured:
     """
-    Convert a [`LicenseEntries`][LicenseEntries] to the raw CV form
+    Convert a [`LicenseEntries`][input4mips_validation.cvs.license.LicenseEntries] to the raw CV form
 
     Parameters
     ----------
@@ -158,7 +158,7 @@ def convert_license_entries_to_unstructured_cv(
     Returns
     -------
         Raw CV data
-    """
+    """  # noqa: E501
     unstructured = converter_json.unstructure(license_entries)
 
     raw_cv_form = {
@@ -184,7 +184,7 @@ def load_license_entries(
         Name of the file from which to load the CVs.
 
         Passed to
-        [`raw_cvs_loader.load_raw`][input4mips_validation.loading_raw.RawCVLoader.load_raw].
+        [`raw_cvs_loader.load_raw`][input4mips_validation.cvs.loading_raw.RawCVLoader.load_raw].
 
     Returns
     -------

@@ -362,6 +362,7 @@ This should be unique for every file.
 We typically use the uuid library to generate this.
 
 ```python
+# For example
 import uuid  # part of the standard library
 
 tracking_id = f"hdl:21.14100/{uuid.uuid4()}"
@@ -402,6 +403,43 @@ def get_files_to_write() -> Iterable[FileToWrite]:
     -------
         Files to (auto-)write
     """
+    RAW_DATABASE_FIELDS = [
+        "Conventions",
+        "activity_id",
+        "contact",
+        "creation_date",
+        "dataset_category",
+        "datetime_end",
+        "datetime_start",
+        "frequency",
+        "further_info_url",
+        "grid_label",
+        "institution_id",
+        "license",
+        "license_id",
+        "mip_era",
+        "nominal_resolution",
+        "product",
+        "realm",
+        "region",
+        "source_id",
+        "source_version",
+        "target_mip",
+        "time_range",
+        "tracking_id",
+        "variable_id",
+        "version",
+        # Fields with default values have to go at the end
+        "grid",
+        "institution",
+        "references",
+        "source",
+    ]
+
+    missing = set(ALL_KNOWN_ATTRIBUTES.keys()).difference(set(RAW_DATABASE_FIELDS))
+    if missing:
+        raise AssertionError(missing)
+
     file_raw_database = FileToWrite(
         SRC / "database" / "raw.py",
         module_docstring="""
@@ -409,7 +447,7 @@ Raw database definition
 
 This only contains the fields, no methods.
 For a more useful class, see
-[`Input4MIPsDatabaseEntryFile`][Input4MIPsDatabaseEntryFile].
+[`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile].
 """,
         imports=(
             "from typing import Union",
@@ -418,9 +456,7 @@ For a more useful class, see
         ),
         class_name="Input4MIPsDatabaseEntryFileRaw",
         class_docstring="Raw data model for a file entry in the input4MIPs database",
-        class_attributes=(
-            ALL_KNOWN_ATTRIBUTES[k] for k in ["Conventions", "grid_label", "grid"]
-        ),
+        class_attributes=(ALL_KNOWN_ATTRIBUTES[k] for k in RAW_DATABASE_FIELDS),
     )
 
     DATASET_METADATA_FIELDS = (
@@ -448,7 +484,11 @@ For a more useful class, see
     )
     file_input4mips_dataset_metadata = FileToWrite(
         SRC / "dataset" / "metadata.py",
-        module_docstring=("Metadata for a [Input4MIPsDataset][] objects"),
+        module_docstring="""
+Metadata for `Input4MIPsDataset` objects
+
+See [Input4MIPsDataset][input4mips_validation.dataset.dataset.Input4MIPsDataset]
+""",
         imports=(
             "from typing import Union",
             "",

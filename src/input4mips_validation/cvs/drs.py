@@ -213,7 +213,8 @@ class DataReferenceSyntax:
         """
         Parse a DRS template string
 
-        For the rules about parsing, see [DataReferenceSyntax][].
+        For the rules about parsing, see
+        [`DataReferenceSyntax`][input4mips_validation.cvs.drs.DataReferenceSyntax].
 
         Parameters
         ----------
@@ -332,7 +333,7 @@ class DataReferenceSyntax:
 
         return tuple(substitutions_l)
 
-    def extract_metadata_from_path(self, path: Path) -> dict[str, str]:
+    def extract_metadata_from_path(self, directory: Path) -> dict[str, str]:
         """
         Extract metadata from a path
 
@@ -356,7 +357,7 @@ class DataReferenceSyntax:
         directory_regexp = self.get_regexp_for_capturing_directory_information(
             root_data_dir_group=root_data_dir_key
         )
-        match = re.match(directory_regexp, str(path))
+        match = re.match(directory_regexp, str(directory))
         if match is None:
             msg = "regexp failed"
             raise AssertionError(msg)
@@ -514,8 +515,8 @@ def apply_known_replacements(
 
     This helps ensure that only valid characters appear in our populated DRS templates.
     For further details about the characters which are valid,
-    see [`assert_all_metadata_substitutions_only_contain_valid_characters`][assert_all_metadata_substitutions_only_contain_valid_characters]
-    and [`assert_full_filepath_only_contains_valid_characters`][assert_full_filepath_only_contains_valid_characters].
+    see [`assert_all_metadata_substitutions_only_contain_valid_characters`][input4mips_validation.cvs.drs.assert_all_metadata_substitutions_only_contain_valid_characters]
+    and [`assert_full_filepath_only_contains_valid_characters`][input4mips_validation.cvs.drs.assert_full_filepath_only_contains_valid_characters].
 
     Parameters
     ----------
@@ -601,7 +602,7 @@ def assert_all_metadata_substitutions_only_contain_valid_characters(
 
     See Also
     --------
-    [`assert_full_filepath_only_contains_valid_characters`][assert_full_filepath_only_contains_valid_characters]
+    [`assert_full_filepath_only_contains_valid_characters`][input4mips_validation.cvs.drs.assert_full_filepath_only_contains_valid_characters]
     """
     # Hard-code according to the spec
     valid_chars = set(string.ascii_letters + string.digits + "-")
@@ -637,7 +638,7 @@ def assert_full_filepath_only_contains_valid_characters(
 
     See Also
     --------
-    [`assert_all_metadata_substitutions_only_contain_valid_characters`][assert_all_metadata_substitutions_only_contain_valid_characters]
+    [`assert_all_metadata_substitutions_only_contain_valid_characters`][input4mips_validation.cvs.drs.assert_all_metadata_substitutions_only_contain_valid_characters]
     """
     # Hard-code according to the spec
     valid_chars = set(string.ascii_letters + string.digits + "-" + "_")
@@ -666,7 +667,7 @@ def apply_substitutions(
 
     validate_substituted_metadata
         Passed to
-        [`DRSSubstitution.apply_substitution`][DRSSubstitution.apply_substitution].
+        [`DRSSubstitution.apply_substitution`][input4mips_validation.cvs.drs.DRSSubstitution.apply_substitution].
 
     Returns
     -------
@@ -821,7 +822,7 @@ def load_drs(
         Name of the file from which to load the CVs.
 
         Passed to
-        [`raw_cvs_loader.load_raw`][input4mips_validation.loading_raw.RawCVLoader.load_raw].
+        [`raw_cvs_loader.load_raw`][input4mips_validation.cvs.loading_raw.RawCVLoader.load_raw].
 
     Returns
     -------

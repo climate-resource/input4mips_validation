@@ -53,10 +53,7 @@ class Input4MIPsDataset:
     Representation of an input4MIPs dataset
 
     For validation, see
-    [`validate_ds`][input4mips_validation.validation.validate_input4mips_ds].
-    TODO: check cross-reference once we switch to mkdocs,
-    help here I think https://pypi.org/project/mkdocstrings/0.9.0/
-    maybe also here https://mkdocstrings.github.io/usage/
+    [TODO: `validate_input4mips_ds` function and then cross-ref here].
     """
 
     data: xr.Dataset
@@ -136,7 +133,7 @@ class Input4MIPsDataset:
             CVs to use for inference and validation
 
             If not supplied, this will be retrieved with
-            [`load_cvs`][input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs].
+            [`load_cvs`][input4mips_validation.cvs.loading.load_cvs]
 
         activity_id
             Activity ID that applies to the dataset.
@@ -165,13 +162,13 @@ class Input4MIPsDataset:
             The category of the data.
 
             If not supplied, we will try and infer this based on
-            [`VARIABLE_DATASET_CATEGORY_MAP`][VARIABLE_DATASET_CATEGORY_MAP].
+            [`VARIABLE_DATASET_CATEGORY_MAP`][input4mips_validation.inference.from_data.VARIABLE_DATASET_CATEGORY_MAP].
 
         realm
             The realm of the data.
 
             If not supplied, we will try and infer this based on
-            [`VARIABLE_REALM_MAP`][VARIABLE_REALM_MAP].
+            [`VARIABLE_REALM_MAP`][input4mips_validation.inference.from_data.VARIABLE_REALM_MAP].
 
         Returns
         -------
@@ -306,7 +303,7 @@ class Input4MIPsDataset:
             CVs to use for inference and validation
 
             If not supplied, this will be retrieved with
-            [`load_cvs`][input4mips_validation.cvs_handling.input4MIPs.cv_loading.load_cvs].
+            [`load_cvs`][input4mips_validation.cvs.loading.load_cvs].
 
         activity_id
             Activity ID that applies to the dataset.
@@ -441,7 +438,7 @@ class Input4MIPsDataset:
             Kwargs to use when encoding to disk.
 
             These are passed as arguments to
-            [`write`][input4mips_validation.io.write_input4mips_ds_to_disk].
+            [`write_ds_to_disk`][input4mips_validation.io.write_ds_to_disk].
 
         frequency_metadata_key
             The key in the data's metadata
@@ -621,12 +618,12 @@ def convert_input4mips_metadata_to_ds_attrs(
     metadata: Input4MIPsDatasetMetadata,
 ) -> dict[str, str]:
     """
-    Convert [Input4MIPsDatasetMetadata][] to [xarray.Dataset.attrs][] compatible values
+    Convert [Input4MIPsDatasetMetadata][input4mips_validation.dataset.metadata.Input4MIPsDatasetMetadata] to [xarray.Dataset.attrs][] compatible values
 
     Returns
     -------
         [xarray.Dataset.attrs][] compatible values
-    """
+    """  # noqa: E501
     res = {k: v for k, v in asdict(metadata).items() if v is not None}
 
     # Put back in if/when we add non CVs metadata handling back in

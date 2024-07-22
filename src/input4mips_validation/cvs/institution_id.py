@@ -74,7 +74,7 @@ def load_institution_ids(
         Name of the file from which to load the CVs.
 
         Passed to
-        [`raw_cvs_loader.load_raw`][input4mips_validation.loading_raw.RawCVLoader.load_raw].
+        [`raw_cvs_loader.load_raw`][input4mips_validation.cvs.loading_raw.RawCVLoader.load_raw].
 
     Returns
     -------

@@ -36,7 +36,7 @@ jobs:
           netcdf4==1.7.1
           numpy==1.26.4
           cfchecker==4.1.0
-          cf-xarray==0.9.4
+          cf_xarray==0.9.4
           loguru==0.7.2
           ncdata==0.1.1
           pandas==2.2.2

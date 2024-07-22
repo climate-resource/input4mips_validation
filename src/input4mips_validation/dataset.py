@@ -12,11 +12,14 @@ import cf_xarray  # noqa: F401
 import cftime
 import numpy as np
 import xarray as xr
-from attrs import asdict, field, frozen
+from attrs import asdict, define, field, frozen
 
 import input4mips_validation.xarray_helpers as iv_xr_helpers
 from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
-from input4mips_validation.database import make_class_from_database_entry_file_fields
+from input4mips_validation.database import (
+    Input4MIPsDatabaseEntryFile,
+    make_class_from_database_entry_file_fields,
+)
 from input4mips_validation.inference.from_data import (
     VARIABLE_DATASET_CATEGORY_MAP,
     VARIABLE_REALM_MAP,
@@ -29,6 +32,25 @@ from input4mips_validation.io import (
 )
 from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
+
+@define
+class Input4MIPsDatasetMetadataDataProducerMinimum:
+    """
+    Minimum metadata from input4MIPs dataset producer
+
+    This is the minimum metadata required to create a valid
+    [`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset] object using
+    [`from_data_producer_minimum_information`][input4mips_validation.dataset.Input4MIPsDataset.from_data_producer_minimum_information].
+    """
+
+    grid_label = Input4MIPsDatabaseEntryFile.grid_label
+    nominal_resolution = Input4MIPsDatabaseEntryFile.nominal_resolution
+    product = Input4MIPsDatabaseEntryFile.product
+    region = Input4MIPsDatabaseEntryFile.region
+    source_id = Input4MIPsDatabaseEntryFile.source_id
+    target_mip = Input4MIPsDatabaseEntryFile.target_mip
+
+
 DATASET_PRODUCER_MINIMUM_FIELDS = (
     "grid_label",
     "nominal_resolution",
@@ -37,27 +59,25 @@ DATASET_PRODUCER_MINIMUM_FIELDS = (
     "source_id",
     "target_mip",
 )
-
-Input4MIPsDatasetMetadataDataProducerMinimum = (
-    make_class_from_database_entry_file_fields(
-        "Input4MIPsDatasetMetadataDataProducerMinimum",
-        DATASET_PRODUCER_MINIMUM_FIELDS,
-    )
-)
-"""
-Minimum metadata from input4MIPs dataset producer
-
-This is the minimum metadata required to create a valid
-[`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset] object using
-[`from_data_producer_minimum_information`][input4mips_validation.dataset.Input4MIPsDataset.from_data_producer_minimum_information].
-
-For an explanation of the required fields,
-see [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile]
-"""  # noqa: E501
-# Adding docstrings like this is a hack while this issue is ongoing:
-# https://github.com/python-attrs/attrs/issues/1309
-
-# multi-variable minimum
+#
+# Input4MIPsDatasetMetadataDataProducerMinimum = (
+#     make_class_from_database_entry_file_fields(
+#         "Input4MIPsDatasetMetadataDataProducerMinimum",
+#         DATASET_PRODUCER_MINIMUM_FIELDS,
+#     )
+# )
+# """
+# Minimum metadata from input4MIPs dataset producer
+#
+# This is the minimum metadata required to create a valid
+# [`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset] object using
+# [`from_data_producer_minimum_information`][input4mips_validation.dataset.Input4MIPsDataset.from_data_producer_minimum_information].
+#
+# For an explanation of the required fields,
+# see [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile]
+# """  # noqa: E501
+# # Adding docstrings like this is a hack while this issue is ongoing:
+# # https://github.com/python-attrs/attrs/issues/1309
 
 DATASET_PRODUCER_MULTI_VARIABLE_MINIMUM_FIELDS = (
     *DATASET_PRODUCER_MINIMUM_FIELDS,

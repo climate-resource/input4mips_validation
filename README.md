@@ -2,8 +2,6 @@
 
 Validation of input4MIPs data (checking file formats, metadata etc.).
 
-
-
 **Key info :**
 [![Docs](https://readthedocs.org/projects/input4mips-validation/badge/?version=latest)](https://input4mips-validation.readthedocs.io)
 [![Main branch: supported Python versions](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fclimate-resource%2Finput4mips_validation%2Fmain%2Fpyproject.toml)](https://github.com/climate-resource/input4mips_validation/blob/main/pyproject.toml)
@@ -45,7 +43,7 @@ because of breaking updates to dependencies.
 
 The locked version of input4mips-validation can be installed with
 
-```bash
+```sh
 # pip: https://pip.pypa.io/en/stable/
 pip install input4mips-validation[locked]
 # mamba: https://mamba.readthedocs.io/en/latest/
@@ -73,7 +71,7 @@ please [raise an issue](https://github.com/climate-resource/input4mips_validatio
 
 The (non-locked) version of input4mips-validation can be installed with
 
-```bash
+```sh
 # pip: https://pip.pypa.io/en/stable/
 pip install input4mips-validation
 # mamba: https://mamba.readthedocs.io/en/latest/
@@ -84,7 +82,7 @@ conda install -c conda-forge input4mips-validation
 
 Additional dependencies can be installed using
 
-```bash
+```sh
 # To add plotting dependencies
 pip install input4mips-validation[plots]
 # To add notebook dependencies

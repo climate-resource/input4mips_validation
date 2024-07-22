@@ -19,6 +19,34 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.8.0 (2024-07-22)
+
+
+### ⚠️ Breaking Changes
+
+- Completely re-wrote the package.
+
+  The APIs are similar, but not identical.
+  Given there are no users, we don't provide a migration guide.
+
+  Key changes:
+
+  - cleaned up the API to make clearer the different elements
+  - changed dev tooling to supporting conda packages, because we needed iris
+
+  ([#31](https://github.com/climate-resource/input4mips_validation/pulls/31))
+
+### 📚 Improved Documentation
+
+- Updated README badges ([#28](https://github.com/climate-resource/input4mips_validation/pulls/28))
+- Updated conda install workflow README badge ([#29](https://github.com/climate-resource/input4mips_validation/pulls/29))
+- Updated licence badge and tweaked badge layout ([#30](https://github.com/climate-resource/input4mips_validation/pulls/30))
+
+### 🔧 Trivial/Internal Changes
+
+- [#26](https://github.com/climate-resource/input4mips_validation/pulls/26), [#32](https://github.com/climate-resource/input4mips_validation/pulls/32), [#33](https://github.com/climate-resource/input4mips_validation/pulls/33)
+
+
 ## input4mips-validation v0.7.0 (2024-07-19)
 
 

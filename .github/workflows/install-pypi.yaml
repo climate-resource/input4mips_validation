@@ -16,10 +16,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Unsure how to make pip install work on MacOS and Windows,
+        # recommend to use conda.
         # os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        # python-version: [ "3.9", "3.10", "3.11" ]
-        os: ["ubuntu-latest", "macos-latest"]
-        python-version: [ "3.9" ]
+        os: ["ubuntu-latest"]
+        python-version: [ "3.9", "3.10", "3.11" ]
         # Check both 'library' install and the 'application' (i.e. locked) install
         install-target: ["input4mips-validation", "input4mips-validation[locked]"]
     steps:
@@ -59,10 +60,7 @@ jobs:
         which python
         which cfchecks
         ls $HOME/udunits/lib/
-        # Linux
         export LD_LIBRARY_PATH="$HOME/udunits/lib/:$LD_LIBRARY_PATH"
-        # Mac
-        export DYLD_LIBRARY_PATH="$HOME/udunits/lib/:$DYLD_LIBRARY_PATH"
         python -c 'import ctypes.util; print(ctypes.util.find_library("udunits2"))'
         python scripts/test-install.py
     - name: Install pytest

@@ -4,6 +4,7 @@ Validation with the [cf-checker](https://github.com/cedadev/cf-checker)
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -41,7 +42,8 @@ def check_with_cf_checker(filepath: Path | str, ds: xr.Dataset) -> None:
     cf_checks_loc = subprocess.check_output(["/usr/bin/which", "cfchecks"]).strip()  # noqa: S603
     try:
         subprocess.check_output(
-            [cf_checks_loc, "-v", cf_conventions, str(filepath)]  # noqa: S603
+            [cf_checks_loc, "-v", cf_conventions, str(filepath)],  # noqa: S603
+            env=os.environ.copy(),
         )
     except subprocess.CalledProcessError as exc:
         error_msg = (

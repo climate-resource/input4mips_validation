@@ -248,7 +248,7 @@ docstring-code-format = true
 [tool.towncrier]
 package = "input4mips_validation"
 package_dir = "src"
-filename = "docs/source/changelog.md"
+filename = "docs/changelog.md"
 directory = "changelog/"
 title_format = "## input4mips-validation {version} ({project_date})"
 underlines = [

@@ -29,7 +29,10 @@ jobs:
         with:
           pixi-environments: "docs"
       - name: docs
-        run: pixi run -e docs mkdocs build --strict
+        run: |
+          pixi run -e docs typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
+          pixi run -e docs mkdocs build --strict
+
   tests:
     strategy:
       fail-fast: false

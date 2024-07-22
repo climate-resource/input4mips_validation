@@ -15,9 +15,9 @@ build:
   jobs:
     pre_build:
       - pip install --no-deps .
+      - typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
     post_install:
       - mamba list
-      - typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
 
 conda:
   environment: environment-docs.yml

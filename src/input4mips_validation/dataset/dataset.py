@@ -213,10 +213,6 @@ class Input4MIPsDataset:
             copy_ds=False,
         )
 
-        # Lots of type ignores because of type hinting issues
-        # Have to use templating to fix type hinting properly I think.
-        # Although let's see where this issue ends up:
-        # https://github.com/python-attrs/attrs/issues/1309
         cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]
         cvs_values = cvs_source_id_entry.values
         variable_id = get_ds_var_assert_single(data)
@@ -381,10 +377,6 @@ class Input4MIPsDataset:
             copy_ds=False,
         )
 
-        # Lots of type ignores because of type hinting issues
-        # Have to use templating to fix type hinting properly I think.
-        # Although let's see where this issue ends up:
-        # https://github.com/python-attrs/attrs/issues/1309
         cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]
         cvs_values = cvs_source_id_entry.values
 

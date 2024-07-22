@@ -15,36 +15,24 @@ from attrs import define, field
 from typing_extensions import TypeAlias
 
 from input4mips_validation.cvs.loading_raw import RawCVLoader
-from input4mips_validation.database import make_class_from_database_entry_file_fields
+from input4mips_validation.cvs.source_id.values import SourceIDValues
 from input4mips_validation.exceptions import NonUniqueError
 from input4mips_validation.serialisation import converter_json
+
+__all__ = [
+    "SOURCE_ID_FILENAME",
+    "SourceIDValues",
+    "SourceIDEntry",
+    "SourceIDEntries",
+    "convert_unstructured_cv_to_source_id_entries",
+    "convert_source_id_entries_to_unstructured_cv",
+]
 
 SOURCE_ID_FILENAME: str = "input4MIPs_source_id.json"
 """Default name of the file in which the source ID CV is saved"""
 
 SourceIDEntriesUnstructured: TypeAlias = dict[str, dict[str, str]]
 """Form into which source ID entries are serialised for the CVs"""
-
-
-SourceIDValues = make_class_from_database_entry_file_fields(
-    "SourceIDValues",
-    (
-        "contact",
-        "further_info_url",
-        "institution_id",
-        "license_id",
-        "mip_era",
-        "source_version",
-    ),
-)
-"""
-Values defined by an source ID
-
-For an explanation of the required fields,
-see [`Input4MIPsDatabaseEntryFile`][input4mips_validation.database.Input4MIPsDatabaseEntryFile]
-"""  # noqa: E501
-# Adding docstrings like this is a hack while this issue is ongoing:
-# https://github.com/python-attrs/attrs/issues/1309
 
 
 @define
@@ -56,10 +44,7 @@ class SourceIDEntry:
     source_id: str
     """The unique value which identifies this source ID"""
 
-    # Have to use templating to fix type hinting properly I think.
-    # Although let's see where this issue ends up:
-    # https://github.com/python-attrs/attrs/issues/1309
-    values: SourceIDValues  # type: ignore
+    values: SourceIDValues
     """The values defined by this source ID"""
 
 

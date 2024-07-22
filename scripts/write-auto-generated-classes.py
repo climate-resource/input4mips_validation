@@ -506,11 +506,31 @@ This is the minimum metadata required to create a valid
         ),
     )
 
+    file_source_id_values = FileToWrite(
+        SRC / "cvs" / "source_id" / "values.py",
+        module_docstring="Source ID values definition",
+        imports=("from attrs import define",),
+        class_name="SourceIDValues",
+        class_docstring="Values defined by a source ID",
+        class_attributes=(
+            ALL_KNOWN_ATTRIBUTES[k]
+            for k in [
+                "contact",
+                "further_info_url",
+                "institution_id",
+                "license_id",
+                "mip_era",
+                "source_version",
+            ]
+        ),
+    )
+
     return [
         file_raw_database,
         file_input4mips_dataset_metadata,
         file_metadata_producer_minimum,
         file_metadata_producer_multi_variable_minimum,
+        file_source_id_values,
     ]
 
 

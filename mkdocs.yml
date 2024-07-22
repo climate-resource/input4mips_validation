@@ -9,14 +9,18 @@ plugins:
   - search
   - autorefs
   - mkdocstrings:
+      enable_inventory: true
       handlers:
         python:
+          paths: [src]
           import:
             - https://ncdata.readthedocs.io/en/stable/objects.inv
             - https://scitools-iris.readthedocs.io/en/stable/objects.inv
             - http://xarray.pydata.org/en/stable/objects.inv
           options:
             docstring_style: numpy
+            show_root_heading: true
+            show_source: true
 
 theme:
   name: "material"

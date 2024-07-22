@@ -59,7 +59,10 @@ jobs:
         which python
         which cfchecks
         ls $HOME/udunits/lib/
+        # Linux
         export LD_LIBRARY_PATH="$HOME/udunits/lib/:$LD_LIBRARY_PATH"
+        # Mac
+        export DYLD_LIBRARY_PATH="$HOME/udunits/lib/:$DYLD_LIBRARY_PATH"
         python -c 'import ctypes.util; print(ctypes.util.find_library("udunits2"))'
         python scripts/test-install.py
     - name: Install pytest

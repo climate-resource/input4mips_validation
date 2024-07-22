@@ -1,7 +1,6 @@
 name: Test installation conda
 
 on:
-  pull_request:
   workflow_dispatch:
   schedule:
     # * is a special character in YAML so you have to quote this string
@@ -16,10 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        # python-version: [ "3.9", "3.10", "3.11" ]
-        os: ["ubuntu-latest"]
-        python-version: [ "3.9" ]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        python-version: [ "3.9", "3.10", "3.11" ]
         # Check both 'library' install and the 'application' (i.e. locked) install
         install-target: ["input4mips-validation", "input4mips-validation-locked"]
 

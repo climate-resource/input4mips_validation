@@ -1,44 +1,38 @@
 """
-Exceptions used in the top-level modules
+Exceptions
 """
 
 from __future__ import annotations
 
+import collections
+from collections.abc import Collection
+from typing import Any
 
-class DatasetMetadataInconsistencyError(ValueError):
+
+class NonUniqueError(ValueError):
     """
-    Raised when there is an inconsistency between a dataset and the metadata
+    Raised when a collection of values are not unique, but they should be
     """
 
     def __init__(
         self,
-        ds_key: str,
-        ds_key_value: str,
-        metadata_key: str,
-        metadata_key_value: str,
+        description: str,
+        values: Collection[Any],
     ) -> None:
         """
         Initialise the error
 
         Parameters
         ----------
-        ds_key
-            Key/identifier for the source of the value in the dataset
+        description
+            Description of the collection and the error
 
-        ds_key_value
-            Value of ``ds_key`` (often best to pre-format this so
-            that the original variable name is included in the output)
+            This is used to make a more helpful error message.
 
-        metadata_key
-            Key/identifier for the source of the value in the metadata
-
-        metadata_key_value
-            Value of ``metadata_key`` (often best to pre-format this so
-            that the original variable name is included in the output)
+        values
+            Collection of values that contains non-unique values
         """
-        error_msg = (
-            f"{ds_key} must match {metadata_key}. "
-            f"{ds_key_value}, {metadata_key_value}"
-        )
+        occurence_counts = collections.Counter(values).most_common()
+        error_msg = f"{description}. {occurence_counts=}"
 
         super().__init__(error_msg)

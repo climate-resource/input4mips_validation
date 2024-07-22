@@ -15,12 +15,13 @@ build:
   jobs:
     pre_build:
       - pip install --no-deps .
+      - typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
     post_install:
       - mamba list
 
 conda:
   environment: environment-docs.yml
 
-# Set sphinx configuration
-sphinx:
-   configuration: docs/source/conf.py
+mkdocs:
+  configuration: mkdocs.yml
+  fail_on_warning: true

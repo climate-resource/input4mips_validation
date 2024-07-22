@@ -3,9 +3,15 @@ ci:
   autofix_prs: false
   autoupdate_schedule: quarterly
   autoupdate_branch: pre-commit-autoupdate
-  # Don't have pixi in CI
-  # and this lock file check happens elsewhere so we can skip it here
-  skip: [pixi-install, environment-docs, pdm-export, pdm-lock-check]
+  # Skip steps that won't run on pre-commit CI for various reasons,
+  # mostly because they rely on local things.
+  skip: [
+    pixi-install,
+    environment-docs,
+    pdm-export,
+    pdm-lock-check,
+    auto-generated-classes,
+  ]
 
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
@@ -40,7 +46,7 @@ repos:
         args: [ --fix, --exit-non-zero-on-fix ]
       - id: ruff-format
   - repo: https://github.com/pdm-project/pdm
-    rev: 2.16.1
+    rev: 2.17.0
     hooks:
       # Check that the lock file is up to date.
       # We need the pdm lock file too
@@ -49,7 +55,7 @@ repos:
         args: [ --dev, --group, ":all" ]
       # Put a requirements.txt file in the repo too
       - id: pdm-export
-        args: ['-o', 'requirements.txt', '--without-hashes']
+        args: ['--prod', '-o', 'requirements.txt', '--without-hashes']
       # - id: pdm-sync  # not used here because we manage environments with pixi
   - repo: local
     hooks:
@@ -70,6 +76,13 @@ repos:
         name: environment-docs
         entry: pixi run -e all-dev python scripts/write-docs-environment.py
         files: "pixi.lock"
+        language: system
+        require_serial: true
+        pass_filenames: false
+      - id: auto-generated-classes
+        name: auto-generated-classes
+        entry: pixi run -e all-dev python scripts/write-auto-generated-classes.py
+        files: "scripts/write-auto-generated-classes.py"
         language: system
         require_serial: true
         pass_filenames: false

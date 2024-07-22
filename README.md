@@ -1,15 +1,6 @@
 # Input4MIPs-validation
 
-<!---
-Can use start-after and end-before directives in docs, see
-https://myst-parser.readthedocs.io/en/latest/syntax/organising_content.html#inserting-other-documents-directly-into-the-current-document
--->
-
-<!--- sec-begin-description -->
-
 Validation of input4MIPs data (checking file formats, metadata etc.).
-
-
 
 **Key info :**
 [![Docs](https://readthedocs.org/projects/input4mips-validation/badge/?version=latest)](https://input4mips-validation.readthedocs.io)
@@ -33,7 +24,6 @@ Validation of input4MIPs data (checking file formats, metadata etc.).
 [![Last Commit](https://img.shields.io/github/last-commit/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/commits/main)
 [![Contributors](https://img.shields.io/github/contributors/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/graphs/contributors)
 
-<!--- sec-end-description -->
 
 Full documentation can be found at:
 [input4mips-validation.readthedocs.io](https://input4mips-validation.readthedocs.io/en/latest/).
@@ -41,7 +31,6 @@ We recommend reading the docs there because the internal documentation links
 don't render correctly on GitHub's viewer.
 
 ## Installation
-<!--- sec-begin-installation -->
 
 ### As an application
 
@@ -54,7 +43,7 @@ because of breaking updates to dependencies.
 
 The locked version of input4mips-validation can be installed with
 
-```bash
+```sh
 # pip: https://pip.pypa.io/en/stable/
 pip install input4mips-validation[locked]
 # mamba: https://mamba.readthedocs.io/en/latest/
@@ -82,7 +71,7 @@ please [raise an issue](https://github.com/climate-resource/input4mips_validatio
 
 The (non-locked) version of input4mips-validation can be installed with
 
-```bash
+```sh
 # pip: https://pip.pypa.io/en/stable/
 pip install input4mips-validation
 # mamba: https://mamba.readthedocs.io/en/latest/
@@ -93,7 +82,7 @@ conda install -c conda-forge input4mips-validation
 
 Additional dependencies can be installed using
 
-```bash
+```sh
 # To add plotting dependencies
 pip install input4mips-validation[plots]
 # To add notebook dependencies
@@ -104,11 +93,7 @@ pip install input4mips-validation[notebooks]
 # solution yet (issue here: https://github.com/conda/conda/issues/7502)
 ```
 
-<!--- sec-end-installation -->
-
 ### For developers
-
-<!--- sec-begin-installation-dev -->
 
 For development, we rely on [pixi](https://pixi.sh/latest/)
 for all our dependency management.
@@ -130,6 +115,4 @@ If there are any issues, the messages from the `Makefile` should guide you
 through. If not, please raise an issue in the
 [issue tracker](https://github.com/climate-resource/input4mips_validation/issues).
 
-For the rest of our developer docs, please see [](development-reference).
-
-<!--- sec-end-installation-dev -->
+For the rest of our developer docs, please see [development][development-reference].

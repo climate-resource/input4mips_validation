@@ -1,0 +1,106 @@
+site_name: Input4MIPs validation
+site_description: Validation of input4MIPs data (checking file formats, metadata etc.).
+site_url: https://input4mips-validation.readthedocs.io
+edit_uri: blob/master/docs/
+
+repo_name: climate-resource/input4mips_validation
+repo_url: https://github.com/climate-resource/input4mips_validation
+
+nav:
+  - Input4MIPs validation: index.md
+  - How-to guides:
+    - how-to-guides/index.md
+    - How to validate a file: how-to-guides/how-to-validate-file.py
+  - Tutorials: tutorials.md
+  - Further background:
+    - Explanation: explanation.md
+  - Command-line interface: cli/index.md
+  - API reference: api/input4mips_validation/
+  - Development: development.md
+  - Changelog: changelog.md
+
+theme:
+  name: "material"
+  features:
+    - content.code.copy
+  palette:
+
+    # Palette toggle for light mode
+    - scheme: default
+    # - scheme: cr-light
+      primary: white
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+    # - scheme: cr-dark
+      primary: black
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to light mode
+
+extra_css:
+  - assets/style.css
+
+plugins:
+  - search
+  - autorefs
+  # Required for auto-generating our documentation stubs,
+  # a bit like sphinx autodoc gen used to do
+  - gen-files:
+      scripts:
+        - docs/gen_doc_stubs.py
+  - mkdocstrings:
+      enable_inventory: true
+      handlers:
+        python:
+          paths: [src]
+          import:
+            - https://unidata.github.io/cftime/objects.inv
+            - https://ncdata.readthedocs.io/en/latest/objects.inv
+            - https://www.fatiando.org/pooch/latest/objects.inv
+            - https://docs.python.org/3/objects.inv
+            - https://scitools-iris.readthedocs.io/en/latest/objects.inv
+            - https://validators.readthedocs.io/en/latest/objects.inv
+            - http://xarray.pydata.org/en/latest/objects.inv
+          options:
+            docstring_style: numpy
+            show_root_heading: true
+            show_source: true
+  # # Make the nav recursive
+  - literate-nav
+  #     nav_file: SUMMARY.md
+  # https://oprypin.github.io/mkdocs-section-index/
+  # This won't work properly until we write a nav file too, job for another day
+  - section-index
+  # Working out how to make this play with nb-exec would be nice,
+  # then it wouldn't run every time.
+  # We could also get the nb-exec-table mentioned here:
+  # https://myst-nb.readthedocs.io/en/v0.12.2/use/execute.html
+  # One for another day.
+  - mkdocs-jupyter:
+      execute: true
+      ignore: ["*.ipynb", "docs/gen_doc_stubs.py"]
+
+markdown_extensions:
+  - attr_list
+  # Code highlighting handiness
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - tables
+  # Ensure that there are links to table of contents items
+  - toc:
+      permalink: "#"
+
+watch:
+  - src
+  - README.md

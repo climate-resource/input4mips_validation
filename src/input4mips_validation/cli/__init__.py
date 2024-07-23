@@ -8,7 +8,7 @@ Command-line interface
 import datetime as dt
 import shutil
 from pathlib import Path
-from typing import Annotated, Union
+from typing import Annotated, Optional, Union
 
 import cftime
 import iris
@@ -29,7 +29,7 @@ from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_
 app = typer.Typer()
 
 CV_SOURCE_TYPE = Annotated[
-    str,
+    Optional[str],
     typer.Option(
         help=(
             "String identifying the source of the CVs. "
@@ -49,23 +49,54 @@ CV_SOURCE_TYPE = Annotated[
             "(i.e. whether we should look for the CVs locally "
             "or retrieve them from a URL)."
         ),
-        show_default=False,
     ),
 ]
 
-CV_SOURCE_UNSET_VALUE: str = "not_set_idjunk"
-"""
-Default value for CV source at the CLI
+BNDS_COORD_INDICATOR_TYPE = Annotated[
+    str,
+    typer.Option(
+        help=(
+            "String that indicates that a variable is a bounds co-ordinate. "
+            "This helps us with identifying `infile`'s variables correctly "
+            "in the absence of an agreed convention for doing this "
+            "(xarray has a way, "
+            "but it conflicts with the CF-conventions hence iris, "
+            "so here we are)."
+        )
+    ),
+]
 
-If cv_source equals this value, we assume that it wasn't passed by the user.
-"""
+FREQUENCY_METADATA_KEY_TYPE = Annotated[
+    str,
+    typer.Option(
+        help=(
+            "The key in the data's metadata "
+            "which points to information about the data's frequency. "
+            "Only required if --write-in-drs or --create-db-entry are supplied."
+        )
+    ),
+]
 
-WRITE_IN_DRS_UNSET_VALUE: str = "nowhere_idjunk"
-"""
-Default value for write-in-drs at the CLI
+NO_TIME_AXIS_FREQUENCY_TYPE = Annotated[
+    str,
+    typer.Option(
+        help=(
+            "The value of 'frequency' in the metadata which indicates "
+            "that the file has no time axis i.e. is fixed in time."
+            "Only required if --write-in-drs or --create-db-entry are supplied."
+        )
+    ),
+]
 
-If write_in_drs equals this value, we assume that it wasn't passed by the user.
-"""
+TIME_DIMENSION_TYPE = Annotated[
+    str,
+    typer.Option(
+        help=(
+            "The time dimension of the data. "
+            "Only required if --write-in-drs or --create-db-entry are supplied."
+        )
+    ),
+]
 
 
 @app.callback()
@@ -79,35 +110,6 @@ def cli(setup_logging: bool = True) -> None:
         input4mips_validation.cli.logging.setup_logging()
 
 
-def get_cv_source(cv_source: str, cv_source_unset_value: str) -> Union[str, None]:
-    """
-    Get CV source as the type we actually want.
-
-    This is a workaround
-    for the fact that typer does not support an input with type `Union[str, None]` yet.
-
-    Parameters
-    ----------
-    cv_source
-        CV source as received from the CLI (always a string)
-
-    cv_source_unset_value
-        Value which indicates that CV source was not set at the command-line.
-
-    Returns
-    -------
-        CV source, translated into the type we actually want.
-    """
-    # TODO: remove this
-    # I think typer supports Union[str, None] or Optional[str] annotations
-    if cv_source == cv_source_unset_value:
-        cv_source_use = None
-    else:
-        cv_source_use = cv_source
-
-    return cv_source_use
-
-
 @app.command(name="validate-file")
 def validate_file_command(  # noqa: PLR0913
     file: Annotated[
@@ -116,9 +118,9 @@ def validate_file_command(  # noqa: PLR0913
             help="The file to validate", exists=True, dir_okay=False, file_okay=True
         ),
     ],
-    cv_source: CV_SOURCE_TYPE = CV_SOURCE_UNSET_VALUE,
+    cv_source: CV_SOURCE_TYPE = None,
     write_in_drs: Annotated[
-        str,
+        Optional[Path],
         typer.Option(
             help=(
                 "If supplied, "
@@ -128,7 +130,7 @@ def validate_file_command(  # noqa: PLR0913
             ),
             show_default=False,
         ),
-    ] = WRITE_IN_DRS_UNSET_VALUE,
+    ] = None,
     create_db_entry: Annotated[
         bool,
         typer.Option(
@@ -141,48 +143,10 @@ def validate_file_command(  # noqa: PLR0913
             ),
         ),
     ] = False,
-    bnds_coord_indicator: Annotated[
-        str,
-        typer.Option(
-            help=(
-                "String that indicates that a variable is a bounds co-ordinate. "
-                "This helps us with identifying `infile`'s variables correctly "
-                "in the absence of an agreed convention for doing this "
-                "(xarray has a way, "
-                "but it conflicts with the CF-conventions hence iris, "
-                "so here we are)."
-            )
-        ),
-    ] = "bnds",
-    frequency_metadata_key: Annotated[
-        str,
-        typer.Option(
-            help=(
-                "The key in the data's metadata "
-                "which points to information about the data's frequency. "
-                "Only required if --write-in-drs or --create-db-entry are supplied."
-            )
-        ),
-    ] = "frequency",
-    no_time_axis_frequency: Annotated[
-        str,
-        typer.Option(
-            help=(
-                "The value of 'frequency' in the metadata which indicates "
-                "that the file has no time axis i.e. is fixed in time."
-                "Only required if --write-in-drs or --create-db-entry are supplied."
-            )
-        ),
-    ] = "fx",
-    time_dimension: Annotated[
-        str,
-        typer.Option(
-            help=(
-                "The time dimension of the data. "
-                "Only required if --write-in-drs or --create-db-entry are supplied."
-            )
-        ),
-    ] = "time",
+    bnds_coord_indicator: BNDS_COORD_INDICATOR_TYPE = "bnds",
+    frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
+    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
+    time_dimension: TIME_DIMENSION_TYPE = "time",
 ) -> None:
     """
     Validate a single file
@@ -191,20 +155,10 @@ def validate_file_command(  # noqa: PLR0913
     because some validation can only be performed if we have the entire file tree.
     See the ``validate-tree`` command for this validation.
     """
-    cv_source_use = get_cv_source(
-        cv_source, cv_source_unset_value=CV_SOURCE_UNSET_VALUE
-    )
+    validate_file(file, cv_source=cv_source)
 
-    if write_in_drs == WRITE_IN_DRS_UNSET_VALUE:
-        write_in_drs_use: Union[Path, None] = None
-
-    else:
-        write_in_drs_use = Path(write_in_drs)
-
-    validate_file(file, cv_source=cv_source_use)
-
-    if write_in_drs_use:
-        raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source_use)
+    if write_in_drs:
+        raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
         cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
 
         ds = ds_from_iris_cubes(
@@ -222,7 +176,7 @@ def validate_file_command(  # noqa: PLR0913
             time_start = time_end = None
 
         full_file_path = cvs.DRS.get_file_path(
-            root_data_dir=write_in_drs_use,
+            root_data_dir=write_in_drs,
             available_attributes=ds.attrs,
             time_start=time_start,
             time_end=time_end,
@@ -237,10 +191,10 @@ def validate_file_command(  # noqa: PLR0913
         shutil.copy(file, write_path)
 
     if create_db_entry:
-        if write_in_drs_use:
+        if write_in_drs:
             db_entry_creation_file = write_path
         else:
-            raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source_use)
+            raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
             cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
 
             db_entry_creation_file = file
@@ -265,7 +219,7 @@ def validate_tree_command(
             file_okay=False,
         ),
     ],
-    cv_source: CV_SOURCE_TYPE = CV_SOURCE_UNSET_VALUE,
+    cv_source: CV_SOURCE_TYPE = None,
 ) -> None:
     """
     Validate a tree of files
@@ -273,11 +227,7 @@ def validate_tree_command(
     This checks things like whether all external variables are also provided
     and all tracking IDs are unique.
     """
-    cv_source_use = get_cv_source(
-        cv_source, cv_source_unset_value=CV_SOURCE_UNSET_VALUE
-    )
-
-    validate_tree(root=tree_root, cv_source=cv_source_use)
+    validate_tree(root=tree_root, cv_source=cv_source)
 
 
 if __name__ == "__main__":

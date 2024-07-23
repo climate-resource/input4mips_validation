@@ -23,7 +23,10 @@ from input4mips_validation.testing import get_valid_ds_min_metadata_example
 from input4mips_validation.validation import validate_tree
 
 UR = pint.get_application_registry()
-UR.define("ppb = ppm * 1000")
+try:
+    UR.define("ppb = ppm * 1000")
+except pint.errors.RedefinitionError:
+    pass
 
 runner = CliRunner()
 

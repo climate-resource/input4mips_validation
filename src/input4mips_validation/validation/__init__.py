@@ -380,6 +380,8 @@ def validate_tree(
             bnds_coord_indicator=bnds_coord_indicator,
         )
 
+        # add validation of DRS
+
     # breakpoint()
 
     if caught_errors:

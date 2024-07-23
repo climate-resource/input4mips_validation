@@ -317,6 +317,36 @@ def validate_file(
     logger.info("Validation passed")
 
 
+def validate_file_correctly_written_in_drs(file: Path, cvs: Input4MIPsCVs) -> None:
+    """
+    Validate that a file is correctly written in the DRS
+
+    Parameters
+    ----------
+    file
+        File to validate
+
+    cvs
+        CVs to use to check writing in line with the DRS
+
+    Raises
+    ------
+    ValueError
+        The file is not correctly written in the DRS
+    """
+    # TODO: try except here
+    # If the file is clearly wrong,
+    # just print out the directory and print out the template
+    # and say, try again
+    directory_metadata = cvs.DRS.extract_metadata_from_path(
+        file.absolute(), include_root_data_dir=True
+    )
+
+    # Get file metadata too
+    # Check consistency, pointing out any spots where there are mismatches
+    # breakpoint()
+
+
 def validate_tree(
     root: Path,
     cv_source: str | None,
@@ -373,6 +403,11 @@ def validate_tree(
     validate_file_with_catch = catch_error(
         validate_file, call_purpose="Validate individual file"
     )
+
+    validate_file_correctly_written_in_drs_with_catch = catch_error(
+        validate_file_correctly_written_in_drs,
+        call_purpose="Validate file is correctly written in the DRS",
+    )
     for file in all_files:
         validate_file_with_catch(
             file,
@@ -380,9 +415,10 @@ def validate_tree(
             bnds_coord_indicator=bnds_coord_indicator,
         )
 
-        # add validation of DRS
-
-    # breakpoint()
+        validate_file_correctly_written_in_drs_with_catch(
+            file,
+            cvs=cvs,
+        )
 
     if caught_errors:
         logger.info("Validation failed")

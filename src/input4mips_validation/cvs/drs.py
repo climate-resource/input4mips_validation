@@ -333,7 +333,9 @@ class DataReferenceSyntax:
 
         return tuple(substitutions_l)
 
-    def extract_metadata_from_path(self, directory: Path) -> dict[str, str]:
+    def extract_metadata_from_path(
+        self, directory: Path, include_root_data_dir: bool = False
+    ) -> dict[str, str]:
         """
         Extract metadata from a path
 
@@ -348,8 +350,15 @@ class DataReferenceSyntax:
         directory
             Directory from which to extract the metadata
 
+        include_root_data_dir
+            Should the key "root_data_dir" be included in the output?
+
+            The value of this key specifies the (inferred) root directory
+            of the data.
+
         Returns
         -------
+        :
             Extracted metadata
         """
         root_data_dir_key = "root_data_dir"
@@ -364,7 +373,11 @@ class DataReferenceSyntax:
 
         match_groups = match.groupdict()
 
-        res = {k: v for k, v in match_groups.items() if k != root_data_dir_key}
+        if include_root_data_dir:
+            res = match_groups
+
+        else:
+            res = {k: v for k, v in match_groups.items() if k != root_data_dir_key}
 
         return res
 

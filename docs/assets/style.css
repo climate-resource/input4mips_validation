@@ -1,4 +1,0 @@
-/* Prevent the user from selecting Python REPL (i.e. >>>) when copying code */
-.highlight .gp { /* Generic.Prompt */
-  user-select: none;
-}

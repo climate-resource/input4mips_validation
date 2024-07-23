@@ -78,8 +78,8 @@ def infer_time_start_time_end(
     no_time_axis_frequency: str,
     time_dimension: str,
 ) -> tuple[
-    Union[cftime.datetime, dt.datetime],
-    Union[cftime.datetime, dt.datetime],
+    Union[cftime.datetime, dt.datetime, np.datetime64, None],
+    Union[cftime.datetime, dt.datetime, np.datetime64, None],
 ]:
     """
     Infter start and end time of the data in a dataset
@@ -115,6 +115,7 @@ def infer_time_start_time_end(
         time_end: Union[
             cftime.datetime, dt.datetime, np.datetime64, None
         ] = xr_time_min_max_to_single_value(ds[time_dimension].max())
+
     else:
         time_start = time_end = None
 

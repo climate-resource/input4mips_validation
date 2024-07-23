@@ -504,13 +504,19 @@ def validate_tree(  # noqa: PLR0913
             bnds_coord_indicator=bnds_coord_indicator,
         )
 
-        validate_file_correctly_written_in_drs_with_catch(
-            file,
-            cvs=cvs,
-            frequency_metadata_key=frequency_metadata_key,
-            no_time_axis_frequency=no_time_axis_frequency,
-            time_dimension=time_dimension,
-        )
+        if cvs is None:
+            logger.error(
+                "Skipping check of consistency with DRS because CVs did not load"
+            )
+
+        else:
+            validate_file_correctly_written_in_drs_with_catch(
+                file,
+                cvs=cvs,
+                frequency_metadata_key=frequency_metadata_key,
+                no_time_axis_frequency=no_time_axis_frequency,
+                time_dimension=time_dimension,
+            )
 
         # TODO: check cross references
 

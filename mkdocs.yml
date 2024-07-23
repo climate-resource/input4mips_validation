@@ -60,6 +60,7 @@ plugins:
           import:
             - https://unidata.github.io/cftime/objects.inv
             - https://ncdata.readthedocs.io/en/latest/objects.inv
+            - https://pint.readthedocs.io/en/latest/objects.inv
             - https://www.fatiando.org/pooch/latest/objects.inv
             - https://docs.python.org/3/objects.inv
             - https://scitools-iris.readthedocs.io/en/latest/objects.inv

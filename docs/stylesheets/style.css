@@ -4,8 +4,6 @@
 }
 
 [data-md-color-scheme="cr-light"] {
-  @extend %root;
-
   color-scheme: light;
 
   --md-primary-fg-color:        #035d72;
@@ -14,8 +12,6 @@
 }
 
 [data-md-color-scheme="cr-dark"] {
-  @extend %slate;
-
   color-scheme: dark;
 
   --md-primary-fg-color:        #4ec4d4;

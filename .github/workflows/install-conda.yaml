@@ -33,7 +33,7 @@ jobs:
         create-args: >-
           python=${{ matrix.python-version }}
           -c conda-forge
-          "${{ matrix.install-target }}"
+          ${{ matrix.install-target }}
         init-shell: bash
     - name: Checkout repository
       uses: actions/checkout@v4

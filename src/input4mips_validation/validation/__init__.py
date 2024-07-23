@@ -15,8 +15,13 @@ from loguru import logger
 from typing_extensions import ParamSpec
 
 from input4mips_validation.cvs import Input4MIPsCVs
+from input4mips_validation.cvs.drs import apply_known_replacements
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
+from input4mips_validation.inference.from_data import (
+    create_time_range,
+    infer_time_start_time_end,
+)
 from input4mips_validation.validation.cf_checker import check_with_cf_checker
 
 P = ParamSpec("P")
@@ -317,7 +322,13 @@ def validate_file(
     logger.info("Validation passed")
 
 
-def validate_file_correctly_written_in_drs(file: Path, cvs: Input4MIPsCVs) -> None:
+def validate_file_correctly_written_in_drs(
+    file: Path,
+    cvs: Input4MIPsCVs,
+    frequency_metadata_key: str,
+    no_time_axis_frequency: str,
+    time_dimension: str,
+) -> None:
     """
     Validate that a file is correctly written in the DRS
 
@@ -328,6 +339,17 @@ def validate_file_correctly_written_in_drs(file: Path, cvs: Input4MIPsCVs) -> No
 
     cvs
         CVs to use to check writing in line with the DRS
+
+    frequency_metadata_key
+        The key in the data's metadata
+        which points to information about the data's frequency
+
+    no_time_axis_frequency
+        The value of `frequency_metadata_key` in the metadata which indicates
+        that the file has no time axis i.e. is fixed in time.
+
+    time_dimension
+        The time dimension of the data
 
     Raises
     ------
@@ -340,21 +362,73 @@ def validate_file_correctly_written_in_drs(file: Path, cvs: Input4MIPsCVs) -> No
     # and say, try again
     directory_metadata = cvs.DRS.extract_metadata_from_path(file.absolute())
     file_metadata = cvs.DRS.extract_metadata_from_filename(file.name)
-    cvs.DRS.extract_metadata_from_filename(
-        "mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn_200001-201001.nc"
+
+    ds = xr.load_dataset(file)
+    comparison_metadata = {k: apply_known_replacements(v) for k, v in ds.attrs.items()}
+
+    # Infer time range information, in case it appears in the DRS.
+    # Annoying that we have to pass this all the way through to here.
+    time_start, time_end = infer_time_start_time_end(
+        ds=ds,
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
+        time_dimension=time_dimension,
     )
-    cvs.DRS.extract_metadata_from_filename(
-        "mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn.nc"
-    )
+    if time_start is not None and time_end is not None:
+        time_range = create_time_range(
+            time_start=time_start,
+            time_end=time_end,
+            ds_frequency=ds.attrs[frequency_metadata_key],
+        )
 
-    # Check consistency, pointing out any spots where there are mismatches
-    # breakpoint()
+        comparison_metadata["time_range"] = time_range
+
+    # Really don't like this hard-coding
+    # TODO: think of a better way of expressing this.
+    # This key is unverifiable because we don't save this data anywhere in the file,
+    # and it can take any value.
+    unverifiable_keys_directory = ["version"]
+
+    mismatches = []
+    for k, v in directory_metadata.items():
+        if k in unverifiable_keys_directory:
+            continue
+
+        if comparison_metadata[k] != v:
+            mismatches.append(
+                [k, "directory", directory_metadata[v], comparison_metadata[k]]
+            )
+
+    for k, v in file_metadata.items():
+        if comparison_metadata[k] != v:
+            mismatches.append([k, "filename", file_metadata[v], comparison_metadata[k]])
+
+    if mismatches:
+        msg_l = [
+            "File not written in line with the DRS.",
+            f"{file.absolute()=}.",
+            f"{cvs.DRS.directory_path_template=}",
+            f"{cvs.DRS.filename_template=}",
+        ]
+        for mismatch in mismatches:
+            key, location, filename_val, expected_val = mismatch
+
+            tmp = (
+                f"Mismatch in {location} for {key}. {filename_val=!r} {expected_val=!r}"
+            )
+            msg_l.append(tmp)
+
+        msg = "\n".join(msg_l)
+        raise ValueError(msg)
 
 
-def validate_tree(
+def validate_tree(  # noqa: PLR0913
     root: Path,
     cv_source: str | None,
     bnds_coord_indicator: str = "bnds",
+    frequency_metadata_key: str = "frequency",
+    no_time_axis_frequency: str = "fx",
+    time_dimension: str = "time",
 ) -> None:
     """
     Validate a (directory) tree
@@ -386,6 +460,17 @@ def validate_tree(
         in the absence of an agreed convention for doing this
         (xarray has a way, but it conflicts with the CF-conventions,
         so here we are).
+
+    frequency_metadata_key
+        The key in the data's metadata
+        which points to information about the data's frequency
+
+    no_time_axis_frequency
+        The value of `frequency_metadata_key` in the metadata which indicates
+        that the file has no time axis i.e. is fixed in time.
+
+    time_dimension
+        The time dimension of the data
 
     Raises
     ------
@@ -422,8 +507,14 @@ def validate_tree(
         validate_file_correctly_written_in_drs_with_catch(
             file,
             cvs=cvs,
+            frequency_metadata_key=frequency_metadata_key,
+            no_time_axis_frequency=no_time_axis_frequency,
+            time_dimension=time_dimension,
         )
 
+        # TODO: check cross references
+
+    # TODO: check that all tracking IDs are unique
     if caught_errors:
         logger.info("Validation failed")
         raise InvalidTreeError(root=root, error_container=caught_errors)

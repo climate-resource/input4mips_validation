@@ -204,7 +204,7 @@ def validate_file_command(  # noqa: PLR0913
 
 
 @app.command(name="validate-tree")
-def validate_tree_command(
+def validate_tree_command(  # noqa: PLR0913
     tree_root: Annotated[
         Path,
         typer.Argument(
@@ -215,6 +215,10 @@ def validate_tree_command(
         ),
     ],
     cv_source: CV_SOURCE_TYPE = None,
+    bnds_coord_indicator: BNDS_COORD_INDICATOR_TYPE = "bnds",
+    frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
+    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
+    time_dimension: TIME_DIMENSION_TYPE = "time",
 ) -> None:
     """
     Validate a tree of files
@@ -222,7 +226,14 @@ def validate_tree_command(
     This checks things like whether all external variables are also provided
     and all tracking IDs are unique.
     """
-    validate_tree(root=tree_root, cv_source=cv_source)
+    validate_tree(
+        root=tree_root,
+        cv_source=cv_source,
+        bnds_coord_indicator=bnds_coord_indicator,
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
+        time_dimension=time_dimension,
+    )
 
 
 if __name__ == "__main__":

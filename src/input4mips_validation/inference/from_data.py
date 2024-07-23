@@ -6,12 +6,14 @@ from __future__ import annotations
 
 import datetime as dt
 from functools import partial
+from typing import Union
 
 import cftime
 import numpy as np
 import xarray as xr
 
 from input4mips_validation.serialisation import format_date_for_time_range
+from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
 
 def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
@@ -68,6 +70,55 @@ def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
         return "yr"
 
     raise NotImplementedError(ds)
+
+
+def infer_time_start_time_end(
+    ds: xr.Dataset,
+    frequency_metadata_key: str,
+    no_time_axis_frequency: str,
+    time_dimension: str,
+) -> tuple[
+    Union[cftime.datetime, dt.datetime],
+    Union[cftime.datetime, dt.datetime],
+]:
+    """
+    Infter start and end time of the data in a dataset
+
+    Parameters
+    ----------
+    ds
+        Dataset from which to infer start and end time
+
+    frequency_metadata_key
+        The key in the data's metadata
+        which points to information about the data's frequency
+
+    no_time_axis_frequency
+        The value of `frequency_metadata_key` in the metadata which indicates
+        that the file has no time axis i.e. is fixed in time.
+
+    time_dimension
+        The time dimension of the data
+
+    Returns
+    -------
+    time_start :
+        Start time of the data
+
+    time_end :
+        End time of the data
+    """
+    if ds.attrs[frequency_metadata_key] != no_time_axis_frequency:
+        time_start: Union[
+            cftime.datetime, dt.datetime, np.datetime64, None
+        ] = xr_time_min_max_to_single_value(ds[time_dimension].min())
+        time_end: Union[
+            cftime.datetime, dt.datetime, np.datetime64, None
+        ] = xr_time_min_max_to_single_value(ds[time_dimension].max())
+    else:
+        time_start = time_end = None
+
+    return time_start, time_end
 
 
 def create_time_range(

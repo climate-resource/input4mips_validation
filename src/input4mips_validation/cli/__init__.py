@@ -5,14 +5,11 @@ Command-line interface
 # # Do not use this here, it breaks typer's annotations
 # from __future__ import annotations
 
-import datetime as dt
 import shutil
 from pathlib import Path
-from typing import Annotated, Optional, Union
+from typing import Annotated, Optional
 
-import cftime
 import iris
-import numpy as np
 import rich
 import typer
 from loguru import logger
@@ -21,10 +18,10 @@ import input4mips_validation.cli.logging
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
+from input4mips_validation.inference.from_data import infer_time_start_time_end
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
 from input4mips_validation.validation import validate_file, validate_tree
 from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
-from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
 app = typer.Typer()
 
@@ -81,7 +78,7 @@ NO_TIME_AXIS_FREQUENCY_TYPE = Annotated[
     str,
     typer.Option(
         help=(
-            "The value of 'frequency' in the metadata which indicates "
+            "The value of `frequency_metadata_key` in the metadata which indicates "
             "that the file has no time axis i.e. is fixed in time."
             "Only required if --write-in-drs or --create-db-entry are supplied."
         )
@@ -165,15 +162,12 @@ def validate_file_command(  # noqa: PLR0913
             iris.load(file), bnds_coord_indicator=bnds_coord_indicator
         )
 
-        if ds.attrs[frequency_metadata_key] != no_time_axis_frequency:
-            time_start: Union[
-                cftime.datetime, dt.datetime, np.datetime64, None
-            ] = xr_time_min_max_to_single_value(ds[time_dimension].min())
-            time_end: Union[
-                cftime.datetime, dt.datetime, np.datetime64, None
-            ] = xr_time_min_max_to_single_value(ds[time_dimension].max())
-        else:
-            time_start = time_end = None
+        time_start, time_end = infer_time_start_time_end(
+            ds=ds,
+            frequency_metadata_key=frequency_metadata_key,
+            no_time_axis_frequency=no_time_axis_frequency,
+            time_dimension=time_dimension,
+        )
 
         full_file_path = cvs.DRS.get_file_path(
             root_data_dir=write_in_drs,
@@ -194,10 +188,11 @@ def validate_file_command(  # noqa: PLR0913
         if write_in_drs:
             db_entry_creation_file = write_path
         else:
+            db_entry_creation_file = file
+
+            # Also load the CVs, as they won't be loaded yet
             raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
             cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
-
-            db_entry_creation_file = file
 
         database_entry = Input4MIPsDatabaseEntryFile.from_file(
             db_entry_creation_file, cvs=cvs

@@ -195,7 +195,11 @@ def validate_file_command(  # noqa: PLR0913
             cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
 
         database_entry = Input4MIPsDatabaseEntryFile.from_file(
-            db_entry_creation_file, cvs=cvs
+            db_entry_creation_file,
+            cvs=cvs,
+            frequency_metadata_key=frequency_metadata_key,
+            no_time_axis_frequency=no_time_axis_frequency,
+            time_dimension=time_dimension,
         )
 
         logger.info(f"{database_entry=}")
@@ -234,6 +238,48 @@ def validate_tree_command(  # noqa: PLR0913
         no_time_axis_frequency=no_time_axis_frequency,
         time_dimension=time_dimension,
     )
+
+
+@app.command(name="create-db")
+def create_db_command(
+    tree_root: Annotated[
+        Path,
+        typer.Argument(
+            help="The root of the tree for which to create the database",
+            exists=True,
+            dir_okay=True,
+            file_okay=False,
+        ),
+    ],
+    cv_source: CV_SOURCE_TYPE = None,
+    frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
+    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
+    time_dimension: TIME_DIMENSION_TYPE = "time",
+) -> None:
+    """
+    Create a database from a tree of files
+    """
+    # if --validate, validate the tree first
+    validate_tree(
+        root=tree_root,
+        cv_source=cv_source,
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
+        time_dimension=time_dimension,
+    )
+    # # push into function
+    # raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
+    # cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+    # for file in all_files:
+    #     database_entry = Input4MIPsDatabaseEntryFile.from_file(
+    #         file,
+    #         cvs=cvs,
+    #         frequency_metadata_key=frequency_metadata_key,
+    #         no_time_axis_frequency=no_time_axis_frequency,
+    #         time_dimension=time_dimension,
+    #     )
+
+    # write db entries to disk (either new file or append)
 
 
 if __name__ == "__main__":

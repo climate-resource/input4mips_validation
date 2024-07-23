@@ -5,6 +5,7 @@ Validation module
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Iterable
 from functools import wraps
 from pathlib import Path
 from typing import Callable, Protocol, TypeVar
@@ -18,6 +19,7 @@ from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.cvs.drs import apply_known_replacements
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
+from input4mips_validation.exceptions import NonUniqueError
 from input4mips_validation.inference.from_data import (
     create_time_range,
     infer_time_start_time_end,
@@ -422,6 +424,28 @@ def validate_file_correctly_written_in_drs(
         raise ValueError(msg)
 
 
+def validate_tracking_ids_are_unique(files: Iterable[Path]) -> None:
+    """
+    Validate that tracking IDs in all files are unique
+
+    Parameters
+    ----------
+    files
+        Files to check
+
+    Raises
+    ------
+    NonUniqueError
+        Not all the tracking IDs are unique
+    """
+    tracking_ids = [xr.load_dataset(f).attrs["tracking_id"] for f in files]
+    if len(set(tracking_ids)) != len(files):
+        raise NonUniqueError(
+            description="Tracking IDs for all files should be unique",
+            values=tracking_ids,
+        )
+
+
 def validate_tree(  # noqa: PLR0913
     root: Path,
     cv_source: str | None,
@@ -440,6 +464,7 @@ def validate_tree(  # noqa: PLR0913
     1. all files in the tree are correctly written
        according to the data reference syntax
     1. all references to external variables (like cell areas) can be resolved
+    1. all files have a unique tracking ID
 
     Parameters
     ----------
@@ -518,9 +543,13 @@ def validate_tree(  # noqa: PLR0913
                 time_dimension=time_dimension,
             )
 
-        # TODO: check cross references
+        # TODO: check cross references in files to external variables
 
-    # TODO: check that all tracking IDs are unique
+    catch_error(
+        validate_tracking_ids_are_unique,
+        call_purpose="Validate that tracking IDs in all files are unique",
+    )(all_files)
+
     if caught_errors:
         logger.info("Validation failed")
         raise InvalidTreeError(root=root, error_container=caught_errors)

@@ -63,6 +63,10 @@ def test_validate_written_single_variable_file(tmp_path):
 
     written_file = input4mips_ds.write(root_data_dir=tmp_path)
 
+    # Test the function directly first (helps with debugging)
+    validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
+
+    # Then test the CLI
     with patch.dict(
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
@@ -70,8 +74,6 @@ def test_validate_written_single_variable_file(tmp_path):
         result = runner.invoke(app, ["validate-file", str(written_file)])
 
     assert result.exit_code == 0, result.exc_info
-
-    validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     database_entry = Input4MIPsDatabaseEntryFile.from_file(
         written_file, cvs=input4mips_ds.cvs
@@ -182,6 +184,10 @@ def test_validate_written_multi_variable_file(tmp_path):
 
     written_file = input4mips_ds.write(root_data_dir=tmp_path)
 
+    # Test the function directly first (helps with debugging)
+    validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
+
+    # Then test the CLI
     with patch.dict(
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
@@ -189,8 +195,6 @@ def test_validate_written_multi_variable_file(tmp_path):
         result = runner.invoke(app, ["validate-file", str(written_file)])
 
     assert result.exit_code == 0, result.exc_info
-
-    validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     database_entry = Input4MIPsDatabaseEntryFile.from_file(
         written_file, cvs=input4mips_ds.cvs

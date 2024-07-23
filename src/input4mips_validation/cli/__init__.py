@@ -22,7 +22,7 @@ from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
-from input4mips_validation.validation import validate_file
+from input4mips_validation.validation import validate_file, validate_tree
 from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
 from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
@@ -43,9 +43,9 @@ CV_SOURCE_TYPE = Annotated[
             "using everything after the colon as the ID for the Git object to use "
             "(where the ID can be a branch name, a tag or a commit ID). "
             ""
-            "Otherwise we simply return the path as provided "
-            "and use the {py:mod}`validators` package "
-            "to decide if the source points to a URL or not "
+            "Otherwise we simply return the path as provided and use the "
+            "[validators][https://validators.readthedocs.io/en/stable] "
+            "package to decide if the source points to a URL or not "
             "(i.e. whether we should look for the CVs locally "
             "or retrieve them from a URL)."
         ),
@@ -273,12 +273,11 @@ def validate_tree_command(
     This checks things like whether all external variables are also provided
     and all tracking IDs are unique.
     """
-    raise NotImplementedError()
-    # cv_source_use = get_cv_source(
-    #     cv_source, cv_source_unset_value=CV_SOURCE_UNSET_VALUE
-    # )
-    #
-    # validate_tree(root=tree_root, cv_source=cv_source_use)
+    cv_source_use = get_cv_source(
+        cv_source, cv_source_unset_value=CV_SOURCE_UNSET_VALUE
+    )
+
+    validate_tree(root=tree_root, cv_source=cv_source_use)
 
 
 if __name__ == "__main__":

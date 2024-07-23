@@ -72,6 +72,47 @@ class InvalidFileError(ValueError):
         super().__init__(error_msg)
 
 
+class InvalidTreeError(ValueError):
+    """
+    Raised when a tree does not pass all of the validation
+    """
+
+    def __init__(
+        self,
+        root: Path | str,
+        error_container: list[tuple[str, Exception]],
+    ) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        root
+            The root of the tree we tried to validate
+
+        error_container
+            The thing which was being done
+            and the error which was caught
+            while validating the file.
+        """
+        error_msgs: list[str] = []
+        for error in error_container:
+            process, exc = error
+            # formatted_exc = "\n".join(traceback.format_exception(exc))
+            formatted_exc = str(exc)
+            error_msgs.append(f"{process} failed. Exception: {formatted_exc}")
+
+        error_msgs_str = "\n\n".join(error_msgs)
+
+        error_msg = (
+            f"Failed to validate {root=}\n"
+            "Caught error messages (see log messages for full details):\n\n"
+            f"{error_msgs_str}"
+        )
+
+        super().__init__(error_msg)
+
+
 class CatchErrorDecoratorLike(Protocol):
     """
     A callable like what we return from [`get_catch_error_decorator`][input4mips_validation.validation.get_catch_error_decorator]
@@ -151,7 +192,8 @@ def load_cvs_in_validation(cv_source: str | None) -> Input4MIPsCVs:
     Load the controlled vocabularies (CVs)
 
     For full details on options for loading CVs,
-    see {py:func}`input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading`.
+    see
+    [`get_raw_cvs_loader`][input4mips_validation.cvs.loading_raw.get_raw_cvs_loader].
 
     Parameters
     ----------
@@ -171,7 +213,8 @@ def load_cvs_in_validation(cv_source: str | None) -> Input4MIPsCVs:
 
 def validate_file(
     infile: Path | str,
-    cv_source: str | None,
+    cv_source: str | None = None,
+    cvs: Input4MIPsCVs | None = None,
     bnds_coord_indicator: str = "bnds",
 ) -> None:
     """
@@ -188,8 +231,16 @@ def validate_file(
     cv_source
         Source from which to load the CVs
 
+        Only required if `cvs` is `None`.
+
         For full details on options for loading CVs,
-        see {py:func}`input4mips_validation.cvs_handling.input4MIPs.raw_cv_loading`.
+        see
+        [`get_raw_cvs_loader`][input4mips_validation.cvs.loading_raw.get_raw_cvs_loader].
+
+    cvs
+        CVs to use when validating the file.
+
+        If these are passed, then `cv_source` is ignored.
 
     bnds_coord_indicator
         String that indicates that a variable is a bounds co-ordinate
@@ -199,10 +250,6 @@ def validate_file(
         (xarray has a way, but it conflicts with the CF-conventions,
         so here we are).
 
-    Returns
-    -------
-        The file's corresponding database entry.
-
     Raises
     ------
     InvalidFileError
@@ -211,6 +258,16 @@ def validate_file(
     logger.info(f"Validating {infile}")
     caught_errors: list[tuple[str, Exception]] = []
     catch_error = get_catch_error_decorator(caught_errors)
+
+    if cvs is None:
+        # Load CVs, we need them for the following steps
+        cvs = catch_error(
+            load_cvs_in_validation,
+            call_purpose="Load controlled vocabularies to use during validation",
+        )(cv_source)
+
+    elif cv_source is not None:
+        logger.info(f"Using provided cvs instead of {cv_source=}")
 
     # Basic loading - xarray
     ds_xr_load = catch_error(
@@ -234,12 +291,6 @@ def validate_file(
             infile, ds=ds_xr_load
         )
 
-    # Check we can load CVs, we need them for the following steps
-    cvs = catch_error(
-        load_cvs_in_validation,
-        call_purpose="Load controlled vocabularies to use during validation",
-    )(cv_source)
-
     # TODO: Check that the data, metadata and CVs are all consistent
     # ds_careful_load = from_iris_cubes(
     #   cubes, bnds_coord_indicator=bnds_coord_indicator
@@ -262,5 +313,77 @@ def validate_file(
     if caught_errors:
         logger.info("Validation failed")
         raise InvalidFileError(filepath=infile, error_container=caught_errors)
+
+    logger.info("Validation passed")
+
+
+def validate_tree(
+    root: Path | str,
+    cv_source: str | None,
+    bnds_coord_indicator: str = "bnds",
+) -> None:
+    """
+    Validate a (directory) tree
+
+    This checks that:
+
+    1. all files in the tree can be loaded with standard libraries
+    1. all files in the tree pass metadata and data checks
+    1. all files in the tree are correctly written
+       according to the data reference syntax
+    1. all references to external variables (like cell areas) can be resolved
+
+    Parameters
+    ----------
+    root
+        Root of the tree to validate
+
+    cv_source
+        Source from which to load the CVs
+
+        For full details on options for loading CVs,
+        see
+        [`get_raw_cvs_loader`][input4mips_validation.cvs.loading_raw.get_raw_cvs_loader].
+
+    bnds_coord_indicator
+        String that indicates that a variable is a bounds co-ordinate
+
+        This helps us with identifying `infile`'s variables correctly
+        in the absence of an agreed convention for doing this
+        (xarray has a way, but it conflicts with the CF-conventions,
+        so here we are).
+
+    Raises
+    ------
+    InvalidTreeError
+        The tree does not pass all of the validation.
+    """
+    logger.info(f"Validating {root}")
+    caught_errors: list[tuple[str, Exception]] = []
+    catch_error = get_catch_error_decorator(caught_errors)
+
+    # Check we can load CVs, we need them for the following steps
+    cvs = catch_error(
+        load_cvs_in_validation,
+        call_purpose="Load controlled vocabularies to use during validation",
+    )(cv_source)
+
+    all_files = [v for v in root.rglob("*") if v.is_file()]
+
+    validate_file_with_catch = catch_error(
+        validate_file, call_purpose="Validate individual file"
+    )
+    for file in all_files:
+        validate_file_with_catch(
+            file,
+            cvs=cvs,
+            bnds_coord_indicator=bnds_coord_indicator,
+        )
+
+    # breakpoint()
+
+    if caught_errors:
+        logger.info("Validation failed")
+        raise InvalidTreeError(filepath=root, error_container=caught_errors)
 
     logger.info("Validation passed")

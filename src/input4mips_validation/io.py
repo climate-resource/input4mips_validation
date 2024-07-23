@@ -25,10 +25,10 @@ def write_ds_to_disk(
     Write a dataset to disk
 
     A note for users of this function.
-    We convert the dataset to a list of {py:obj}`iris.Cube`
-    with {py:func}`ncdata.iris_xarray.cubes_from_xarray`
-    and then write the file to disk with {py:mod}`iris`
-    because {py:mod}`iris` adds CF-conventions upon writing,
+    We convert the dataset to a list of [iris.cube.Cube][]
+    with [ncdata.iris_xarray.cubes_from_xarray][]
+    and then write the file to disk with [iris][]
+    because [iris][] adds CF-conventions upon writing,
     which is needed for input4MIPs data.
     This works smoothly in our experience,
     but the conversion can be tricky to debug.
@@ -47,7 +47,7 @@ def write_ds_to_disk(
         CVs to use to validate the dataset before writing
 
     **kwargs
-        Passed through to {py:func}`iris.save`
+        Passed through to [iris.save][]
 
     Returns
     -------

@@ -318,7 +318,7 @@ def validate_file(
 
 
 def validate_tree(
-    root: Path | str,
+    root: Path,
     cv_source: str | None,
     bnds_coord_indicator: str = "bnds",
 ) -> None:
@@ -386,6 +386,6 @@ def validate_tree(
 
     if caught_errors:
         logger.info("Validation failed")
-        raise InvalidTreeError(filepath=root, error_container=caught_errors)
+        raise InvalidTreeError(root=root, error_container=caught_errors)
 
     logger.info("Validation passed")

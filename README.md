@@ -41,21 +41,6 @@ This version pins the version of all dependencies too,
 which reduces the chance of installation issues
 because of breaking updates to dependencies.
 
-**Temporary workaround**
-
-While we [wait for input4mips-validation to be added to conda](https://github.com/conda-forge/staged-recipes/pull/26986),
-the locked version of input4mips-validation can be installed with conda/mamba with
-
-```sh
-# We recommend mamba, swap 'mamba' for 'conda' in the below if you want to use conda
-mamba create --name input4mips-validation
-mamba activate input4mips-validation
-mamba install -c conda-forge pip iris==3.8.1 netcdf4==1.7.1 numpy==1.26.4 cfchecker==4.1.0 attrs==23.2.0 cattrs==23.2.3 cf_xarray==0.9.4 loguru==0.7.2 ncdata==0.1.1 pandas==2.2.2 pint==0.24.3 pint-xarray==0.4 pooch==1.8.2 typer==0.12.3 validators==0.33.0 xarray==2024.6.0
-pip install --no-deps input4mips-validation
-```
-
-**End of temporary workaround**
-
 The locked version of input4mips-validation can be installed with
 
 ```sh

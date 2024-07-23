@@ -338,11 +338,15 @@ def validate_file_correctly_written_in_drs(file: Path, cvs: Input4MIPsCVs) -> No
     # If the file is clearly wrong,
     # just print out the directory and print out the template
     # and say, try again
-    directory_metadata = cvs.DRS.extract_metadata_from_path(
-        file.absolute(), include_root_data_dir=True
+    directory_metadata = cvs.DRS.extract_metadata_from_path(file.absolute())
+    file_metadata = cvs.DRS.extract_metadata_from_filename(file.name)
+    cvs.DRS.extract_metadata_from_filename(
+        "mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn_200001-201001.nc"
+    )
+    cvs.DRS.extract_metadata_from_filename(
+        "mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn.nc"
     )
 
-    # Get file metadata too
     # Check consistency, pointing out any spots where there are mismatches
     # breakpoint()
 

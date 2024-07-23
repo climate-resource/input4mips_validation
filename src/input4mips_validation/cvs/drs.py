@@ -208,8 +208,9 @@ class DataReferenceSyntax:
 
         return root_data_dir / generated_path
 
+    @staticmethod
     @functools.cache
-    def parse_drs_template(self, drs_template: str) -> tuple[DRSSubstitution, ...]:  # noqa: PLR0912, PLR0915
+    def parse_drs_template(drs_template: str) -> tuple[DRSSubstitution, ...]:  # noqa: PLR0912, PLR0915
         """
         Parse a DRS template string
 
@@ -310,7 +311,7 @@ class DataReferenceSyntax:
                 optional_section = "".join(optional_pieces)
                 substitutions_l.append(
                     DRSSubstitution(
-                        optional=False,
+                        optional=True,
                         string_to_replace=f"{start_optional}{optional_section}{end_optional}",
                         required_metadata=(metadata_key,),
                         replacement_string=optional_section.replace(
@@ -395,6 +396,7 @@ class DataReferenceSyntax:
 
         Returns
         -------
+        :
             Regular expression which can be used to capture information
             from a directory.
 
@@ -408,23 +410,15 @@ class DataReferenceSyntax:
         We use this to significantly simplify our regular expression.
         """
         # Hard-code according to the spec
-        valid_chars_names = "[a-zA-Z0-9-]"
+        allowed_chars = "[a-zA-Z0-9-]"
 
         drs_template = self.directory_path_template
         directory_substitutions = self.parse_drs_template(drs_template=drs_template)
-
-        capturing_regexp = drs_template
-        for substitution in directory_substitutions:
-            if substitution.optional:
-                raise NotImplementedError()
-
-            capturing_group = substitution.replacement_string.replace(
-                "}", f">{valid_chars_names}+)"
-            ).replace("{", "(?P<")
-            capturing_regexp = capturing_regexp.replace(
-                substitution.string_to_replace,
-                capturing_group,
-            )
+        capturing_regexp = get_regexp_from_template_and_substitutions(
+            drs_template,
+            substitutions=directory_substitutions,
+            capturing_allowed_chars=allowed_chars,
+        )
 
         # Make sure that the separators will behave
         sep_escape = re.escape(os.sep)
@@ -435,6 +429,118 @@ class DataReferenceSyntax:
         )
 
         return capturing_regexp
+
+    def extract_metadata_from_filename(self, filename: str) -> dict[str, str]:
+        """
+        Extract metadata from a filename
+
+        Parameters
+        ----------
+        filename
+            Filename from which to extract the metadata
+
+        Returns
+        -------
+        :
+            Extracted metadata
+        """
+        filename_regexp = self.get_regexp_for_capturing_filename_information()
+        match = re.match(filename_regexp, filename)
+        if match is None:
+            msg = "regexp failed"
+            raise AssertionError(msg)
+
+        match_groups = match.groupdict()
+
+        return match_groups
+
+    @functools.cache
+    def get_regexp_for_capturing_filename_information(
+        self,
+    ) -> str:
+        """
+        Get a regular expression for capturing information from a filename
+
+        Returns
+        -------
+        :
+            Regular expression which can be used to capture information
+            from a directory.
+
+        Notes
+        -----
+        According to [the DRS description](https://docs.google.com/document/d/1h0r8RZr_f3-8egBMMh7aqLwy3snpD6_MrDz1q8n5XUk):
+
+        - only [a-zA-Z0-9-] are allowed in file path names
+          except where underscore is used as a separator.
+
+        We use this to significantly simplify our regular expression.
+        """
+        # Hard-code according to the spec
+        # Underscore not included because it can't be in capturing groups
+        allowed_chars = "[a-zA-Z0-9-]"
+
+        drs_template = self.filename_template
+        filename_substitutions = self.parse_drs_template(drs_template=drs_template)
+        capturing_regexp = get_regexp_from_template_and_substitutions(
+            drs_template,
+            substitutions=filename_substitutions,
+            capturing_allowed_chars=allowed_chars,
+        )
+
+        return capturing_regexp
+
+
+def get_regexp_from_template_and_substitutions(
+    drs_template: str,
+    substitutions: Iterable[DRSSubstitution],
+    capturing_allowed_chars: str = "[a-zA-Z0-9-]",
+) -> str:
+    """
+    Get a capturing regular expression from a template and substitutions
+
+    Parameters
+    ----------
+    drs_template
+        DRS template from which to generate the regexp
+
+    substitutions
+        Substitutions that can be applied to the DRS template
+
+    capturing_allowed_chars
+        Specification for characters that are allowed in the capturing groups.
+
+    Returns
+    -------
+    :
+        Generated regexp, which will capture metadata according to the DRS
+
+    Examples
+    --------
+    >>> template_str = "<model_id>[_<optional_id>]_<time_range>.nc"
+    >>> substitutions = DataReferenceSyntax.parse_drs_template(template_str)
+    >>> get_regexp_from_template_and_substitutions(
+    ...     template_str,
+    ...     substitutions,
+    ...     capturing_allowed_chars="[a-z]",
+    ... )
+    '(?P<model_id>[a-z]+)(_(?P<optional_id>[a-z]+))?_(?P<time_range>[a-z]+).nc'
+    """
+    capturing_regexp = drs_template
+    for substitution in substitutions:
+        capturing_group = substitution.replacement_string.replace(
+            "}", f">{capturing_allowed_chars}+)"
+        ).replace("{", "(?P<")
+
+        if substitution.optional:
+            capturing_group = f"({capturing_group})?"
+
+        capturing_regexp = capturing_regexp.replace(
+            substitution.string_to_replace,
+            capturing_group,
+        )
+
+    return capturing_regexp
 
 
 @frozen

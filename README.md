@@ -1,4 +1,4 @@
---8<-- [start:description]
+<!--- --8<-- [start:description] -->
 # Input4MIPs-validation
 
 Validation of input4MIPs data (checking file formats, metadata etc.).
@@ -25,7 +25,7 @@ Validation of input4MIPs data (checking file formats, metadata etc.).
 [![Last Commit](https://img.shields.io/github/last-commit/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/commits/main)
 [![Contributors](https://img.shields.io/github/contributors/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/graphs/contributors)
 
---8<-- [end:description]
+<!--- --8<-- [end:description] -->
 
 Full documentation can be found at:
 [input4mips-validation.readthedocs.io](https://input4mips-validation.readthedocs.io/en/latest/).
@@ -34,7 +34,7 @@ don't render correctly on GitHub's viewer.
 
 ## Installation
 
---8<-- [start:installation]
+<!--- --8<-- [start:installation] -->
 ### As an application
 
 If you want to use input4MIPs-validation as an application,
@@ -171,4 +171,4 @@ through. If not, please raise an issue in the
 
 For the rest of our developer docs, please see [development][development-reference].
 
---8<-- [end:installation]
+<!--- --8<-- [end:installation] -->

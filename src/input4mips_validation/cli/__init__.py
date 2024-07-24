@@ -319,6 +319,7 @@ def create_db_command(  # noqa: PLR0913
         raise NotImplementedError(msg)
 
     if validate:
+        logger.info(f"Validating {tree_root} before creating the database")
         try:
             validate_tree(
                 root=tree_root,
@@ -333,6 +334,10 @@ def create_db_command(  # noqa: PLR0913
 
             typer.Exit(code=1)
 
+    else:
+        logger.debug("Skipping validation")
+
+    logger.debug("Creating database entries")
     db_entries = create_db_file_entries(
         root=tree_root,
         cv_source=cv_source,
@@ -341,6 +346,7 @@ def create_db_command(  # noqa: PLR0913
         time_dimension=time_dimension,
     )
     with open(db_file, "w") as fh:
+        logger.info(f"Writing database to {db_file}")
         fh.write(json_dumps_cv_style(converter_json.unstructure(db_entries)))
 
 

@@ -65,6 +65,7 @@ def create_db_file_entries(  # noqa: PLR0913
 
     db_entries = []
     for file in all_files:
+        logger.info(f"Creating database entry for {file}")
         database_entry = Input4MIPsDatabaseEntryFile.from_file(
             file,
             cvs=cvs,

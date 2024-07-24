@@ -148,7 +148,7 @@ class RawCVLoaderBaseURL:
     """
     Path in which to save downloaded files
 
-    Passed to {py:func}`pooch.retrieve`.
+    Passed to [pooch.retrieve][].
 
     Defaults to being inside the package so that downloaded files
     are removed when the package is removed.

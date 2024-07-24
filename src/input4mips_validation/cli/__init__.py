@@ -5,14 +5,11 @@ Command-line interface
 # # Do not use this here, it breaks typer's annotations
 # from __future__ import annotations
 
-import datetime as dt
 import shutil
 from pathlib import Path
-from typing import Annotated, Union
+from typing import Annotated, Optional
 
-import cftime
 import iris
-import numpy as np
 import rich
 import typer
 from loguru import logger
@@ -21,15 +18,21 @@ import input4mips_validation.cli.logging
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
+from input4mips_validation.database.creation import create_db_file_entries
+from input4mips_validation.inference.from_data import infer_time_start_time_end
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
-from input4mips_validation.validation import validate_file
+from input4mips_validation.validation import (
+    InvalidFileError,
+    InvalidTreeError,
+    validate_file,
+    validate_tree,
+)
 from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
-from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
 app = typer.Typer()
 
 CV_SOURCE_TYPE = Annotated[
-    str,
+    Optional[str],
     typer.Option(
         help=(
             "String identifying the source of the CVs. "
@@ -43,29 +46,76 @@ CV_SOURCE_TYPE = Annotated[
             "using everything after the colon as the ID for the Git object to use "
             "(where the ID can be a branch name, a tag or a commit ID). "
             ""
-            "Otherwise we simply return the path as provided "
-            "and use the {py:mod}`validators` package "
-            "to decide if the source points to a URL or not "
+            "Otherwise we simply return the path as provided and use the "
+            "[validators][https://validators.readthedocs.io/en/stable] "
+            "package to decide if the source points to a URL or not "
             "(i.e. whether we should look for the CVs locally "
             "or retrieve them from a URL)."
         ),
-        show_default=False,
     ),
 ]
 
-CV_SOURCE_UNSET_VALUE: str = "not_set_idjunk"
-"""
-Default value for CV source at the CLI
+BNDS_COORD_INDICATOR_TYPE = Annotated[
+    str,
+    typer.Option(
+        help=(
+            "String that indicates that a variable is a bounds co-ordinate. "
+            "This helps us with identifying `infile`'s variables correctly "
+            "in the absence of an agreed convention for doing this "
+            "(xarray has a way, "
+            "but it conflicts with the CF-conventions hence iris, "
+            "so here we are)."
+        )
+    ),
+]
 
-If cv_source equals this value, we assume that it wasn't passed by the user.
-"""
+FREQUENCY_METADATA_KEY_TYPE = Annotated[
+    str,
+    typer.Option(
+        help=(
+            "The key in the data's metadata "
+            "which points to information about the data's frequency. "
+            "Only required if --write-in-drs or --create-db-entry are supplied."
+        )
+    ),
+]
 
-WRITE_IN_DRS_UNSET_VALUE: str = "nowhere_idjunk"
-"""
-Default value for write-in-drs at the CLI
+NO_TIME_AXIS_FREQUENCY_TYPE = Annotated[
+    str,
+    typer.Option(
+        help=(
+            "The value of `frequency_metadata_key` in the metadata which indicates "
+            "that the file has no time axis i.e. is fixed in time."
+            "Only required if --write-in-drs or --create-db-entry are supplied."
+        )
+    ),
+]
 
-If write_in_drs equals this value, we assume that it wasn't passed by the user.
-"""
+TIME_DIMENSION_TYPE = Annotated[
+    str,
+    typer.Option(
+        help=(
+            "The time dimension of the data. "
+            "Only required if --write-in-drs or --create-db-entry are supplied."
+        )
+    ),
+]
+
+VERBOSE_TYPE = Annotated[
+    int,
+    typer.Option(
+        "--verbose",
+        "-v",
+        count=True,
+        help=(
+            "Increase the verbosity of the output "
+            "(the verbosity flag is equal to the number of times the flag is supplied, "
+            "e.g. `-vvv` sets the verbosity to 3)."
+            "(Despite what the help says, this is a boolean flag input, "
+            "If you try and supply an integer, e.g. `-v 3`, you will get an error.)"
+        ),
+    ),
+]
 
 
 @app.callback()
@@ -79,35 +129,6 @@ def cli(setup_logging: bool = True) -> None:
         input4mips_validation.cli.logging.setup_logging()
 
 
-def get_cv_source(cv_source: str, cv_source_unset_value: str) -> Union[str, None]:
-    """
-    Get CV source as the type we actually want.
-
-    This is a workaround
-    for the fact that typer does not support an input with type `Union[str, None]` yet.
-
-    Parameters
-    ----------
-    cv_source
-        CV source as received from the CLI (always a string)
-
-    cv_source_unset_value
-        Value which indicates that CV source was not set at the command-line.
-
-    Returns
-    -------
-        CV source, translated into the type we actually want.
-    """
-    # TODO: remove this
-    # I think typer supports Union[str, None] or Optional[str] annotations
-    if cv_source == cv_source_unset_value:
-        cv_source_use = None
-    else:
-        cv_source_use = cv_source
-
-    return cv_source_use
-
-
 @app.command(name="validate-file")
 def validate_file_command(  # noqa: PLR0913
     file: Annotated[
@@ -116,9 +137,9 @@ def validate_file_command(  # noqa: PLR0913
             help="The file to validate", exists=True, dir_okay=False, file_okay=True
         ),
     ],
-    cv_source: CV_SOURCE_TYPE = CV_SOURCE_UNSET_VALUE,
+    cv_source: CV_SOURCE_TYPE = None,
     write_in_drs: Annotated[
-        str,
+        Optional[Path],
         typer.Option(
             help=(
                 "If supplied, "
@@ -128,7 +149,7 @@ def validate_file_command(  # noqa: PLR0913
             ),
             show_default=False,
         ),
-    ] = WRITE_IN_DRS_UNSET_VALUE,
+    ] = None,
     create_db_entry: Annotated[
         bool,
         typer.Option(
@@ -141,48 +162,11 @@ def validate_file_command(  # noqa: PLR0913
             ),
         ),
     ] = False,
-    bnds_coord_indicator: Annotated[
-        str,
-        typer.Option(
-            help=(
-                "String that indicates that a variable is a bounds co-ordinate. "
-                "This helps us with identifying `infile`'s variables correctly "
-                "in the absence of an agreed convention for doing this "
-                "(xarray has a way, "
-                "but it conflicts with the CF-conventions hence iris, "
-                "so here we are)."
-            )
-        ),
-    ] = "bnds",
-    frequency_metadata_key: Annotated[
-        str,
-        typer.Option(
-            help=(
-                "The key in the data's metadata "
-                "which points to information about the data's frequency. "
-                "Only required if --write-in-drs or --create-db-entry are supplied."
-            )
-        ),
-    ] = "frequency",
-    no_time_axis_frequency: Annotated[
-        str,
-        typer.Option(
-            help=(
-                "The value of 'frequency' in the metadata which indicates "
-                "that the file has no time axis i.e. is fixed in time."
-                "Only required if --write-in-drs or --create-db-entry are supplied."
-            )
-        ),
-    ] = "fx",
-    time_dimension: Annotated[
-        str,
-        typer.Option(
-            help=(
-                "The time dimension of the data. "
-                "Only required if --write-in-drs or --create-db-entry are supplied."
-            )
-        ),
-    ] = "time",
+    bnds_coord_indicator: BNDS_COORD_INDICATOR_TYPE = "bnds",
+    frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
+    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
+    time_dimension: TIME_DIMENSION_TYPE = "time",
+    verbose: VERBOSE_TYPE = 0,
 ) -> None:
     """
     Validate a single file
@@ -191,38 +175,31 @@ def validate_file_command(  # noqa: PLR0913
     because some validation can only be performed if we have the entire file tree.
     See the ``validate-tree`` command for this validation.
     """
-    cv_source_use = get_cv_source(
-        cv_source, cv_source_unset_value=CV_SOURCE_UNSET_VALUE
-    )
+    try:
+        validate_file(file, cv_source=cv_source)
+    except InvalidFileError:
+        if verbose >= 1:
+            logger.exception("Validation failed")
 
-    if write_in_drs == WRITE_IN_DRS_UNSET_VALUE:
-        write_in_drs_use: Union[Path, None] = None
+        typer.Exit(code=1)
 
-    else:
-        write_in_drs_use = Path(write_in_drs)
-
-    validate_file(file, cv_source=cv_source_use)
-
-    if write_in_drs_use:
-        raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source_use)
+    if write_in_drs:
+        raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
         cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
 
         ds = ds_from_iris_cubes(
             iris.load(file), bnds_coord_indicator=bnds_coord_indicator
         )
 
-        if ds.attrs[frequency_metadata_key] != no_time_axis_frequency:
-            time_start: Union[
-                cftime.datetime, dt.datetime, np.datetime64, None
-            ] = xr_time_min_max_to_single_value(ds[time_dimension].min())
-            time_end: Union[
-                cftime.datetime, dt.datetime, np.datetime64, None
-            ] = xr_time_min_max_to_single_value(ds[time_dimension].max())
-        else:
-            time_start = time_end = None
+        time_start, time_end = infer_time_start_time_end(
+            ds=ds,
+            frequency_metadata_key=frequency_metadata_key,
+            no_time_axis_frequency=no_time_axis_frequency,
+            time_dimension=time_dimension,
+        )
 
         full_file_path = cvs.DRS.get_file_path(
-            root_data_dir=write_in_drs_use,
+            root_data_dir=write_in_drs,
             available_attributes=ds.attrs,
             time_start=time_start,
             time_end=time_end,
@@ -237,16 +214,21 @@ def validate_file_command(  # noqa: PLR0913
         shutil.copy(file, write_path)
 
     if create_db_entry:
-        if write_in_drs_use:
+        if write_in_drs:
             db_entry_creation_file = write_path
         else:
-            raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source_use)
-            cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
-
             db_entry_creation_file = file
 
+            # Also load the CVs, as they won't be loaded yet
+            raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
+            cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+
         database_entry = Input4MIPsDatabaseEntryFile.from_file(
-            db_entry_creation_file, cvs=cvs
+            db_entry_creation_file,
+            cvs=cvs,
+            frequency_metadata_key=frequency_metadata_key,
+            no_time_axis_frequency=no_time_axis_frequency,
+            time_dimension=time_dimension,
         )
 
         logger.info(f"{database_entry=}")
@@ -255,7 +237,7 @@ def validate_file_command(  # noqa: PLR0913
 
 
 @app.command(name="validate-tree")
-def validate_tree_command(
+def validate_tree_command(  # noqa: PLR0913
     tree_root: Annotated[
         Path,
         typer.Argument(
@@ -265,7 +247,12 @@ def validate_tree_command(
             file_okay=False,
         ),
     ],
-    cv_source: CV_SOURCE_TYPE = CV_SOURCE_UNSET_VALUE,
+    cv_source: CV_SOURCE_TYPE = None,
+    bnds_coord_indicator: BNDS_COORD_INDICATOR_TYPE = "bnds",
+    frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
+    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
+    time_dimension: TIME_DIMENSION_TYPE = "time",
+    verbose: VERBOSE_TYPE = 0,
 ) -> None:
     """
     Validate a tree of files
@@ -273,12 +260,88 @@ def validate_tree_command(
     This checks things like whether all external variables are also provided
     and all tracking IDs are unique.
     """
-    raise NotImplementedError()
-    # cv_source_use = get_cv_source(
-    #     cv_source, cv_source_unset_value=CV_SOURCE_UNSET_VALUE
-    # )
-    #
-    # validate_tree(root=tree_root, cv_source=cv_source_use)
+    try:
+        validate_tree(
+            root=tree_root,
+            cv_source=cv_source,
+            frequency_metadata_key=frequency_metadata_key,
+            no_time_axis_frequency=no_time_axis_frequency,
+            time_dimension=time_dimension,
+        )
+    except InvalidTreeError:
+        if verbose >= 1:
+            logger.exception("Validation failed")
+
+        typer.Exit(code=1)
+
+
+@app.command(name="create-db")
+def create_db_command(  # noqa: PLR0913
+    tree_root: Annotated[
+        Path,
+        typer.Argument(
+            help="The root of the tree for which to create the database",
+            exists=True,
+            dir_okay=True,
+            file_okay=False,
+        ),
+    ],
+    db_file: Annotated[
+        Path,
+        typer.Option(
+            help=(
+                "The file in which to write the database entries. "
+                "At the moment, the file must not already exist. "
+                "In future, we will add functionality "
+                "to merge entries into an existing database."
+            ),
+            dir_okay=False,
+            file_okay=True,
+        ),
+    ],
+    validate: Annotated[
+        bool,
+        typer.Option(
+            help="Should the tree be validated before the database is created?"
+        ),
+    ] = True,
+    cv_source: CV_SOURCE_TYPE = None,
+    frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
+    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
+    time_dimension: TIME_DIMENSION_TYPE = "time",
+    verbose: VERBOSE_TYPE = 0,
+) -> None:
+    """
+    Create a database from a tree of files
+    """
+    if db_file.exists():
+        msg = "We haven't implemented functionality for merging databases yet"
+        raise NotImplementedError(msg)
+
+    if validate:
+        try:
+            validate_tree(
+                root=tree_root,
+                cv_source=cv_source,
+                frequency_metadata_key=frequency_metadata_key,
+                no_time_axis_frequency=no_time_axis_frequency,
+                time_dimension=time_dimension,
+            )
+        except InvalidTreeError:
+            if verbose >= 1:
+                logger.exception("Validation failed")
+
+            typer.Exit(code=1)
+
+    db_entries = create_db_file_entries(
+        root=tree_root,
+        cv_source=cv_source,
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
+        time_dimension=time_dimension,
+    )
+    with open(db_file, "w") as fh:
+        fh.write(json_dumps_cv_style(converter_json.unstructure(db_entries)))
 
 
 if __name__ == "__main__":

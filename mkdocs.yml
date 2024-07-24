@@ -8,6 +8,7 @@ repo_url: https://github.com/climate-resource/input4mips_validation
 
 nav:
   - Input4MIPs validation: index.md
+  - Installation: installation.md
   - How-to guides:
     - how-to-guides/index.md
     - How to validate a file: how-to-guides/how-to-validate-file.py
@@ -23,37 +24,35 @@ theme:
   name: "material"
   features:
     - content.code.copy
+  custom_dir: docs/overrides
   palette:
-
-    # Palette toggle for light mode
-    - scheme: default
-    # - scheme: cr-light
-      primary: white
-      accent: teal
+    # Light mode (toggle to dark mode)
+    - scheme: cr-light
+      primary: teal
+      accent: cyan
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
 
-    # Palette toggle for dark mode
-    - scheme: slate
-    # - scheme: cr-dark
-      primary: black
-      accent: teal
+    # Dark mode (toggle back to light mode)
+    - scheme: cr-dark
+      primary: teal
+      accent: cyan
       toggle:
         icon: material/brightness-7
         name: Switch to light mode
 
 extra_css:
-  - assets/style.css
+  - stylesheets/style.css
 
 plugins:
-  - search
-  - autorefs
   # Required for auto-generating our documentation stubs,
   # a bit like sphinx autodoc gen used to do
   - gen-files:
       scripts:
         - docs/gen_doc_stubs.py
+  - search
+  - autorefs
   - mkdocstrings:
       enable_inventory: true
       handlers:
@@ -62,6 +61,7 @@ plugins:
           import:
             - https://unidata.github.io/cftime/objects.inv
             - https://ncdata.readthedocs.io/en/latest/objects.inv
+            - https://pint.readthedocs.io/en/latest/objects.inv
             - https://www.fatiando.org/pooch/latest/objects.inv
             - https://docs.python.org/3/objects.inv
             - https://scitools-iris.readthedocs.io/en/latest/objects.inv
@@ -84,6 +84,9 @@ plugins:
   # One for another day.
   - mkdocs-jupyter:
       execute: true
+      allow_errors: false
+      # theme: dark
+      include_source: True
       ignore: ["*.ipynb", "docs/gen_doc_stubs.py"]
 
 markdown_extensions:
@@ -96,6 +99,8 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - tables
   # Ensure that there are links to table of contents items
   - toc:

@@ -16,11 +16,15 @@ from pathlib import Path
 import cftime
 import numpy as np
 import pandas as pd
+import xarray as xr
 from attrs import frozen
 from typing_extensions import TypeAlias
 
 from input4mips_validation.cvs.loading_raw import RawCVLoader
-from input4mips_validation.inference.from_data import create_time_range
+from input4mips_validation.inference.from_data import (
+    create_time_range,
+    infer_time_start_time_end,
+)
 from input4mips_validation.serialisation import converter_json
 
 DATA_REFERENCE_SYNTAX_FILENAME: str = "input4MIPs_DRS.json"
@@ -208,8 +212,9 @@ class DataReferenceSyntax:
 
         return root_data_dir / generated_path
 
+    @staticmethod
     @functools.cache
-    def parse_drs_template(self, drs_template: str) -> tuple[DRSSubstitution, ...]:  # noqa: PLR0912, PLR0915
+    def parse_drs_template(drs_template: str) -> tuple[DRSSubstitution, ...]:  # noqa: PLR0912, PLR0915
         """
         Parse a DRS template string
 
@@ -310,7 +315,7 @@ class DataReferenceSyntax:
                 optional_section = "".join(optional_pieces)
                 substitutions_l.append(
                     DRSSubstitution(
-                        optional=False,
+                        optional=True,
                         string_to_replace=f"{start_optional}{optional_section}{end_optional}",
                         required_metadata=(metadata_key,),
                         replacement_string=optional_section.replace(
@@ -333,7 +338,9 @@ class DataReferenceSyntax:
 
         return tuple(substitutions_l)
 
-    def extract_metadata_from_path(self, directory: Path) -> dict[str, str]:
+    def extract_metadata_from_path(
+        self, directory: Path, include_root_data_dir: bool = False
+    ) -> dict[str, str]:
         """
         Extract metadata from a path
 
@@ -348,8 +355,15 @@ class DataReferenceSyntax:
         directory
             Directory from which to extract the metadata
 
+        include_root_data_dir
+            Should the key "root_data_dir" be included in the output?
+
+            The value of this key specifies the (inferred) root directory
+            of the data.
+
         Returns
         -------
+        :
             Extracted metadata
         """
         root_data_dir_key = "root_data_dir"
@@ -364,7 +378,11 @@ class DataReferenceSyntax:
 
         match_groups = match.groupdict()
 
-        res = {k: v for k, v in match_groups.items() if k != root_data_dir_key}
+        if include_root_data_dir:
+            res = match_groups
+
+        else:
+            res = {k: v for k, v in match_groups.items() if k != root_data_dir_key}
 
         return res
 
@@ -382,6 +400,7 @@ class DataReferenceSyntax:
 
         Returns
         -------
+        :
             Regular expression which can be used to capture information
             from a directory.
 
@@ -395,23 +414,15 @@ class DataReferenceSyntax:
         We use this to significantly simplify our regular expression.
         """
         # Hard-code according to the spec
-        valid_chars_names = "[a-zA-Z0-9-]"
+        allowed_chars = "[a-zA-Z0-9-]"
 
         drs_template = self.directory_path_template
         directory_substitutions = self.parse_drs_template(drs_template=drs_template)
-
-        capturing_regexp = drs_template
-        for substitution in directory_substitutions:
-            if substitution.optional:
-                raise NotImplementedError()
-
-            capturing_group = substitution.replacement_string.replace(
-                "}", f">{valid_chars_names}+)"
-            ).replace("{", "(?P<")
-            capturing_regexp = capturing_regexp.replace(
-                substitution.string_to_replace,
-                capturing_group,
-            )
+        capturing_regexp = get_regexp_from_template_and_substitutions(
+            drs_template,
+            substitutions=directory_substitutions,
+            capturing_allowed_chars=allowed_chars,
+        )
 
         # Make sure that the separators will behave
         sep_escape = re.escape(os.sep)
@@ -422,6 +433,219 @@ class DataReferenceSyntax:
         )
 
         return capturing_regexp
+
+    def extract_metadata_from_filename(self, filename: str) -> dict[str, str]:
+        """
+        Extract metadata from a filename
+
+        Parameters
+        ----------
+        filename
+            Filename from which to extract the metadata
+
+        Returns
+        -------
+        :
+            Extracted metadata
+        """
+        filename_regexp = self.get_regexp_for_capturing_filename_information()
+        match = re.match(filename_regexp, filename)
+        if match is None:
+            msg = "regexp failed"
+            raise AssertionError(msg)
+
+        match_groups = match.groupdict()
+
+        return match_groups
+
+    @functools.cache
+    def get_regexp_for_capturing_filename_information(
+        self,
+    ) -> str:
+        """
+        Get a regular expression for capturing information from a filename
+
+        Returns
+        -------
+        :
+            Regular expression which can be used to capture information
+            from a directory.
+
+        Notes
+        -----
+        According to [the DRS description](https://docs.google.com/document/d/1h0r8RZr_f3-8egBMMh7aqLwy3snpD6_MrDz1q8n5XUk):
+
+        - only [a-zA-Z0-9-] are allowed in file path names
+          except where underscore is used as a separator.
+
+        We use this to significantly simplify our regular expression.
+        """
+        # Hard-code according to the spec
+        # Underscore not included because it can't be in capturing groups
+        allowed_chars = "[a-zA-Z0-9-]"
+
+        drs_template = self.filename_template
+        filename_substitutions = self.parse_drs_template(drs_template=drs_template)
+        capturing_regexp = get_regexp_from_template_and_substitutions(
+            drs_template,
+            substitutions=filename_substitutions,
+            capturing_allowed_chars=allowed_chars,
+        )
+
+        return capturing_regexp
+
+    def validate_file_written_according_to_drs(
+        self,
+        file: Path,
+        frequency_metadata_key: str = "frequency",
+        no_time_axis_frequency: str = "fx",
+        time_dimension: str = "time",
+    ) -> None:
+        """
+        Validate that a file is correctly written in the DRS
+
+        Parameters
+        ----------
+        file
+            File to validate
+
+        frequency_metadata_key
+            The key in the data's metadata
+            which points to information about the data's frequency
+
+        no_time_axis_frequency
+            The value of `frequency_metadata_key` in the metadata which indicates
+            that the file has no time axis i.e. is fixed in time.
+
+        time_dimension
+            The time dimension of the data
+
+        Raises
+        ------
+        ValueError
+            The file is not correctly written in the DRS
+        """
+        # TODO: try except here
+        # If the file is clearly wrong,
+        # just print out the directory and print out the template
+        # and say, try again
+        directory_metadata = self.extract_metadata_from_path(file.absolute())
+        file_metadata = self.extract_metadata_from_filename(file.name)
+
+        ds = xr.load_dataset(file)
+        comparison_metadata = {
+            k: apply_known_replacements(v) for k, v in ds.attrs.items()
+        }
+
+        # Infer time range information, in case it appears in the DRS.
+        # Annoying that we have to pass this all the way through to here.
+        time_start, time_end = infer_time_start_time_end(
+            ds=ds,
+            frequency_metadata_key=frequency_metadata_key,
+            no_time_axis_frequency=no_time_axis_frequency,
+            time_dimension=time_dimension,
+        )
+        if time_start is not None and time_end is not None:
+            time_range = create_time_range(
+                time_start=time_start,
+                time_end=time_end,
+                ds_frequency=ds.attrs[frequency_metadata_key],
+            )
+
+            comparison_metadata["time_range"] = time_range
+
+        # This key is unverifiable because we don't save this data anywhere in the file,
+        # and it can take any value.
+        # TODO: infer this once we have the required_global_attributes
+        # handling implemented in the CVs.
+        unverifiable_keys_directory = ["version"]
+
+        mismatches = []
+        for k, v in directory_metadata.items():
+            if k in unverifiable_keys_directory:
+                continue
+
+            if comparison_metadata[k] != v:
+                mismatches.append(
+                    [k, "directory", directory_metadata[v], comparison_metadata[k]]
+                )
+
+        for k, v in file_metadata.items():
+            if comparison_metadata[k] != v:
+                mismatches.append(
+                    [k, "filename", file_metadata[v], comparison_metadata[k]]
+                )
+
+        if mismatches:
+            msg_l = [
+                "File not written in line with the DRS.",
+                f"{file.absolute()=}.",
+                f"{self.directory_path_template=}",
+                f"{self.filename_template=}",
+            ]
+            for mismatch in mismatches:
+                key, location, filename_val, expected_val = mismatch
+
+                tmp = (
+                    f"Mismatch in {location} for {key}. "
+                    f"{filename_val=!r} {expected_val=!r}"
+                )
+                msg_l.append(tmp)
+
+            msg = "\n".join(msg_l)
+            raise ValueError(msg)
+
+
+def get_regexp_from_template_and_substitutions(
+    drs_template: str,
+    substitutions: Iterable[DRSSubstitution],
+    capturing_allowed_chars: str = "[a-zA-Z0-9-]",
+) -> str:
+    """
+    Get a capturing regular expression from a template and substitutions
+
+    Parameters
+    ----------
+    drs_template
+        DRS template from which to generate the regexp
+
+    substitutions
+        Substitutions that can be applied to the DRS template
+
+    capturing_allowed_chars
+        Specification for characters that are allowed in the capturing groups.
+
+    Returns
+    -------
+    :
+        Generated regexp, which will capture metadata according to the DRS
+
+    Examples
+    --------
+    >>> template_str = "<model_id>[_<optional_id>]_<time_range>.nc"
+    >>> substitutions = DataReferenceSyntax.parse_drs_template(template_str)
+    >>> get_regexp_from_template_and_substitutions(
+    ...     template_str,
+    ...     substitutions,
+    ...     capturing_allowed_chars="[a-z]",
+    ... )
+    '(?P<model_id>[a-z]+)(_(?P<optional_id>[a-z]+))?_(?P<time_range>[a-z]+).nc'
+    """
+    capturing_regexp = drs_template
+    for substitution in substitutions:
+        capturing_group = substitution.replacement_string.replace(
+            "}", f">{capturing_allowed_chars}+)"
+        ).replace("{", "(?P<")
+
+        if substitution.optional:
+            capturing_group = f"({capturing_group})?"
+
+        capturing_regexp = capturing_regexp.replace(
+            substitution.string_to_replace,
+            capturing_group,
+        )
+
+    return capturing_regexp
 
 
 @frozen

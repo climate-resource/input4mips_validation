@@ -1,3 +1,5 @@
+# How-to guides
+
 This part of the project documentation
 will focus on a **problem-oriented** approach.
 We'll go over how to solve common tasks.

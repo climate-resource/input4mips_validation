@@ -12,7 +12,6 @@ import shutil
 from pathlib import Path
 from unittest.mock import patch
 
-import cftime
 import numpy as np
 import pint
 import pint_xarray  # noqa: F401 # required to activate pint accessor
@@ -25,8 +24,8 @@ from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
-    Input4MIPsDatasetMetadataDataProducerMinimum,
 )
+from input4mips_validation.testing import get_valid_ds_min_metadata_example
 
 UR = pint.get_application_registry()
 
@@ -46,38 +45,9 @@ def test_validate_write_in_drs(tmp_path):
     then write it in the DRS path.
     """
 
-    metadata_minimum = Input4MIPsDatasetMetadataDataProducerMinimum(
-        grid_label="gn",
-        nominal_resolution="10000 km",
-        product="derived",
-        region="global",
-        source_id="CR-CMIP-0-2-0",
-        target_mip="CMIP",
-    )
+    variable_name = "mole_fraction_of_carbon_dioxide_in_air"
+    ds, metadata_minimum = get_valid_ds_min_metadata_example(variable_id=variable_name)
 
-    lon = np.arange(-165.0, 180.0, 30.0, dtype=np.float64)
-    lat = np.arange(-82.5, 90.0, 15.0, dtype=np.float64)
-    time = [
-        cftime.datetime(y, m, 1) for y in range(2000, 2010 + 1) for m in range(1, 13)
-    ]
-
-    rng = np.random.default_rng()
-    ds_data = UR.Quantity(
-        rng.random((lon.size, lat.size, len(time))),
-        "ppm",
-    )
-
-    ds = xr.Dataset(
-        data_vars={
-            "mole_fraction_of_carbon_dioxide_in_air": (["lat", "lon", "time"], ds_data),
-        },
-        coords=dict(
-            lon=("lon", lon),
-            lat=("lat", lat),
-            time=time,
-        ),
-        attrs={},
-    )
     # This is a good trick to remember for, e.g. reducing file sizes.
     ds["lat"].encoding = {"dtype": np.dtypes.Float32DType}
     ds["time"].encoding = {
@@ -88,17 +58,13 @@ def test_validate_write_in_drs(tmp_path):
         "dtype": np.dtypes.Float32DType,
     }
 
+    # Create our full, input4MIPs dataset
     cvs = load_cvs(get_raw_cvs_loader(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE))
 
     input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
         data=ds,
         metadata_minimum=metadata_minimum,
-        dimensions=("time", "lat", "lon"),
-        standard_and_or_long_names={
-            "mole_fraction_of_carbon_dioxide_in_air": {
-                "standard_name": "mole_fraction_of_carbon_dioxide_in_air"
-            }
-        },
+        standard_and_or_long_names={variable_name: {"standard_name": variable_name}},
         cvs=cvs,
     )
 

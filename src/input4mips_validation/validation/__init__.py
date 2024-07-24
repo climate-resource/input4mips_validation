@@ -437,7 +437,9 @@ def validate_tree(  # noqa: PLR0913
                 bnds_coord_indicator=bnds_coord_indicator,
             )
         except InvalidFileError:
-            failed_files_l.append(file)
+            if file not in failed_files_l:
+                failed_files_l.append(file)
+
             raise
 
     def validate_file_written_according_to_drs_h(file: Path) -> None:
@@ -450,7 +452,9 @@ def validate_tree(  # noqa: PLR0913
             )
 
         except Exception:
-            failed_files_l.append(file)
+            if file not in failed_files_l:
+                failed_files_l.append(file)
+
             raise
 
     validate_file_with_catch = catch_error(

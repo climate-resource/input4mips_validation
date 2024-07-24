@@ -16,11 +16,15 @@ from pathlib import Path
 import cftime
 import numpy as np
 import pandas as pd
+import xarray as xr
 from attrs import frozen
 from typing_extensions import TypeAlias
 
 from input4mips_validation.cvs.loading_raw import RawCVLoader
-from input4mips_validation.inference.from_data import create_time_range
+from input4mips_validation.inference.from_data import (
+    create_time_range,
+    infer_time_start_time_end,
+)
 from input4mips_validation.serialisation import converter_json
 
 DATA_REFERENCE_SYNTAX_FILENAME: str = "input4MIPs_DRS.json"
@@ -489,6 +493,107 @@ class DataReferenceSyntax:
         )
 
         return capturing_regexp
+
+    def validate_file_written_according_to_drs(
+        self,
+        file: Path,
+        frequency_metadata_key: str = "frequency",
+        no_time_axis_frequency: str = "fx",
+        time_dimension: str = "time",
+    ) -> None:
+        """
+        Validate that a file is correctly written in the DRS
+
+        Parameters
+        ----------
+        file
+            File to validate
+
+        frequency_metadata_key
+            The key in the data's metadata
+            which points to information about the data's frequency
+
+        no_time_axis_frequency
+            The value of `frequency_metadata_key` in the metadata which indicates
+            that the file has no time axis i.e. is fixed in time.
+
+        time_dimension
+            The time dimension of the data
+
+        Raises
+        ------
+        ValueError
+            The file is not correctly written in the DRS
+        """
+        # TODO: try except here
+        # If the file is clearly wrong,
+        # just print out the directory and print out the template
+        # and say, try again
+        directory_metadata = self.extract_metadata_from_path(file.absolute())
+        file_metadata = self.extract_metadata_from_filename(file.name)
+
+        ds = xr.load_dataset(file)
+        comparison_metadata = {
+            k: apply_known_replacements(v) for k, v in ds.attrs.items()
+        }
+
+        # Infer time range information, in case it appears in the DRS.
+        # Annoying that we have to pass this all the way through to here.
+        time_start, time_end = infer_time_start_time_end(
+            ds=ds,
+            frequency_metadata_key=frequency_metadata_key,
+            no_time_axis_frequency=no_time_axis_frequency,
+            time_dimension=time_dimension,
+        )
+        if time_start is not None and time_end is not None:
+            time_range = create_time_range(
+                time_start=time_start,
+                time_end=time_end,
+                ds_frequency=ds.attrs[frequency_metadata_key],
+            )
+
+            comparison_metadata["time_range"] = time_range
+
+        # This key is unverifiable because we don't save this data anywhere in the file,
+        # and it can take any value.
+        # TODO: infer this once we have the required_global_attributes
+        # handling implemented in the CVs.
+        unverifiable_keys_directory = ["version"]
+
+        mismatches = []
+        for k, v in directory_metadata.items():
+            if k in unverifiable_keys_directory:
+                continue
+
+            if comparison_metadata[k] != v:
+                mismatches.append(
+                    [k, "directory", directory_metadata[v], comparison_metadata[k]]
+                )
+
+        for k, v in file_metadata.items():
+            if comparison_metadata[k] != v:
+                mismatches.append(
+                    [k, "filename", file_metadata[v], comparison_metadata[k]]
+                )
+
+        if mismatches:
+            msg_l = [
+                "File not written in line with the DRS.",
+                f"{file.absolute()=}.",
+                f"{self.directory_path_template=}",
+                f"{self.filename_template=}",
+            ]
+            for mismatch in mismatches:
+                key, location, filename_val, expected_val = mismatch
+
+                tmp = (
+                    f"Mismatch in {location} for {key}. "
+                    f"{filename_val=!r} {expected_val=!r}"
+                )
+                msg_l.append(tmp)
+
+            msg = "\n".join(msg_l)
+            raise ValueError(msg)
 
 
 def get_regexp_from_template_and_substitutions(

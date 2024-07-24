@@ -181,8 +181,7 @@ def get_catch_error_decorator(
                 res = func_to_call(*args, **kwargs)
 
             except Exception as exc:
-                # logger.exception(f"{call_purpose} raised an error")
-                logger.error(f"{call_purpose} raised an error ({type(exc)})")
+                logger.error(f"{call_purpose} raised an error ({type(exc).__name__})")
                 error_container.append((call_purpose, exc))
                 return None
 

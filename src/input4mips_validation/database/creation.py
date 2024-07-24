@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import tqdm
 from loguru import logger
 
 from input4mips_validation.cvs.loading import load_cvs
@@ -64,7 +65,7 @@ def create_db_file_entries(  # noqa: PLR0913
     all_files = [v for v in root.rglob(rglob_input) if v.is_file()]
 
     db_entries = []
-    for file in all_files:
+    for file in tqdm.tqdm(all_files, desc="Files"):
         logger.info(f"Creating database entry for {file}")
         database_entry = Input4MIPsDatabaseEntryFile.from_file(
             file,

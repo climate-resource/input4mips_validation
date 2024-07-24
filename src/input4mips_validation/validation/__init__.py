@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Callable, Protocol, TypeVar
 
 import iris
+import tqdm
 import xarray as xr
 from loguru import logger
 from typing_extensions import ParamSpec
@@ -470,7 +471,7 @@ def validate_tree(  # noqa: PLR0913
             call_purpose="Validate file is correctly written in the DRS",
         )
 
-    for file in all_files:
+    for file in tqdm.tqdm(all_files, desc="Files to validate"):
         validate_file_with_catch(file)
 
         if cvs is not None:

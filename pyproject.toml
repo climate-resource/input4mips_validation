@@ -17,6 +17,7 @@ dependencies = [
     "pint",
     "pint-xarray",
     "pooch",
+    "tqdm",
     "typer",
     "validators",
     "xarray",

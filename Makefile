@@ -55,6 +55,10 @@ test:  ## run the tests
 docs: docs/cli/index.md  ## build the docs
 	pixi run -e all-dev mkdocs build
 
+.PHONY: docs
+docs-strict: docs/cli/index.md  ## build the docs strictly (e.g. raise an error on warnings, this most closely mirrors what we do in the CI)
+	pixi run -e all-dev mkdocs build --strict
+
 .PHONY: docs-serve
 docs-serve: docs/cli/index.md  ## serve the docs locally
 	pixi run -e all-dev mkdocs serve

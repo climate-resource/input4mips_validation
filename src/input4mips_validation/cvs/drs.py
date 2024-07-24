@@ -562,6 +562,10 @@ class DataReferenceSyntax:
 
         mismatches = []
         for k, v in directory_metadata.items():
+            if v is None:
+                # No info in directory, presumably because key was optional
+                continue
+
             if k in unverifiable_keys_directory:
                 continue
 
@@ -571,6 +575,10 @@ class DataReferenceSyntax:
                 )
 
         for k, v in file_metadata.items():
+            if v is None:
+                # No info in directory, presumably because key was optional
+                continue
+
             if comparison_metadata[k] != v:
                 mismatches.append(
                     [k, "filename", file_metadata[v], comparison_metadata[k]]

@@ -127,17 +127,41 @@ class Input4MIPsDatabaseEntryFileRaw:
 
     """
 
+    data_node: Union[str, None] = None
+    """Data node on which this file is stored on ESGF"""
+
     grid: Union[str, None] = None
     """Long-form description of the grid referred to by `grid_label`"""
 
     institution: Union[str, None] = None
     """Long-form description of the institute referred to by `institution_id`"""
 
+    latest: Union[bool, None] = None
+    """
+    Is this data set still valid?
+
+    A value of `None` indicates that the file has not been published yet.
+    A value of `False` indicates that this file has been deprecated.
+    See `comment_post_publication` for an explanation of why.
+    """
+
     license_id: Union[str, None] = None
     """ID of the license that applies to this dataset"""
+
+    publication_status: str = "in_publishing_queue"
+    """The file's publication status"""
 
     references: Union[str, None] = None
     """References relevant to the file"""
 
+    replica: Union[bool, None] = None
+    """Is this dataset a replica on its ESGF node or the 'original'"""
+
     source: Union[str, None] = None
     """Long-form description of the source referred to by `source_id`"""
+
+    timestamp: Union[str, None] = None
+    """The file's publication timestamp"""
+
+    xlink: Union[str, None] = None
+    """Cross-link to more information about the file (DOI?)"""

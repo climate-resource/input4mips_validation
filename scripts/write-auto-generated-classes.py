@@ -152,15 +152,7 @@ def indnt(inv: str, levels: int = 1, include_first: bool = False) -> str:
     return res
 
 
-# Things to consider:
-# - comment_provider and comment_esgf
-#   - split so that provider can provide comments,
-#     but we can also add comments to ESGF database after the file is published
-#
-# - title
-#   - seems to make little sense to track this in the database
-
-ALL_KNOWN_ATTRIBUTES = {
+ALL_KNOWN_DATABASE_FIELDS = {
     "Conventions": Attribute(
         name="Conventions",
         type_dec="str",
@@ -207,6 +199,12 @@ For the comments that were made at the time of writing the file, see `comment`.
         type_dec="str",
         docstring="Date the file was created",
         comments=["TODO: validation", "YYYY-mm-DDTHH:MM:ssZ I think i.e. ISO format"],
+    ),
+    "data_node": Attribute(
+        name="data_node",
+        type_dec="Union[str, None] = None",
+        docstring="Data node on which this file is stored on ESGF",
+        comments=["Could validate that these are only known nodes (?)"],
     ),
     "dataset_category": Attribute(
         name="dataset_category",
@@ -276,6 +274,20 @@ For the comments that were made at the time of writing the file, see `comment`.
         docstring="ID of the institute that created the file",
         comments=["TODO: validation", "Should be in CVs"],
     ),
+    "latest": Attribute(
+        name="latest",
+        type_dec="Union[bool, None] = None",
+        docstring="""Is this data set still valid?
+
+A value of `None` indicates that the file has not been published yet.
+A value of `False` indicates that this file has been deprecated.
+See `comment_post_publication` for an explanation of why.""",
+        comments=[
+            "TODO: validation",
+            "Should be consistent with publication_status",
+            "If False, there should be a comment_post_publication",
+        ],
+    ),
     "license": Attribute(
         name="license",
         type_dec="str",
@@ -310,6 +322,16 @@ For the comments that were made at the time of writing the file, see `comment`.
         docstring="The kind of data in the file",
         comments=["TODO: validation", "Should be in CVs"],
     ),
+    "publication_status": Attribute(
+        name="publication_status",
+        type_dec='str = "in_publishing_queue"',
+        docstring="The file's publication status",
+        comments=[
+            "TODO: validation",
+            "Should be in CVs and consistent with latest",
+            "Should be consistent with comment_post_publication",
+        ],
+    ),
     "realm": Attribute(
         name="realm",
         type_dec="str",
@@ -331,6 +353,12 @@ For the comments that were made at the time of writing the file, see `comment`.
             "Has to be validated against CV/CF conventions",
             "https://github.com/PCMDI/obs4MIPs-cmor-tables/blob/master/obs4MIPs_region.json",
         ],
+    ),
+    "replica": Attribute(
+        name="replica",
+        type_dec="Union[bool, None] = None",
+        docstring="Is this dataset a replica on its ESGF node or the 'original'",
+        comments=[],
     ),
     "source": Attribute(
         name="source",
@@ -376,6 +404,12 @@ For the comments that were made at the time of writing the file, see `comment`.
             "Should match file name",
         ],
     ),
+    "timestamp": Attribute(
+        name="timestamp",
+        type_dec="Union[str, None] = None",
+        docstring="The file's publication timestamp",
+        comments=["TODO: validation (should have certain form?)"],
+    ),
     "tracking_id": Attribute(
         name="tracking_id",
         type_dec="str",
@@ -414,6 +448,12 @@ tracking_id = f"hdl:21.14100/{uuid.uuid4()}"
             "where YYYYMMDD is the date that it was put into the DRS",
             "(which is unverifiable within this package)",
         ],
+    ),
+    "xlink": Attribute(
+        name="xlink",
+        type_dec="Union[str, None] = None",
+        docstring="Cross-link to more information about the file (DOI?)",
+        comments=["TODO: validation (should have certain form and be live link?)"],
     ),
 }
 
@@ -454,14 +494,20 @@ def get_files_to_write() -> Iterable[FileToWrite]:
         # Fields with default values have to go at the end
         "comment",
         "comment_post_publication",
+        "data_node",
         "grid",
         "institution",
+        "latest",
         "license_id",
+        "publication_status",
         "references",
+        "replica",
         "source",
+        "timestamp",
+        "xlink",
     ]
 
-    missing = set(ALL_KNOWN_ATTRIBUTES.keys()).difference(set(RAW_DATABASE_FIELDS))
+    missing = set(ALL_KNOWN_DATABASE_FIELDS.keys()).difference(set(RAW_DATABASE_FIELDS))
     if missing:
         raise AssertionError(missing)
 
@@ -481,7 +527,7 @@ For a more useful class, see
         ),
         class_name="Input4MIPsDatabaseEntryFileRaw",
         class_docstring="Raw data model for a file entry in the input4MIPs database",
-        class_attributes=(ALL_KNOWN_ATTRIBUTES[k] for k in RAW_DATABASE_FIELDS),
+        class_attributes=(ALL_KNOWN_DATABASE_FIELDS[k] for k in RAW_DATABASE_FIELDS),
     )
 
     DATASET_METADATA_FIELDS = (
@@ -522,7 +568,9 @@ See [Input4MIPsDataset][input4mips_validation.dataset.dataset.Input4MIPsDataset]
         ),
         class_name="Input4MIPsDatasetMetadata",
         class_docstring="""Metadata for an input4MIPs dataset""",
-        class_attributes=(ALL_KNOWN_ATTRIBUTES[k] for k in DATASET_METADATA_FIELDS),
+        class_attributes=(
+            ALL_KNOWN_DATABASE_FIELDS[k] for k in DATASET_METADATA_FIELDS
+        ),
     )
 
     DATASET_PRODUCER_MINIMUM_ATTRIBUTES = (
@@ -546,7 +594,7 @@ This is the minimum metadata required to create a valid
 [`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset] object using
 [`from_data_producer_minimum_information`][input4mips_validation.dataset.Input4MIPsDataset.from_data_producer_minimum_information].""",
         class_attributes=(
-            ALL_KNOWN_ATTRIBUTES[k] for k in DATASET_PRODUCER_MINIMUM_ATTRIBUTES
+            ALL_KNOWN_DATABASE_FIELDS[k] for k in DATASET_PRODUCER_MINIMUM_ATTRIBUTES
         ),
     )
 
@@ -563,7 +611,7 @@ This is the minimum metadata required to create a valid
 [`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset] object using
 [`from_data_producer_minimum_information_multiple_variable`][input4mips_validation.dataset.dataset.Input4MIPsDataset.from_data_producer_minimum_information_multiple_variable].""",  # noqa E501
         class_attributes=(
-            ALL_KNOWN_ATTRIBUTES[k]
+            ALL_KNOWN_DATABASE_FIELDS[k]
             for k in [
                 *DATASET_PRODUCER_MINIMUM_ATTRIBUTES,
                 "dataset_category",
@@ -583,7 +631,7 @@ This is the minimum metadata required to create a valid
         class_name="SourceIDValues",
         class_docstring="Values defined by a source ID",
         class_attributes=(
-            ALL_KNOWN_ATTRIBUTES[k]
+            ALL_KNOWN_DATABASE_FIELDS[k]
             for k in [
                 "contact",
                 "further_info_url",

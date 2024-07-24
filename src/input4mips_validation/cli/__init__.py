@@ -356,11 +356,11 @@ def create_db_command(  # noqa: PLR0913
                 no_time_axis_frequency=no_time_axis_frequency,
                 time_dimension=time_dimension,
             )
-        except InvalidTreeError:
+        except InvalidTreeError as exc:
             if verbose >= 1:
                 logger.exception("Validation failed")
 
-            typer.Exit(code=1)
+            raise typer.Exit(code=1) from exc
 
     else:
         logger.debug("Skipping validation")

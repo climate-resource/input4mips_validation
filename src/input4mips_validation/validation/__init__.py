@@ -448,7 +448,8 @@ def validate_tree(  # noqa: PLR0913
                 no_time_axis_frequency=no_time_axis_frequency,
                 time_dimension=time_dimension,
             )
-        except InvalidFileError:
+
+        except Exception:
             failed_files_l.append(file)
             raise
 

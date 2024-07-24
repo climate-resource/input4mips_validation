@@ -14,6 +14,7 @@ import rich
 import typer
 from loguru import logger
 
+import input4mips_validation
 import input4mips_validation.cli.logging
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
@@ -118,8 +119,28 @@ VERBOSE_TYPE = Annotated[
 ]
 
 
+def version_callback(version: Optional[bool]) -> None:
+    """
+    If requested, print the version string and exit
+    """
+    if version:
+        print(f"input4mips-validation {input4mips_validation.__version__}")
+        raise typer.Exit(code=0)
+
+
 @app.callback()
-def cli(setup_logging: bool = True) -> None:
+def cli(
+    version: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--version",
+            help="Print the version number and exit",
+            callback=version_callback,
+            is_eager=True,
+        ),
+    ] = None,
+    setup_logging: bool = True,
+) -> None:
     """
     Entrypoint for the command-line interface
     """

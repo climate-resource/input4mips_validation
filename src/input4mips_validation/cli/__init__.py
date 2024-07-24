@@ -20,7 +20,12 @@ from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.inference.from_data import infer_time_start_time_end
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
-from input4mips_validation.validation import validate_file, validate_tree
+from input4mips_validation.validation import (
+    InvalidFileError,
+    InvalidTreeError,
+    validate_file,
+    validate_tree,
+)
 from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
 
 app = typer.Typer()
@@ -95,6 +100,22 @@ TIME_DIMENSION_TYPE = Annotated[
     ),
 ]
 
+VERBOSE_TYPE = Annotated[
+    int,
+    typer.Option(
+        "--verbose",
+        "-v",
+        count=True,
+        help=(
+            "Increase the verbosity of the output "
+            "(the verbosity flag is equal to the number of times the flag is supplied, "
+            "e.g. `-vvv` sets the verbosity to 3)."
+            "(Despite what the help says, this is a boolean flag input, "
+            "If you try and supply an integer, e.g. `-v 3`, you will get an error.)"
+        ),
+    ),
+]
+
 
 @app.callback()
 def cli(setup_logging: bool = True) -> None:
@@ -144,6 +165,7 @@ def validate_file_command(  # noqa: PLR0913
     frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
     time_dimension: TIME_DIMENSION_TYPE = "time",
+    verbose: VERBOSE_TYPE = 0,
 ) -> None:
     """
     Validate a single file
@@ -152,7 +174,13 @@ def validate_file_command(  # noqa: PLR0913
     because some validation can only be performed if we have the entire file tree.
     See the ``validate-tree`` command for this validation.
     """
-    validate_file(file, cv_source=cv_source)
+    try:
+        validate_file(file, cv_source=cv_source)
+    except InvalidFileError:
+        if verbose >= 1:
+            logger.exception("Validation failed")
+
+        typer.Exit(code=1)
 
     if write_in_drs:
         raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
@@ -223,6 +251,7 @@ def validate_tree_command(  # noqa: PLR0913
     frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
     time_dimension: TIME_DIMENSION_TYPE = "time",
+    verbose: VERBOSE_TYPE = 0,
 ) -> None:
     """
     Validate a tree of files
@@ -230,18 +259,23 @@ def validate_tree_command(  # noqa: PLR0913
     This checks things like whether all external variables are also provided
     and all tracking IDs are unique.
     """
-    validate_tree(
-        root=tree_root,
-        cv_source=cv_source,
-        bnds_coord_indicator=bnds_coord_indicator,
-        frequency_metadata_key=frequency_metadata_key,
-        no_time_axis_frequency=no_time_axis_frequency,
-        time_dimension=time_dimension,
-    )
+    try:
+        validate_tree(
+            root=tree_root,
+            cv_source=cv_source,
+            frequency_metadata_key=frequency_metadata_key,
+            no_time_axis_frequency=no_time_axis_frequency,
+            time_dimension=time_dimension,
+        )
+    except InvalidTreeError:
+        if verbose >= 1:
+            logger.exception("Validation failed")
+
+        typer.Exit(code=1)
 
 
 @app.command(name="create-db")
-def create_db_command(
+def create_db_command(  # noqa: PLR0913
     tree_root: Annotated[
         Path,
         typer.Argument(
@@ -255,18 +289,25 @@ def create_db_command(
     frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
     time_dimension: TIME_DIMENSION_TYPE = "time",
+    verbose: VERBOSE_TYPE = 0,
 ) -> None:
     """
     Create a database from a tree of files
     """
     # if --validate, validate the tree first
-    validate_tree(
-        root=tree_root,
-        cv_source=cv_source,
-        frequency_metadata_key=frequency_metadata_key,
-        no_time_axis_frequency=no_time_axis_frequency,
-        time_dimension=time_dimension,
-    )
+    try:
+        validate_tree(
+            root=tree_root,
+            cv_source=cv_source,
+            frequency_metadata_key=frequency_metadata_key,
+            no_time_axis_frequency=no_time_axis_frequency,
+            time_dimension=time_dimension,
+        )
+    except InvalidTreeError:
+        if verbose >= 1:
+            logger.exception("Validation failed")
+
+        typer.Exit(code=1)
     # # push into function
     # raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
     # cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)

@@ -63,8 +63,7 @@ class InvalidFileError(ValueError):
         error_msgs: list[str] = []
         for error in error_container:
             process, exc = error
-            # formatted_exc = "\n".join(traceback.format_exception(exc))
-            formatted_exc = str(exc)
+            formatted_exc = f"{type(exc).__name__}: {exc}"
             error_msgs.append(f"{process} failed. Exception: {formatted_exc}")
 
         error_msgs_str = "\n\n".join(error_msgs)
@@ -105,8 +104,7 @@ class InvalidTreeError(ValueError):
         error_msgs: list[str] = []
         for error in error_container:
             process, exc = error
-            # formatted_exc = "\n".join(traceback.format_exception(exc))
-            formatted_exc = str(exc)
+            formatted_exc = f"{type(exc).__name__}: {exc}"
             error_msgs.append(f"{process} failed. Exception: {formatted_exc}")
 
         error_msgs_str = "\n\n".join(error_msgs)
@@ -135,6 +133,7 @@ class CatchErrorDecoratorLike(Protocol):
 
 def get_catch_error_decorator(
     error_container: list[tuple[str, Exception]],
+    checks_performed_container: list[str],
 ) -> CatchErrorDecoratorLike:
     """
     Get a decorator which can be used to collect errors without stopping the program
@@ -144,8 +143,12 @@ def get_catch_error_decorator(
     error_container
         The list in which to store the things being run and the caught errors
 
+    checks_performed_container
+        List which stores the checks that were performed
+
     Returns
     -------
+    :
         Decorator which can be used to collect errors
         that occur while calling callables.
     """
@@ -172,16 +175,19 @@ def get_catch_error_decorator(
 
         Returns
         -------
+        :
             Decorated function
         """
 
         @wraps(func_to_call)
         def decorated(*args: P.args, **kwargs: P.kwargs) -> T | None:
             try:
+                checks_performed_container.append(call_purpose)
                 res = func_to_call(*args, **kwargs)
 
             except Exception as exc:
-                logger.exception(f"{call_purpose} raised an error")
+                # logger.exception(f"{call_purpose} raised an error")
+                logger.error(f"{call_purpose} raised an error ({type(exc)})")
                 error_container.append((call_purpose, exc))
                 return None
 
@@ -264,7 +270,8 @@ def validate_file(
     """
     logger.info(f"Validating {infile}")
     caught_errors: list[tuple[str, Exception]] = []
-    catch_error = get_catch_error_decorator(caught_errors)
+    checks_performed: list[str] = []
+    catch_error = get_catch_error_decorator(caught_errors, checks_performed)
 
     if cvs is None:
         # Load CVs, we need them for the following steps
@@ -318,7 +325,12 @@ def validate_file(
         pass
 
     if caught_errors:
-        logger.info("Validation failed")
+        n_caught_errors = len(caught_errors)
+        logger.error(
+            f"Validation of {infile} failed. "
+            f"{n_caught_errors} {'check' if n_caught_errors == 1 else 'checks'} "
+            f"out of {len(checks_performed)} failed"
+        )
         raise InvalidFileError(filepath=infile, error_container=caught_errors)
 
     logger.info("Validation passed")
@@ -504,7 +516,8 @@ def validate_tree(  # noqa: PLR0913
     """
     logger.info(f"Validating {root}")
     caught_errors: list[tuple[str, Exception]] = []
-    catch_error = get_catch_error_decorator(caught_errors)
+    checks_performed: list[str] = []
+    catch_error = get_catch_error_decorator(caught_errors, checks_performed)
 
     # Check we can load CVs, we need them for the following steps
     cvs = catch_error(
@@ -513,9 +526,21 @@ def validate_tree(  # noqa: PLR0913
     )(cv_source)
 
     all_files = [v for v in root.rglob("*") if v.is_file()]
+    failed_files_l = []
+
+    def validate_file_h(file: Path) -> None:
+        try:
+            validate_file(
+                file,
+                cvs=cvs,
+                bnds_coord_indicator=bnds_coord_indicator,
+            )
+        except InvalidFileError:
+            failed_files_l.append(file)
+            raise
 
     validate_file_with_catch = catch_error(
-        validate_file, call_purpose="Validate individual file"
+        validate_file_h, call_purpose="Validate individual file"
     )
 
     validate_file_correctly_written_in_drs_with_catch = catch_error(
@@ -523,11 +548,7 @@ def validate_tree(  # noqa: PLR0913
         call_purpose="Validate file is correctly written in the DRS",
     )
     for file in all_files:
-        validate_file_with_catch(
-            file,
-            cvs=cvs,
-            bnds_coord_indicator=bnds_coord_indicator,
-        )
+        validate_file_with_catch(file)
 
         if cvs is None:
             logger.error(
@@ -551,7 +572,21 @@ def validate_tree(  # noqa: PLR0913
     )(all_files)
 
     if caught_errors:
-        logger.info("Validation failed")
+        n_caught_errors = len(caught_errors)
+        logger.error(
+            "Validation failed. "
+            f"{n_caught_errors} {'check' if n_caught_errors == 1 else 'checks'} "
+            f"out of {len(checks_performed)} failed"
+        )
+
+        line_start = "\n- "
+        failed_files = line_start.join([str(v) for v in failed_files_l])
+        logger.error(
+            f"{len(failed_files_l)} out of {len(all_files)} "
+            f"{'files' if len(all_files) > 1 else 'file'} "
+            f"failed validation:{line_start}{failed_files}"
+        )
+
         raise InvalidTreeError(root=root, error_container=caught_errors)
 
     logger.info("Validation passed")

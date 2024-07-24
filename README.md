@@ -43,14 +43,36 @@ because of breaking updates to dependencies.
 
 The locked version of input4mips-validation can be installed with
 
-```sh
-# pip: https://pip.pypa.io/en/stable/
-pip install input4mips-validation[locked]
-# mamba: https://mamba.readthedocs.io/en/latest/
-mamba install -c conda-forge input4mips-validation-locked
-# conda: https://docs.conda.io/projects/conda/en/stable/
-conda install -c conda-forge input4mips-validation-locked
-```
+=== "mamba"
+    ```sh
+    mamba install -c conda-forge input4mips-validation-locked
+    ```
+
+    [mamba](https://mamba.readthedocs.io/en/latest/)
+    is our recommend way to install the package
+    because it has better handling of the compiled dependencies
+    (like cfunits).
+
+=== "conda"
+    ```sh
+    conda install -c conda-forge input4mips-validation-locked
+    ```
+
+    [conda](https://docs.conda.io/projects/conda/en/stable/)
+    is a good way to install the package
+    because it has better handling of the compiled dependencies
+    (like cfunits).
+
+=== "pip"
+    ```sh
+    pip install input4mips-validation[locked]
+    ```
+
+    [pip](https://pip.pypa.io/en/stable/)
+    is a standard way to install Python packages.
+    We make no guarantees that this will actually work
+    because pip's handling of the compiled dependencies
+    is not guaranteed.
 
 ### As a library
 

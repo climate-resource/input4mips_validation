@@ -440,6 +440,18 @@ def validate_tree(  # noqa: PLR0913
             failed_files_l.append(file)
             raise
 
+    def validate_file_written_according_to_drs_h(file: Path) -> None:
+        try:
+            cvs.DRS.validate_file_written_according_to_drs(
+                file,
+                frequency_metadata_key=frequency_metadata_key,
+                no_time_axis_frequency=no_time_axis_frequency,
+                time_dimension=time_dimension,
+            )
+        except InvalidFileError:
+            failed_files_l.append(file)
+            raise
+
     validate_file_with_catch = catch_error(
         validate_file_h, call_purpose="Validate individual file"
     )
@@ -449,7 +461,7 @@ def validate_tree(  # noqa: PLR0913
 
     else:
         validate_file_written_according_to_drs = catch_error(
-            cvs.DRS.validate_file_written_according_to_drs,
+            validate_file_written_according_to_drs_h,
             call_purpose="Validate file is correctly written in the DRS",
         )
 
@@ -457,12 +469,7 @@ def validate_tree(  # noqa: PLR0913
         validate_file_with_catch(file)
 
         if cvs is not None:
-            validate_file_written_according_to_drs(
-                file,
-                frequency_metadata_key=frequency_metadata_key,
-                no_time_axis_frequency=no_time_axis_frequency,
-                time_dimension=time_dimension,
-            )
+            validate_file_written_according_to_drs(file)
 
         # TODO: check cross references in files to external variables
 

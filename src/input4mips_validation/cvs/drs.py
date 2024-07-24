@@ -571,7 +571,7 @@ class DataReferenceSyntax:
 
             if comparison_metadata[k] != v:
                 mismatches.append(
-                    [k, "directory", directory_metadata[v], comparison_metadata[k]]
+                    [k, "directory", directory_metadata[k], comparison_metadata[k]]
                 )
 
         for k, v in file_metadata.items():
@@ -581,7 +581,7 @@ class DataReferenceSyntax:
 
             if comparison_metadata[k] != v:
                 mismatches.append(
-                    [k, "filename", file_metadata[v], comparison_metadata[k]]
+                    [k, "filename", file_metadata[k], comparison_metadata[k]]
                 )
 
         if mismatches:
@@ -592,11 +592,11 @@ class DataReferenceSyntax:
                 f"{self.filename_template=}",
             ]
             for mismatch in mismatches:
-                key, location, filename_val, expected_val = mismatch
+                key, location, filepath_val, expected_val = mismatch
 
                 tmp = (
                     f"Mismatch in {location} for {key}. "
-                    f"{filename_val=!r} {expected_val=!r}"
+                    f"{filepath_val=!r} {expected_val=!r}"
                 )
                 msg_l.append(tmp)
 

@@ -71,6 +71,17 @@ class Input4MIPsDatasetMetadata:
     variable_id: str
     """The ID of the variable contained in the file"""
 
+    comment: Union[str, None] = None
+    """
+    Comments that apply to the file
+
+    These are the comments included in the file itself.
+    As a result, they can only apply to the file at the time of writing.
+    For comments made about the file after the fact,
+    e.g. reasons for deprecation,
+    see `comment_post_publication`.
+    """
+
     institution: Union[str, None] = None
     """Long-form description of the institute referred to by `institution_id`"""
 

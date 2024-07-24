@@ -179,6 +179,29 @@ ALL_KNOWN_ATTRIBUTES = {
         docstring="Email addresses to contact in case of questions about the file",
         comments=["TODO: validation", "Should follow some sort of standard form"],
     ),
+    "comment": Attribute(
+        name="comment",
+        type_dec="Union[str, None] = None",
+        docstring="""Comments that apply to the file
+
+These are the comments included in the file itself.
+As a result, they can only apply to the file at the time of writing.
+For comments made about the file after the fact,
+e.g. reasons for deprecation,
+see `comment_post_publication`.""",
+        comments=["No validation, any string is fine"],
+    ),
+    "comment_post_publication": Attribute(
+        name="comment_post_publication",
+        type_dec="Union[str, None] = None",
+        docstring="""Comments that apply to the file but are added after its publication
+
+These comments can be added to the file after it has been published.
+For example, e.g. reasons for deprecating the file.
+For the comments that were made at the time of writing the file, see `comment`.
+""",
+        comments=["No validation, any string is fine"],
+    ),
     "creation_date": Attribute(
         name="creation_date",
         type_dec="str",
@@ -429,6 +452,8 @@ def get_files_to_write() -> Iterable[FileToWrite]:
         "variable_id",
         "version",
         # Fields with default values have to go at the end
+        "comment",
+        "comment_post_publication",
         "grid",
         "institution",
         "license_id",
@@ -478,6 +503,7 @@ For a more useful class, see
         "target_mip",
         "variable_id",
         # Fields with default values have to go at the end
+        "comment",
         "institution",
         "license_id",
         "source",

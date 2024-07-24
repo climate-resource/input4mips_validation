@@ -106,6 +106,27 @@ class Input4MIPsDatabaseEntryFileRaw:
     version: str
     """The version of the file, as defined by the ESGF index"""
 
+    comment: Union[str, None] = None
+    """
+    Comments that apply to the file
+
+    These are the comments included in the file itself.
+    As a result, they can only apply to the file at the time of writing.
+    For comments made about the file after the fact,
+    e.g. reasons for deprecation,
+    see `comment_post_publication`.
+    """
+
+    comment_post_publication: Union[str, None] = None
+    """
+    Comments that apply to the file but are added after its publication
+
+    These comments can be added to the file after it has been published.
+    For example, e.g. reasons for deprecating the file.
+    For the comments that were made at the time of writing the file, see `comment`.
+
+    """
+
     grid: Union[str, None] = None
     """Long-form description of the grid referred to by `grid_label`"""
 

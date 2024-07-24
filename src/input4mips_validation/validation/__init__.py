@@ -360,6 +360,7 @@ def validate_tree(  # noqa: PLR0913
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
+    rglob_input: str = "*.nc",
 ) -> None:
     """
     Validate a (directory) tree
@@ -404,6 +405,11 @@ def validate_tree(  # noqa: PLR0913
     time_dimension
         The time dimension of the data
 
+    rglob_input
+        Input to rglob.
+
+        This helps us only select relevant files to check.
+
     Raises
     ------
     InvalidTreeError
@@ -420,7 +426,7 @@ def validate_tree(  # noqa: PLR0913
         call_purpose="Load controlled vocabularies to use during validation",
     )(cv_source)
 
-    all_files = [v for v in root.rglob("*") if v.is_file()]
+    all_files = [v for v in root.rglob(rglob_input) if v.is_file()]
     failed_files_l = []
 
     def validate_file_h(file: Path) -> None:

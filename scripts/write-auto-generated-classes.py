@@ -261,7 +261,7 @@ ALL_KNOWN_ATTRIBUTES = {
     ),
     "license_id": Attribute(
         name="license_id",
-        type_dec="str",
+        type_dec="Union[str, None] = None",
         docstring="ID of the license that applies to this dataset",
         comments=["TODO: validation", "Should be in CVs"],
     ),
@@ -416,7 +416,6 @@ def get_files_to_write() -> Iterable[FileToWrite]:
         "grid_label",
         "institution_id",
         "license",
-        "license_id",
         "mip_era",
         "nominal_resolution",
         "product",
@@ -432,6 +431,7 @@ def get_files_to_write() -> Iterable[FileToWrite]:
         # Fields with default values have to go at the end
         "grid",
         "institution",
+        "license_id",
         "references",
         "source",
     ]
@@ -468,7 +468,6 @@ For a more useful class, see
         "grid_label",
         "institution_id",
         "license",
-        "license_id",
         "mip_era",
         "nominal_resolution",
         "product",
@@ -480,6 +479,7 @@ For a more useful class, see
         "variable_id",
         # Fields with default values have to go at the end
         "institution",
+        "license_id",
         "source",
     )
     file_input4mips_dataset_metadata = FileToWrite(
@@ -549,7 +549,11 @@ This is the minimum metadata required to create a valid
     file_source_id_values = FileToWrite(
         SRC / "cvs" / "source_id" / "values.py",
         module_docstring="Source ID values definition",
-        imports=("from attrs import define",),
+        imports=(
+            "from typing import Union",
+            "",
+            "from attrs import define",
+        ),
         class_name="SourceIDValues",
         class_docstring="Values defined by a source ID",
         class_attributes=(
@@ -558,9 +562,9 @@ This is the minimum metadata required to create a valid
                 "contact",
                 "further_info_url",
                 "institution_id",
-                "license_id",
                 "mip_era",
                 "source_version",
+                "license_id",
             ]
         ),
     )

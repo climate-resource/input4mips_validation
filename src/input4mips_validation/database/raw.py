@@ -58,9 +58,6 @@ class Input4MIPsDatabaseEntryFileRaw:
     license: str
     """License information for the dataset"""
 
-    license_id: str
-    """ID of the license that applies to this dataset"""
-
     mip_era: str
     """The MIP era to which this file belong"""
 
@@ -114,6 +111,9 @@ class Input4MIPsDatabaseEntryFileRaw:
 
     institution: Union[str, None] = None
     """Long-form description of the institute referred to by `institution_id`"""
+
+    license_id: Union[str, None] = None
+    """ID of the license that applies to this dataset"""
 
     references: Union[str, None] = None
     """References relevant to the file"""

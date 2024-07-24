@@ -5,7 +5,7 @@ Validation module
 from __future__ import annotations
 
 import subprocess
-from collections.abc import Iterable
+from collections.abc import Collection
 from functools import wraps
 from pathlib import Path
 from typing import Callable, Protocol, TypeVar
@@ -436,7 +436,7 @@ def validate_file_correctly_written_in_drs(
         raise ValueError(msg)
 
 
-def validate_tracking_ids_are_unique(files: Iterable[Path]) -> None:
+def validate_tracking_ids_are_unique(files: Collection[Path]) -> None:
     """
     Validate that tracking IDs in all files are unique
 

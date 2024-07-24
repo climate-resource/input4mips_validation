@@ -1,5 +1,5 @@
 """
-Test of our validate-tree command
+Tests of our validate-tree command
 """
 
 from __future__ import annotations

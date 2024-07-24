@@ -18,6 +18,7 @@ import input4mips_validation.cli.logging
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
+from input4mips_validation.database.creation import create_db_file_entries
 from input4mips_validation.inference.from_data import infer_time_start_time_end
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
 from input4mips_validation.validation import (
@@ -285,6 +286,25 @@ def create_db_command(  # noqa: PLR0913
             file_okay=False,
         ),
     ],
+    db_file: Annotated[
+        Path,
+        typer.Option(
+            help=(
+                "The file in which to write the database entries. "
+                "At the moment, the file must not already exist. "
+                "In future, we will add functionality "
+                "to merge entries into an existing database."
+            ),
+            dir_okay=False,
+            file_okay=True,
+        ),
+    ],
+    validate: Annotated[
+        bool,
+        typer.Option(
+            help="Should the tree be validated before the database is created?"
+        ),
+    ] = True,
     cv_source: CV_SOURCE_TYPE = None,
     frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
@@ -294,33 +314,34 @@ def create_db_command(  # noqa: PLR0913
     """
     Create a database from a tree of files
     """
-    # if --validate, validate the tree first
-    try:
-        validate_tree(
-            root=tree_root,
-            cv_source=cv_source,
-            frequency_metadata_key=frequency_metadata_key,
-            no_time_axis_frequency=no_time_axis_frequency,
-            time_dimension=time_dimension,
-        )
-    except InvalidTreeError:
-        if verbose >= 1:
-            logger.exception("Validation failed")
+    if db_file.exists():
+        msg = "We haven't implemented functionality for merging databases yet"
+        raise NotImplementedError(msg)
 
-        typer.Exit(code=1)
-    # # push into function
-    # raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
-    # cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
-    # for file in all_files:
-    #     database_entry = Input4MIPsDatabaseEntryFile.from_file(
-    #         file,
-    #         cvs=cvs,
-    #         frequency_metadata_key=frequency_metadata_key,
-    #         no_time_axis_frequency=no_time_axis_frequency,
-    #         time_dimension=time_dimension,
-    #     )
+    if validate:
+        try:
+            validate_tree(
+                root=tree_root,
+                cv_source=cv_source,
+                frequency_metadata_key=frequency_metadata_key,
+                no_time_axis_frequency=no_time_axis_frequency,
+                time_dimension=time_dimension,
+            )
+        except InvalidTreeError:
+            if verbose >= 1:
+                logger.exception("Validation failed")
 
-    # write db entries to disk (either new file or append)
+            typer.Exit(code=1)
+
+    db_entries = create_db_file_entries(
+        root=tree_root,
+        cv_source=cv_source,
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
+        time_dimension=time_dimension,
+    )
+    with open(db_file, "w") as fh:
+        fh.write(json_dumps_cv_style(converter_json.unstructure(db_entries)))
 
 
 if __name__ == "__main__":

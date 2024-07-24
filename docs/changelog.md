@@ -19,6 +19,36 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.9.0 (2024-07-24)
+
+
+### 🆕 Features
+
+- Added the `validate-tree` and `create-db` commands.
+
+  These allow you to validate a tree of files
+  and create a database of the files in the tree.
+
+  Use the following commands to get help:
+
+  - `input4mips-validation validate-tree --help`
+  - `input4mips-validation create-db --help`
+
+  ([#36](https://github.com/climate-resource/input4mips_validation/pulls/36))
+
+### 📚 Improved Documentation
+
+- - Updated the installation instructions now that we have a
+    [conda package](https://anaconda.org/conda-forge/input4mips-validation).
+  - Generally cleaned up the docs
+
+  ([#36](https://github.com/climate-resource/input4mips_validation/pulls/36))
+
+### 🔧 Trivial/Internal Changes
+
+- [#36](https://github.com/climate-resource/input4mips_validation/pulls/36)
+
+
 ## input4mips-validation v0.8.1 (2024-07-22)
 
 

@@ -442,21 +442,6 @@ def validate_tree(  # noqa: PLR0913
 
             raise
 
-    def validate_file_written_according_to_drs_h(file: Path) -> None:
-        try:
-            cvs.DRS.validate_file_written_according_to_drs(
-                file,
-                frequency_metadata_key=frequency_metadata_key,
-                no_time_axis_frequency=no_time_axis_frequency,
-                time_dimension=time_dimension,
-            )
-
-        except Exception:
-            if file not in failed_files_l:
-                failed_files_l.append(file)
-
-            raise
-
     validate_file_with_catch = catch_error(
         validate_file_h, call_purpose="Validate individual file"
     )
@@ -465,6 +450,22 @@ def validate_tree(  # noqa: PLR0913
         logger.error("Skipping check of consistency with DRS because CVs did not load")
 
     else:
+
+        def validate_file_written_according_to_drs_h(file: Path) -> None:
+            try:
+                cvs.DRS.validate_file_written_according_to_drs(
+                    file,
+                    frequency_metadata_key=frequency_metadata_key,
+                    no_time_axis_frequency=no_time_axis_frequency,
+                    time_dimension=time_dimension,
+                )
+
+            except Exception:
+                if file not in failed_files_l:
+                    failed_files_l.append(file)
+
+                raise
+
         validate_file_written_according_to_drs = catch_error(
             validate_file_written_according_to_drs_h,
             call_purpose="Validate file is correctly written in the DRS",

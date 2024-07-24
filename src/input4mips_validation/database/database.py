@@ -116,7 +116,7 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
                     msg = f"Value clash for {ktc}. {all_metadata[ktc]=}, {md[ktc]=}"
                     raise AssertionError(msg)
 
-            all_metadata = all_metadata | md  # type: ignore # mypy confused by dict types
+            all_metadata = all_metadata | md
 
         # Make sure we only pass metadata that is actully of interest to the database
         cls_fields = [v.name for v in fields(cls)]

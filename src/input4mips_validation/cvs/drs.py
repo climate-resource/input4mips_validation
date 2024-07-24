@@ -340,7 +340,7 @@ class DataReferenceSyntax:
 
     def extract_metadata_from_path(
         self, directory: Path, include_root_data_dir: bool = False
-    ) -> dict[str, str]:
+    ) -> dict[str, str | None]:
         """
         Extract metadata from a path
 
@@ -434,7 +434,7 @@ class DataReferenceSyntax:
 
         return capturing_regexp
 
-    def extract_metadata_from_filename(self, filename: str) -> dict[str, str]:
+    def extract_metadata_from_filename(self, filename: str) -> dict[str, str | None]:
         """
         Extract metadata from a filename
 
@@ -529,8 +529,12 @@ class DataReferenceSyntax:
         # If the file is clearly wrong,
         # just print out the directory and print out the template
         # and say, try again
-        directory_metadata = self.extract_metadata_from_path(file.absolute())
-        file_metadata = self.extract_metadata_from_filename(file.name)
+        directory_metadata: dict[str, str | None] = self.extract_metadata_from_path(
+            file.absolute()
+        )
+        file_metadata: dict[str, str | None] = self.extract_metadata_from_filename(
+            file.name
+        )
 
         ds = xr.load_dataset(file)
         comparison_metadata = {

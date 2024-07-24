@@ -212,6 +212,10 @@ class Input4MIPsDataset:
 
         cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]
         cvs_values = cvs_source_id_entry.values
+        if cvs_values.license_id is None:
+            msg = "License ID must be specified in the CVs source ID"
+            raise AssertionError(msg)
+
         variable_id = get_ds_var_assert_single(data)
 
         # cf-xarray uses suffix bounds, hence hard-code this
@@ -376,6 +380,9 @@ class Input4MIPsDataset:
 
         cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]
         cvs_values = cvs_source_id_entry.values
+        if cvs_values.license_id is None:
+            msg = "License ID must be specified in the CVs source ID"
+            raise AssertionError(msg)
 
         # cf-xarray uses suffix bounds, hence hard-code this
         frequency = infer_frequency(data, time_bounds=f"{time_dimension}_bounds")

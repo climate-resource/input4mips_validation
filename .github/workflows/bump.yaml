@@ -63,22 +63,28 @@ jobs:
           # Build CHANGELOG
           pixi run --frozen -e all-dev towncrier build --yes --version v$NEW_VERSION
 
-          # Commit and tag
+          # Commit, tag and push
           git commit -a -m "bump: version $BASE_VERSION -> $NEW_VERSION"
           git tag v$NEW_VERSION
+          git push && git push --tags
 
           # Bump to alpha (so that future commits do not have the same
           # version as the tagged commit)
           BASE_VERSION=`sed -ne 's/^version = "\([0-9\.a]*\)"/\1/p' pyproject.toml`
 
           # Bump (need two commands because of a bug in pdm-bump)
-          # TODO: make issue
+          # See https://github.com/carstencodes/pdm-bump/issues/326
           pdm bump micro
           pdm bump pre-release --pre alpha
 
           NEW_VERSION=`sed -ne 's/^version = "\([0-9\.a]*\)"/\1/p' pyproject.toml`
           echo "Bumping version $BASE_VERSION > $NEW_VERSION"
 
-          # Commit, tag and push
+          # Freeze the environment again
+          # x-ref: https://github.com/climate-resource/input4mips_validation/issues/35
+          pixi install
+          pdm lock --strategy=inherit_metadata --dev --group :all
+
+          # Commit and push
           git commit -a -m "bump(pre-release): version $BASE_VERSION > $NEW_VERSION"
-          git push && git push --tags
+          git push

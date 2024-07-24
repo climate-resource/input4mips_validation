@@ -19,7 +19,7 @@ def create_db_file_entries(
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
-) -> tuple[Input4MIPsDatabaseEntryFile]:
+) -> tuple[Input4MIPsDatabaseEntryFile, ...]:
     """
     Create database file entries for all the files in a given path
 

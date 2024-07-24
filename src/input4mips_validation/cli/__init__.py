@@ -204,6 +204,13 @@ def validate_file_command(  # noqa: PLR0913
             time_start=time_start,
             time_end=time_end,
         )
+        if full_file_path.name != file.name:
+            msg = (
+                "If we're changing the file name, "
+                "should also update the tracking ID, creation date etc."
+            )
+            raise NotImplementedError(msg)
+
         write_path = full_file_path.parent / file.name
 
         if write_path.exists():

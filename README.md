@@ -1,3 +1,4 @@
+--8<-- [start:description]
 # Input4MIPs-validation
 
 Validation of input4MIPs data (checking file formats, metadata etc.).
@@ -24,6 +25,7 @@ Validation of input4MIPs data (checking file formats, metadata etc.).
 [![Last Commit](https://img.shields.io/github/last-commit/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/commits/main)
 [![Contributors](https://img.shields.io/github/contributors/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/graphs/contributors)
 
+--8<-- [end:description]
 
 Full documentation can be found at:
 [input4mips-validation.readthedocs.io](https://input4mips-validation.readthedocs.io/en/latest/).
@@ -32,6 +34,7 @@ don't render correctly on GitHub's viewer.
 
 ## Installation
 
+--8<-- [start:installation]
 ### As an application
 
 If you want to use input4MIPs-validation as an application,
@@ -93,27 +96,56 @@ please [raise an issue](https://github.com/climate-resource/input4mips_validatio
 
 The (non-locked) version of input4mips-validation can be installed with
 
-```sh
-# pip: https://pip.pypa.io/en/stable/
-pip install input4mips-validation
-# mamba: https://mamba.readthedocs.io/en/latest/
-mamba install -c conda-forge input4mips-validation
-# conda: https://docs.conda.io/projects/conda/en/stable/
-conda install -c conda-forge input4mips-validation
-```
+=== "mamba"
+    ```sh
+    mamba install -c conda-forge input4mips-validation
+    ```
+
+    [mamba](https://mamba.readthedocs.io/en/latest/)
+    is our recommend way to install the package
+    because it has better handling of the compiled dependencies
+    (like cfunits).
+
+=== "conda"
+    ```sh
+    conda install -c conda-forge input4mips-validation
+    ```
+
+    [conda](https://docs.conda.io/projects/conda/en/stable/)
+    is a good way to install the package
+    because it has better handling of the compiled dependencies
+    (like cfunits).
+
+=== "pip"
+    ```sh
+    pip install input4mips-validation
+    ```
+
+    [pip](https://pip.pypa.io/en/stable/)
+    is a standard way to install Python packages.
+    We make no guarantees that this will actually work
+    because pip's handling of the compiled dependencies
+    is not guaranteed.
 
 Additional dependencies can be installed using
 
-```sh
-# To add plotting dependencies
-pip install input4mips-validation[plots]
-# To add notebook dependencies
-pip install input4mips-validation[notebooks]
+=== "mamba"
+    If you are installing with mamba, we recommend
+    installing the extras by hand because there is no stable
+    solution yet (see [conda issue #7502](https://github.com/conda/conda/issues/7502))
 
-# If you are installing with conda, we recommend
-# installing the extras by hand because there is no stable
-# solution yet (issue here: https://github.com/conda/conda/issues/7502)
-```
+=== "conda"
+    If you are installing with conda, we recommend
+    installing the extras by hand because there is no stable
+    solution yet (see [conda issue #7502](https://github.com/conda/conda/issues/7502))
+
+=== "pip"
+    ```sh
+    # To add plotting dependencies
+    pip install input4mips-validation[plots]
+    # To add notebook dependencies
+    pip install input4mips-validation[notebooks]
+    ```
 
 ### For developers
 
@@ -138,3 +170,5 @@ through. If not, please raise an issue in the
 [issue tracker](https://github.com/climate-resource/input4mips_validation/issues).
 
 For the rest of our developer docs, please see [development][development-reference].
+
+--8<-- [end:installation]

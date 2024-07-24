@@ -8,6 +8,7 @@ repo_url: https://github.com/climate-resource/input4mips_validation
 
 nav:
   - Input4MIPs validation: index.md
+  - Installation: installation.md
   - How-to guides:
     - how-to-guides/index.md
     - How to validate a file: how-to-guides/how-to-validate-file.py
@@ -45,13 +46,13 @@ extra_css:
   - stylesheets/style.css
 
 plugins:
-  - search
-  - autorefs
   # Required for auto-generating our documentation stubs,
   # a bit like sphinx autodoc gen used to do
   - gen-files:
       scripts:
         - docs/gen_doc_stubs.py
+  - search
+  - autorefs
   - mkdocstrings:
       enable_inventory: true
       handlers:
@@ -84,7 +85,7 @@ plugins:
   - mkdocs-jupyter:
       execute: true
       allow_errors: false
-      theme: dark
+      # theme: dark
       include_source: True
       ignore: ["*.ipynb", "docs/gen_doc_stubs.py"]
 

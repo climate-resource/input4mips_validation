@@ -1,5 +1,8 @@
 # %% [markdown]
 # # How to validate a file
+#
+# **Note:** if you're reading this on our docs page, you will have to be in light mode
+# (sorry, we haven't figured out how to make that toggling work nicely yet).
 
 # %% [markdown]
 # Coming soon

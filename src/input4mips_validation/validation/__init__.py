@@ -71,7 +71,7 @@ class InvalidFileError(ValueError):
         error_msg = (
             f"Failed to validate {filepath=}\n"
             f"File's `ncdump -h` output:\n\n{file_ncdump_h}\n\n"
-            "Caught error messages (see log messages for full details):\n\n"
+            "Caught error messages:\n\n"
             f"{error_msgs_str}"
         )
 
@@ -111,7 +111,7 @@ class InvalidTreeError(ValueError):
 
         error_msg = (
             f"Failed to validate {root=}\n"
-            "Caught error messages (see log messages for full details):\n\n"
+            "Caught error messages:\n\n"
             f"{error_msgs_str}"
         )
 

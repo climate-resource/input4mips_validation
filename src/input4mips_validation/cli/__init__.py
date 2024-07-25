@@ -218,10 +218,11 @@ def validate_file_command(  # noqa: PLR0913
     """
     try:
         validate_file(file, cv_source=cv_source)
-    except InvalidFileError:
+    except InvalidFileError as exc:
         if verbose >= 1:
             logger.exception("Validation failed")
 
+        logger.debug(f"{type(exc).__name__}: {exc}")
         typer.Exit(code=1)
 
     if write_in_drs:
@@ -316,10 +317,11 @@ def validate_tree_command(  # noqa: PLR0913
             no_time_axis_frequency=no_time_axis_frequency,
             time_dimension=time_dimension,
         )
-    except InvalidTreeError:
+    except InvalidTreeError as exc:
         if verbose >= 1:
             logger.exception("Validation failed")
 
+        logger.debug(f"{type(exc).__name__}: {exc}")
         typer.Exit(code=1)
 
 
@@ -380,6 +382,7 @@ def create_db_command(  # noqa: PLR0913
             if verbose >= 1:
                 logger.exception("Validation failed")
 
+            logger.debug(f"{type(exc).__name__}: {exc}")
             raise typer.Exit(code=1) from exc
 
     else:

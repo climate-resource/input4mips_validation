@@ -64,14 +64,8 @@ class Input4MIPsDatabaseEntryFileRaw:
     nominal_resolution: str
     """Nominal resolution of the data in the file"""
 
-    product: str
-    """The kind of data in the file"""
-
     realm: str
     """The realm of the data in the file"""
-
-    region: str
-    """The region of the data in the file"""
 
     source_id: str
     """The ID of the file's source"""
@@ -151,8 +145,14 @@ class Input4MIPsDatabaseEntryFileRaw:
     publication_status: str = "in_publishing_queue"
     """The file's publication status"""
 
+    product: Union[str, None] = None
+    """The kind of data in the file"""
+
     references: Union[str, None] = None
     """References relevant to the file"""
+
+    region: Union[str, None] = None
+    """The region of the data in the file"""
 
     replica: Union[bool, None] = None
     """Is this dataset a replica on its ESGF node or the 'original'"""

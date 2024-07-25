@@ -50,14 +50,8 @@ class Input4MIPsDatasetMetadata:
     nominal_resolution: str
     """Nominal resolution of the data in the file"""
 
-    product: str
-    """The kind of data in the file"""
-
     realm: str
     """The realm of the data in the file"""
-
-    region: str
-    """The region of the data in the file"""
 
     source_id: str
     """The ID of the file's source"""
@@ -87,6 +81,12 @@ class Input4MIPsDatasetMetadata:
 
     license_id: Union[str, None] = None
     """ID of the license that applies to this dataset"""
+
+    product: Union[str, None] = None
+    """The kind of data in the file"""
+
+    region: Union[str, None] = None
+    """The region of the data in the file"""
 
     source: Union[str, None] = None
     """Long-form description of the source referred to by `source_id`"""

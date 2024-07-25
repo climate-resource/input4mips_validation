@@ -24,12 +24,6 @@ class Input4MIPsDatasetMetadataDataProducerMinimum:
     nominal_resolution: str
     """Nominal resolution of the data in the file"""
 
-    product: str
-    """The kind of data in the file"""
-
-    region: str
-    """The region of the data in the file"""
-
     source_id: str
     """The ID of the file's source"""
 

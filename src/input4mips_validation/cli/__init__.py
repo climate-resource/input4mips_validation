@@ -19,6 +19,7 @@ from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.database.creation import create_db_file_entries
+from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.inference.from_data import infer_time_start_time_end
 from input4mips_validation.logging import setup_logging
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
@@ -253,25 +254,31 @@ def validate_file_command(  # noqa: PLR0913
             time_start=time_start,
             time_end=time_end,
         )
+
+        if full_file_path.exists():
+            logger.error("We will not overwrite existing files")
+            raise FileExistsError(full_file_path)
+
+        full_file_path.parent.mkdir(parents=True, exist_ok=True)
+
         if full_file_path.name != file.name:
-            msg = (
-                "If we're changing the file name, "
-                "should also update the tracking ID, creation date etc."
+            logger.info(f"Re-writing {file} to {full_file_path}")
+            Input4MIPsDataset.from_ds(ds, cvs=cvs).write(
+                root_data_dir=write_in_drs,
+                frequency_metadata_key=frequency_metadata_key,
+                no_time_axis_frequency=no_time_axis_frequency,
+                time_dimension=time_dimension,
             )
-            raise NotImplementedError(msg)
 
-        write_path = full_file_path.parent / file.name
+        else:
+            logger.info(f"Copying {file} to {full_file_path}")
+            shutil.copy(file, full_file_path)
 
-        if write_path.exists():
-            raise NotImplementedError()
-
-        write_path.parent.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Copying {file} to {write_path}")
-        shutil.copy(file, write_path)
+        logger.success(f"File written according to the DRS in {full_file_path}")
 
     if create_db_entry:
         if write_in_drs:
-            db_entry_creation_file = write_path
+            db_entry_creation_file = full_file_path
         else:
             db_entry_creation_file = file
 

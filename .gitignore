@@ -5,6 +5,9 @@ tests/test-data/input4MIPs/CMIP6Plus/CMIP/PCMDI
 # Default data download directory
 src/input4mips_validation/cvs/user_cvs
 
+# Auto-generated netCDF files
+docs/how-to-guides/*.nc
+
 # Auto-generated docs
 docs/api
 docs/cli

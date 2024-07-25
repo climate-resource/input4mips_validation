@@ -16,6 +16,10 @@ import xarray as xr
 from loguru import logger
 from typing_extensions import ParamSpec
 
+from input4mips_validation.cli.logging import (
+    LOG_LEVEL_INFO_FILE,
+    LOG_LEVEL_INFO_INDIVIDUAL_CHECK,
+)
 from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
@@ -24,21 +28,6 @@ from input4mips_validation.validation.cf_checker import check_with_cf_checker
 
 P = ParamSpec("P")
 T = TypeVar("T")
-
-
-LOG_LEVEL_INFO_FILE: int = 15
-"""
-Logging level that gives information at the file level
-
-This is between DEBUG and INFO
-"""
-
-LOG_LEVEL_INFO_INDIVIDUAL_CHECK: int = 14
-"""
-Logging level that gives information at the level of individual checks
-
-This is between DEBUG and LOG_LEVEL_INFO_FILE
-"""
 
 
 class InvalidFileError(ValueError):

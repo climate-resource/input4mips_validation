@@ -9,6 +9,7 @@ from pathlib import Path
 import tqdm
 from loguru import logger
 
+from input4mips_validation.cli.logging import LOG_LEVEL_INFO_FILE
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database.database import Input4MIPsDatabaseEntryFile
@@ -65,8 +66,9 @@ def create_db_file_entries(  # noqa: PLR0913
     all_files = [v for v in root.rglob(rglob_input) if v.is_file()]
 
     db_entries = []
+    logger.info("Creating database entries for globbed files")
     for file in tqdm.tqdm(all_files, desc="Files"):
-        logger.info(f"Creating database entry for {file}")
+        logger.log(LOG_LEVEL_INFO_FILE, f"Creating database entry for {file}")
         database_entry = Input4MIPsDatabaseEntryFile.from_file(
             file,
             cvs=cvs,

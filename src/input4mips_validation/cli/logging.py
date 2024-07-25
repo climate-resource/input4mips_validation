@@ -8,14 +8,26 @@ import sys
 from pathlib import Path
 from typing import Any, Union
 
-import typer
 from loguru import logger
 
 # Type ignore while we wait for
 # https://github.com/erezinman/loguru-config/pull/2
 from loguru_config import LoguruConfig  # type: ignore
 
-app = typer.Typer()
+LOG_LEVEL_INFO_FILE: int = 15
+"""
+Logging level that gives information at the file level
+
+This is between DEBUG and INFO
+"""
+
+LOG_LEVEL_INFO_INDIVIDUAL_CHECK: int = 14
+"""
+Logging level that gives information at the level of individual checks
+
+This is between DEBUG and LOG_LEVEL_INFO_FILE
+"""
+
 
 DEFAULT_LOGGING_CONFIG = dict(
     handlers=[

@@ -279,8 +279,14 @@ def validate_file(
         logger.info(f"Using provided cvs instead of {cv_source=}")
 
     # Basic loading - xarray
-    ds_xr_load = catch_error(
-        xr.load_dataset, call_purpose="Load data with `xr.load_dataset`"
+    # # The below actually loads the data into memory.
+    # # This can be very slow, hence turn off for now.
+    # # TODO: discuss whether we want to have actual data loading checks or not.
+    # ds_xr_load = catch_error(
+    #     xr.load_dataset, call_purpose="Load data with `xr.load_dataset`"
+    # )(infile)
+    ds_xr_open = catch_error(
+        xr.open_dataset, call_purpose="open data with `xr.open_dataset`"
     )(infile)
 
     # Basic loading - iris
@@ -291,13 +297,13 @@ def validate_file(
             infile
         )
 
-    if ds_xr_load is None:
-        logger.error("Not running cf-checker, file wouldn't load with xarray")
+    if ds_xr_open is None:
+        logger.error("Not running cf-checker, file wouldn't open with xarray")
 
     else:
         # CF-checker
         catch_error(check_with_cf_checker, call_purpose="Check data with cf-checker")(
-            infile, ds=ds_xr_load
+            infile, ds=ds_xr_open
         )
 
     # TODO: Check that the data, metadata and CVs are all consistent
@@ -345,7 +351,7 @@ def validate_tracking_ids_are_unique(files: Collection[Path]) -> None:
     NonUniqueError
         Not all the tracking IDs are unique
     """
-    tracking_ids = [xr.load_dataset(f).attrs["tracking_id"] for f in files]
+    tracking_ids = [xr.open_dataset(f).attrs["tracking_id"] for f in files]
     if len(set(tracking_ids)) != len(files):
         raise NonUniqueError(
             description="Tracking IDs for all files should be unique",

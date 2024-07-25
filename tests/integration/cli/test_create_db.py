@@ -78,7 +78,7 @@ def test_basic(tmp_path, include_validation):
 
         written_files.append(written_file)
 
-        ds = xr.load_dataset(written_file)
+        ds = xr.open_dataset(written_file)
         info[variable_id] = {k: ds.attrs[k] for k in ["creation_date", "tracking_id"]}
 
     # Test the function directly first (helps with debugging)

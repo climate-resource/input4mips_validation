@@ -9,9 +9,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
 import cftime
-import netCDF4
 import numpy as np
 import pandas as pd
+import xarray as xr
 from attrs import define, fields
 
 from input4mips_validation.database.raw import Input4MIPsDatabaseEntryFileRaw
@@ -63,26 +63,18 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
         -------
             Initialised database entry
         """
-        nc_file = netCDF4.Dataset(str(file))
-        # Having to re-infer all of this is silly,
-        # would be much simpler if all data was just in the file.
-        metadata_attributes: dict[str, Union[str, None]] = {
-            k: getattr(nc_file, k) for k in nc_file.ncattrs()
-        }
+        ds = xr.open_dataset(file)
+        metadata_attributes: dict[str, Union[str, None]] = ds.attrs
 
+        # Having to re-infer metadata from the data this is silly,
+        # would be much simpler if all metadata was just in the file's attributes.
         metadata_data: dict[str, Union[str, None]] = {}
-
         frequency = metadata_attributes[frequency_metadata_key]
         if frequency is not None and frequency != no_time_axis_frequency:
             # Technically, this should probably use the bounds...
-            time_axis = cftime.num2date(
-                nc_file.variables[time_dimension][:],
-                getattr(nc_file.variables[time_dimension], "units"),
-                getattr(nc_file.variables[time_dimension], "calendar"),
-                only_use_cftime_datetimes=True,
-            )
-            time_start = min(time_axis)
-            time_end = max(time_axis)
+            time_axis = ds[time_dimension]
+            time_start = time_axis.min().values
+            time_end = time_axis.max().values
 
             md_datetime_start: Union[str, None] = format_datetime_for_db(time_start)
             md_datetime_end: Union[str, None] = format_datetime_for_db(time_end)

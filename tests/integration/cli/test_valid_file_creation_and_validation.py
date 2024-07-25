@@ -82,7 +82,7 @@ def test_validate_written_single_variable_file(tmp_path):
         written_file, cvs=input4mips_ds.cvs
     )
 
-    ds_attrs = xr.load_dataset(written_file).attrs
+    ds_attrs = xr.open_dataset(written_file).attrs
     # If this gets run just at the turn of midnight, this may fail.
     # That is a risk I am willing to take.
     version_exp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")
@@ -203,7 +203,7 @@ def test_validate_written_multi_variable_file(tmp_path):
         written_file, cvs=input4mips_ds.cvs
     )
 
-    ds_attrs = xr.load_dataset(written_file).attrs
+    ds_attrs = xr.open_dataset(written_file).attrs
     # If this gets run just at the turn of midnight, this may fail.
     # That is a risk I am willing to take.
     version_exp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")

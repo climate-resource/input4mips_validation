@@ -105,7 +105,7 @@ def test_validate_write_in_drs(tmp_path):
 
     database_entry = Input4MIPsDatabaseEntryFile.from_file(written_file, cvs=cvs)
 
-    ds_attrs = xr.load_dataset(written_file).attrs
+    ds_attrs = xr.open_dataset(written_file).attrs
     # If this gets run just at the turn of midnight, this may fail.
     # That is a risk I am willing to take.
     version_exp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")

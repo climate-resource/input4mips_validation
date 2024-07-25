@@ -536,7 +536,7 @@ class DataReferenceSyntax:
             file.name
         )
 
-        ds = xr.load_dataset(file)
+        ds = xr.open_dataset(file)
         comparison_metadata = {
             k: apply_known_replacements(v) for k, v in ds.attrs.items()
         }

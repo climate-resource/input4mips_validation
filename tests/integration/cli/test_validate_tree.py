@@ -69,8 +69,6 @@ def test_basic(tmp_path):
 
         written_files.append(written_file)
 
-    # breakpoint()
-    #
     # Test the function directly first (helps with debugging)
     validate_tree(tmp_path, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 

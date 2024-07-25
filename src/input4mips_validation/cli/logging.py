@@ -5,10 +5,12 @@ Logging for the command-line interface
 from __future__ import annotations
 
 import sys
-from typing import Any
+from pathlib import Path
+from typing import Any, Union
 
 import typer
 from loguru import logger
+from loguru_config import LoguruConfig
 
 app = typer.Typer()
 
@@ -31,7 +33,9 @@ DEFAULT_LOGGING_CONFIG = dict(
 """Default configuration used with :meth:`loguru.logger.configure`"""
 
 
-def setup_logging(enable: bool, config: dict[str, Any] | None = None) -> None:
+def setup_logging(
+    enable: bool, config: Union[Path, dict[str, Any]] | None = None
+) -> None:
     """
     Early setup for logging.
 
@@ -43,15 +47,23 @@ def setup_logging(enable: bool, config: dict[str, Any] | None = None) -> None:
         If `False`, we explicitly disable logging.
 
     config
-        Passed to :meth:`loguru.logger.configure`. If not passed,
-        :const:`DEFAULT_LOGGING_CONFIG` is used.
+        If a `dict`, passed to :meth:`loguru.logger.configure`.
+        If not passed, :const:`DEFAULT_LOGGING_CONFIG` is used.
+        Otherwise, we try and load this from disk using
+        [`loguru_config.LoguruConfig`][https://github.com/erezinman/loguru-config].
     """
-    if enable:
-        if config is None:
-            config = DEFAULT_LOGGING_CONFIG
+    if not enable:
+        logger.disable("input4mips_validation")
+        return
 
+    if config is None:
+        config = DEFAULT_LOGGING_CONFIG
         logger.configure(**config)
-        logger.enable("input4mips_validation")
+
+    elif isinstance(config, dict):
+        logger.configure(**config)
 
     else:
-        logger.disable("input4mips_validation")
+        config = LoguruConfig.load(config, configure=True)
+
+    logger.enable("input4mips_validation")

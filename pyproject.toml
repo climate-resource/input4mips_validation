@@ -12,6 +12,7 @@ dependencies = [
     "cattrs",
     "cf-xarray",
     "loguru",
+    "loguru-config",
     "ncdata",
     "pandas",
     "pint",

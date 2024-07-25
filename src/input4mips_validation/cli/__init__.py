@@ -140,14 +140,34 @@ def cli(
             is_eager=True,
         ),
     ] = None,
-    setup_logging: bool = True,
+    no_logging: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--no-logging",
+            help="""Disable all logging.
+
+If supplied, overrides '--logging-config'""",
+        ),
+    ] = None,
+    logging_config: Annotated[
+        Optional[Path],
+        typer.Option(
+            help="""Path to the logging configuration file.
+
+This will be loaded with [loguru-config](https://github.com/erezinman/loguru-config)."""
+        ),
+    ] = None,
 ) -> None:
     """
     Entrypoint for the command-line interface
     """
-    # If you want fully configurable logging from the CLI,
-    # please make an issue or PRs welcome :)
-    input4mips_validation.cli.logging.setup_logging(enable=setup_logging)
+    if no_logging:
+        input4mips_validation.cli.logging.setup_logging(enable=False)
+
+    else:
+        input4mips_validation.cli.logging.setup_logging(
+            enable=True, config=logging_config
+        )
 
 
 @app.command(name="validate-file")
@@ -419,6 +439,9 @@ please use your email address here."""
         str,
         typer.Option(help="Root directory on the FTP server for receiving files"),
     ] = "/incoming",
+    n_threads: Annotated[
+        int, typer.Option(help="Number of threads to use during upload")
+    ] = 4,
     cv_source: CV_SOURCE_TYPE = None,
 ) -> None:
     """
@@ -436,6 +459,7 @@ please use your email address here."""
         username=username,
         ftp_server=ftp_server,
         ftp_dir_root=ftp_dir_root,
+        n_threads=n_threads,
     )
 
 

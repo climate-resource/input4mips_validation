@@ -1,13 +1,20 @@
 """
 FTP upload support
+
+Note: this module is not formally tested at the moment,
+currently a more chaos engineering approach instead.
+Bugs are likely :)
 """
 
 from __future__ import annotations
 
+import concurrent.futures
 import ftplib
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
+from functools import partial
 from pathlib import Path
+from typing import Callable
 
 import tqdm
 import tqdm.utils
@@ -40,12 +47,12 @@ def login_to_ftp(ftp_server: str, username: str, password: str) -> Iterator[ftpl
         Connection to the FTP server
     """
     ftp = ftplib.FTP(ftp_server, passwd=password, user=username)  # noqa: S321
-    logger.info(f"Logged into {ftp_server} using {username=}")
+    logger.debug(f"Logged into {ftp_server} using {username=}")
 
     yield ftp
 
     ftp.quit()
-    logger.info(f"Closed connection to {ftp_server}")
+    logger.debug(f"Closed connection to {ftp_server}")
 
 
 def cd_v(dir_to_move_to: str, ftp: ftplib.FTP) -> ftplib.FTP:
@@ -93,33 +100,33 @@ def mkdir_v(dir_to_make: str, ftp: ftplib.FTP) -> None:
         logger.debug(f"{dir_to_make} already exists on {ftp.host=}")
 
 
-def upload_file(file: Path, upload_path_rel_to: Path, ftp: ftplib.FTP) -> ftplib.FTP:
+def upload_file(
+    file: Path, strip_pre_upload: Path, ftp_dir_upload_in: str, ftp: ftplib.FTP
+) -> ftplib.FTP:
     """
     Upload a file to an FTP server
-
-    We ensure that the FTP connection is left in the same directory
-    as it was in when this function was entered,
-    irrespective of the directory creation and selection commands
-    we run in this function.
 
     Parameters
     ----------
     file
         File to upload.
-        The full path of the file relative to ``root_dir`` will be uploaded.
-        In other words, any directories in ``file`` will be made on the
+
+        The full path of the file relative to `strip_pre_upload` will be uploaded.
+        In other words, any directories in `file` will be made on the
         FTP server before uploading.
 
-    upload_path_rel_to
-        The path, relative to which the file should be upload.
-
-        In other words, `upload_path_rel_to` will not be included when we update `file`.
+    strip_pre_upload
+        The parts of the path that should be stripped before the file is uploaded.
 
         For example, if `file` is `/path/to/a/file/somewhere/file.nc`
-        and `upload_path_rel_to` is `/path/to/a`,
+        and `strip_pre_upload` is `/path/to/a`,
         then we will upload the file to `file/somewhere/file.nc` on the FTP server
         (relative to whatever directory the FTP server is in
         when we enter this function).
+
+    ftp_dir_upload_in
+        Directory on the FTP server in which to upload `file`
+        (after removing `strip_pre_upload`).
 
     ftp
         FTP connection to use for the upload.
@@ -129,16 +136,16 @@ def upload_file(file: Path, upload_path_rel_to: Path, ftp: ftplib.FTP) -> ftplib
     :
         The FTP connection.
     """
-    logger.info(f"Uploading {file}")
+    logger.debug(f"Uploading {file}")
+    cd_v(ftp_dir_upload_in, ftp=ftp)
 
-    # Save the starting directory for later
-    ftp_pwd_in = ftp.pwd()
-
-    filepath_upload = file.relative_to(upload_path_rel_to)
+    filepath_upload = file.relative_to(strip_pre_upload)
     logger.info(
-        f"Relative to {ftp_pwd_in} on the FTP server, will upload to {filepath_upload}"
+        f"Relative to {ftp_dir_upload_in} on the FTP server, "
+        f"will upload {file} to {filepath_upload}"
     )
 
+    logger.info("Ensuring directories exist on the FTP server")
     for parent in list(filepath_upload.parents)[::-1]:
         if parent == Path("."):
             continue
@@ -147,7 +154,6 @@ def upload_file(file: Path, upload_path_rel_to: Path, ftp: ftplib.FTP) -> ftplib
         mkdir_v(to_make, ftp=ftp)
         cd_v(to_make, ftp=ftp)
 
-    logger.info(f"Uploading {file}")
     with open(file, "rb") as fh:
         upload_command = f"STOR {file.name}"
         logger.debug(f"Upload command: {upload_command}")
@@ -172,28 +178,70 @@ def upload_file(file: Path, upload_path_rel_to: Path, ftp: ftplib.FTP) -> ftplib
                 "if you really wish to upload again."
             )
 
-    cd_v(ftp_pwd_in, ftp=ftp)
-
     return ftp
 
 
-def upload_files(
+def upload_file_p(
+    file: Path,
+    strip_pre_upload: Path,
+    ftp_dir_upload_in: str,
+    get_ftp_connection: Callable[[], Iterator[ftplib.FTP]],
+) -> None:
+    """
+    File for uploading a file to an FTP server as part of a parallel process
+
+    Parameters
+    ----------
+    file
+        File to upload.
+
+        For full details,
+        see [`upload_file`][input4mips_validation.upload_ftp.upload_file].
+
+    strip_pre_upload
+        The path, relative to which the file should be upload.
+
+        For full details,
+        see [`upload_file`][input4mips_validation.upload_ftp.upload_file].
+
+    ftp_dir_upload_in
+        Directory on the FTP server in which to upload `file`
+        (after removing `strip_pre_upload`).
+
+    get_ftp_connection
+        Callable that returns a new FTP connection with which to do the upload.
+
+        This should be a context manager that closes the FTP connection when exited.
+    """
+    with get_ftp_connection() as ftp:
+        upload_file(
+            file,
+            strip_pre_upload=strip_pre_upload,
+            ftp_dir_upload_in=ftp_dir_upload_in,
+            ftp=ftp,
+        )
+
+
+def upload_files_p(  # noqa: PLR0913
     files_to_upload: Iterable[Path],
-    ftp: ftplib.FTP,
+    get_ftp_connection: Callable[[], Iterator[ftplib.FTP]],
     ftp_dir_root: str,
     ftp_dir_rel_to_root: str,
     cvs: Input4MIPsCVs,
+    n_threads: int,
 ) -> ftplib.FTP:
     """
-    Upload files to the FTP server
+    Upload files to the FTP server in parallel
 
     Parameters
     ----------
     files_to_upload
         Files to upload
 
-    ftp
-        FTP server connection.
+    get_ftp_connection
+        Callable that returns a new FTP connection with which to do the upload.
+
+        This should be a context manager that closes the FTP connection when exited.
 
     ftp_dir_root
         Root directory on the FTP server for receiving files.
@@ -206,24 +254,44 @@ def upload_files(
 
         These are needed to help determine where the DRS path starts.
 
+    n_threads
+        Number of threads to use for uploading
+
     Returns
     -------
     :
         The FTP connection
     """
-    cd_v(ftp_dir_root, ftp=ftp)
+    with get_ftp_connection() as ftp:
+        cd_v(ftp_dir_root, ftp=ftp)
 
-    mkdir_v(ftp_dir_rel_to_root, ftp=ftp)
-    cd_v(ftp_dir_rel_to_root, ftp=ftp)
+        mkdir_v(ftp_dir_rel_to_root, ftp=ftp)
+        cd_v(ftp_dir_rel_to_root, ftp=ftp)
 
-    for file in files_to_upload:
-        directory_metadata = cvs.DRS.extract_metadata_from_path(
-            file.parent,
-            include_root_data_dir=True,
-        )
-        upload_file(
-            file, upload_path_rel_to=directory_metadata["root_data_dir"], ftp=ftp
-        )
+    logger.info(
+        "Uploading in parallel using up to "
+        f"{n_threads} {'threads' if n_threads > 1 else 'thread'}"
+    )
+    with concurrent.futures.ThreadPoolExecutor(max_workers=n_threads) as executor:
+        for file in files_to_upload:
+            directory_metadata = cvs.DRS.extract_metadata_from_path(
+                file.parent,
+                include_root_data_dir=True,
+            )
+
+            futures = [
+                executor.submit(
+                    upload_file_p,
+                    file,
+                    strip_pre_upload=directory_metadata["root_data_dir"],
+                    ftp_dir_upload_in=f"{ftp_dir_root}/{ftp_dir_rel_to_root}",
+                    get_ftp_connection=get_ftp_connection,
+                )
+            ]
+
+        for future in concurrent.futures.as_completed(futures):
+            # Call in case there are any errors
+            future.result()
 
     logger.debug("Uploaded all files")
     return ftp
@@ -238,6 +306,7 @@ def upload_ftp(  # noqa: PLR0913
     ftp_server: str = "ftp.llnl.gov",
     ftp_dir_root: str = "/incoming",
     rglob_input: str = "*.nc",
+    n_threads: int = 4,
 ) -> None:
     """
     Upload a tree of files to an FTP server
@@ -273,14 +342,19 @@ def upload_ftp(  # noqa: PLR0913
 
     rglob_input
         Input to rglob which selects only the files of interest in the tree to upload.
+
+    n_threads
+        Number of threads to use for uploading
     """
-    with login_to_ftp(
-        ftp_server=ftp_server, username=username, password=password
-    ) as ftp_logged_in:
-        upload_files(
-            files_to_upload=tree_root.rglob(rglob_input),
-            ftp=ftp_logged_in,
-            ftp_dir_root=ftp_dir_root,
-            ftp_dir_rel_to_root=ftp_dir_rel_to_root,
-            cvs=cvs,
-        )
+    get_ftp_connection = partial(
+        login_to_ftp, ftp_server=ftp_server, username=username, password=password
+    )
+
+    upload_files_p(
+        files_to_upload=tree_root.rglob(rglob_input),
+        get_ftp_connection=get_ftp_connection,
+        ftp_dir_root=ftp_dir_root,
+        ftp_dir_rel_to_root=ftp_dir_rel_to_root,
+        cvs=cvs,
+        n_threads=n_threads,
+    )

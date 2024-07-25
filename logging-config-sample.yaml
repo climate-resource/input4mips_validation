@@ -1,0 +1,13 @@
+handlers:
+  - sink: ext://sys.stderr
+    level: INFO
+    # level: DEBUG
+    colorize: true
+    format: "{process} - {thread} - <green>{time:!UTC}</> - <lvl>{level}</> - <cyan>{name}:{file}:{line}</> - <lvl>{message}</>"
+  # - sink: file_{time}.log
+  #   level: DEBUG
+  #   enqueue: true
+  #   # serialize: true
+  #   format: "{process} - {thread} - <green>{time:!UTC}</> - <lvl>{level}</> - <cyan>{name}:{file}:{line}</> - <lvl>{message}</>"
+activation:
+  - [ "input4mips_validation", true ]

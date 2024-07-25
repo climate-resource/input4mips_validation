@@ -22,6 +22,7 @@ from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.database.creation import create_db_file_entries
 from input4mips_validation.inference.from_data import infer_time_start_time_end
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
+from input4mips_validation.upload_ftp import upload_ftp
 from input4mips_validation.validation import (
     InvalidFileError,
     InvalidTreeError,
@@ -144,10 +145,9 @@ def cli(
     """
     Entrypoint for the command-line interface
     """
-    if not setup_logging:
-        # If you want fully configurable logging from the CLI,
-        # please make an issue or PRs welcome :)
-        input4mips_validation.cli.logging.setup_logging()
+    # If you want fully configurable logging from the CLI,
+    # please make an issue or PRs welcome :)
+    input4mips_validation.cli.logging.setup_logging(enable=setup_logging)
 
 
 @app.command(name="validate-file")
@@ -376,6 +376,67 @@ def create_db_command(  # noqa: PLR0913
     with open(db_file, "w") as fh:
         logger.info(f"Writing database to {db_file}")
         fh.write(json_dumps_cv_style(converter_json.unstructure(db_entries)))
+
+
+@app.command(name="upload-ftp")
+def upload_ftp_command(  # noqa: PLR0913
+    tree_root: Annotated[
+        Path,
+        typer.Argument(
+            help="The root of the tree to upload",
+            exists=True,
+            dir_okay=True,
+            file_okay=False,
+        ),
+    ],
+    ftp_dir_rel_to_root: Annotated[
+        str,
+        typer.Option(
+            help="""Directory, relative to `root_dir_ftp_incoming_files`, in which to upload the files on the FTP server.
+
+For example, "my-institute-input4mips"
+"""  # noqa: E501
+        ),
+    ],
+    password: Annotated[
+        str,
+        typer.Option(
+            help="""Password to use when logging in.
+
+If you are uploading to LLNL's FTP server,
+please use your email address here."""
+        ),
+    ],
+    username: Annotated[
+        str,
+        typer.Option(help="Username to use when logging in to the server."),
+    ] = "anonymous",
+    ftp_server: Annotated[
+        str,
+        typer.Option(help="FTP server to upload to."),
+    ] = "ftp.llnl.gov",
+    ftp_dir_root: Annotated[
+        str,
+        typer.Option(help="Root directory on the FTP server for receiving files"),
+    ] = "/incoming",
+    cv_source: CV_SOURCE_TYPE = None,
+) -> None:
+    """
+    Upload files to an FTP server
+    """
+    raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
+    logger.debug(f"{raw_cvs_loader=}")
+    cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+
+    upload_ftp(
+        tree_root=tree_root,
+        ftp_dir_rel_to_root=ftp_dir_rel_to_root,
+        password=password,
+        cvs=cvs,
+        username=username,
+        ftp_server=ftp_server,
+        ftp_dir_root=ftp_dir_root,
+    )
 
 
 if __name__ == "__main__":

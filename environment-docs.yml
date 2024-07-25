@@ -213,7 +213,7 @@ dependencies:
   - pyyaml_env_tag==0.1
   - pyzmq==26.0.3
   - referencing==0.35.1
-  - regex==2024.5.15
+  - regex==2024.7.24
   - requests==2.32.3
   - rfc3339_validator==0.1.4
   - rfc3986_validator==0.1.1

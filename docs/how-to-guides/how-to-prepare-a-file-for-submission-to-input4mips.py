@@ -33,6 +33,7 @@
 # (and we hope to get the importance recognised at some point in the future too, watch this space).
 
 # %%
+import tempfile
 from pathlib import Path
 
 import iris
@@ -40,12 +41,19 @@ import ncdata.iris_xarray
 import xarray as xr
 
 # %%
-iris.FUTURE.save_split_attrs = True
-
-# %%
 starting_file = Path(
     "CH4-em-biomassburning_input4MIPs_emissions_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc"
 )
+
+# Some trickery to make sure we pick up files in the right path,
+# even when building the docs :)
+if not starting_file.exists():
+    starting_file = Path("docs") / "how-to-guides" / starting_file
+    if not starting_file.exists():
+        raise AssertionError
+
+# %%
+iris.FUTURE.save_split_attrs = True
 
 # %% [markdown]
 # ## Starting point
@@ -79,6 +87,8 @@ start_iris
 # !input4mips-validation validate-file --cv-source "gh:main" {starting_file}
 
 # %% [markdown]
+# ### Getting more detail
+#
 # In this case, our file has failed validation.
 # We can see that the only check which failed was the check with the cf-checker.
 # To find out exactly why this failed,
@@ -89,20 +99,21 @@ start_iris
 # !input4mips-validation --log-level "DEBUG" validate-file --cv-source "gh:main" {starting_file}
 
 # %% [markdown]
+# ### Understanding the issue
+#
 # From the above we can see three issues:
 #
 # - the "external_variables" attribute is formatted incorrectly
 # - the "standard_name" assigned to the variable doesn't exist
 # - the "cell_measures" variable appears to be missing
 #
-# We will go through what these mean below.
+# We will go through what these mean in the next paragraph.
 # However, in general, there can be quite some mystery surrounding these errors.
 # If something doesn't make sense, please
 # [make an issue](https://github.com/climate-resource/input4mips_validation/issues/new)
 # and tag @znichollscr and @durack1 so we can help you.
 # Please don't spend lots of time banging your head against a wall.
-
-# %% [markdown]
+#
 # In this particular case, the errors are the following:
 #
 # - the supplied value of "external_variables" is "areacello,sources".
@@ -141,8 +152,12 @@ fixed.attrs["external_variables"] = fixed.attrs["external_variables"].replace(",
 fixed["CH4"].attrs["long_name"] = fixed["CH4"].attrs.pop("standard_name")
 
 # The eagle eyed will notice that this file name is definitely not correct.
-# We will shown show you why this doesn't matter in this particular case.
-fixed_file = "fixed_CH4-em-biomassburning_input4MIPs_emissions_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc"
+# We will soon show you why this doesn't matter in this particular case.
+TMP_DIR = Path(tempfile.mkdtemp())
+fixed_file = (
+    TMP_DIR
+    / "fixed_CH4-em-biomassburning_input4MIPs_emissions_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc"
+)
 
 cubes = ncdata.iris_xarray.cubes_from_xarray(fixed)
 iris.save(cubes, fixed_file)
@@ -171,7 +186,8 @@ iris.save(cubes, fixed_file)
 
 # %%
 tree_to_write_in = (
-    "how-to-prepare-a-file-for-submission-to-input4mips-example-input4mips-ready-data"
+    TMP_DIR
+    / "how-to-prepare-a-file-for-submission-to-input4mips-example-input4mips-ready-data"
 )
 # !input4mips-validation validate-file --cv-source "gh:main" {fixed_file} --write-in-drs {tree_to_write_in}
 

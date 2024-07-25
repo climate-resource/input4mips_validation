@@ -25,6 +25,20 @@ Validation of input4MIPs data (checking file formats, metadata etc.).
 [![Last Commit](https://img.shields.io/github/last-commit/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/commits/main)
 [![Contributors](https://img.shields.io/github/contributors/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/graphs/contributors)
 
+## Status
+
+- development: the project is actively being worked on
+
+As a user, please note that input4MIPs validation is undergoing heavy development.
+This means that files which pass validation today may not pass in future.
+While this will initially be frustrating, it will pay off in the long run
+by helping us to create the cleanest, clearest set of data possible.
+So, please enjoy the tool, please make use of it,
+please [raise an issue](https://github.com/climate-resource/input4mips_validation/issues/new/choose)
+whenever there is a problem,
+but please also be ready to update your file writing scripts
+when submitting the next round of files in three to six months' time.
+
 <!--- --8<-- [end:description] -->
 
 Full documentation can be found at:

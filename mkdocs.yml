@@ -12,6 +12,7 @@ nav:
   - How-to guides:
     - how-to-guides/index.md
     - How to validate a file: how-to-guides/how-to-validate-file.py
+    - How to prepare a file for submission to input4MIPs: how-to-guides/how-to-prepare-a-file-for-submission-to-input4mips.py
   - Tutorials: tutorials.md
   - Further background:
     - Explanation: explanation.md

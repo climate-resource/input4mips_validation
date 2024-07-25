@@ -9,10 +9,10 @@ from pathlib import Path
 import tqdm
 from loguru import logger
 
-from input4mips_validation.cli.logging import LOG_LEVEL_INFO_FILE
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database.database import Input4MIPsDatabaseEntryFile
+from input4mips_validation.logging import LOG_LEVEL_INFO_FILE
 
 
 def create_db_file_entries(  # noqa: PLR0913

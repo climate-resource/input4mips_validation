@@ -16,14 +16,14 @@ import xarray as xr
 from loguru import logger
 from typing_extensions import ParamSpec
 
-from input4mips_validation.cli.logging import (
-    LOG_LEVEL_INFO_FILE,
-    LOG_LEVEL_INFO_INDIVIDUAL_CHECK,
-)
 from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.exceptions import NonUniqueError
+from input4mips_validation.logging import (
+    LOG_LEVEL_INFO_FILE,
+    LOG_LEVEL_INFO_INDIVIDUAL_CHECK,
+)
 from input4mips_validation.validation.cf_checker import check_with_cf_checker
 
 P = ParamSpec("P")
@@ -535,4 +535,4 @@ Passed:
 
         raise InvalidTreeError(root=root, error_container=caught_errors)
 
-    logger.info(f"Validation passed for the tree with root {root}")
+    logger.success(f"Validation passed for the tree with root {root}")

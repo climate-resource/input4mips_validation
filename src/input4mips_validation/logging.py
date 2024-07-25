@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Optional
 
 from loguru import logger
 
@@ -33,6 +33,7 @@ DEFAULT_LOGGING_CONFIG = dict(
     handlers=[
         dict(
             sink=sys.stderr,
+            level=LOG_LEVEL_INFO_INDIVIDUAL_CHECK,
             colorize=True,
             format=" - ".join(
                 [
@@ -49,7 +50,9 @@ DEFAULT_LOGGING_CONFIG = dict(
 
 
 def setup_logging(
-    enable: bool, config: Union[Path, dict[str, Any]] | None = None
+    enable: bool,
+    config: Optional[Path, dict[str, Any]] = None,
+    log_level: Optional[int] = None,
 ) -> None:
     """
     Early setup for logging.
@@ -59,13 +62,19 @@ def setup_logging(
     enable
         Whether to enable the logger.
 
-        If `False`, we explicitly disable logging.
+        If `False`, we explicitly disable logging,
+        ignoring the value of all other arguments.
 
     config
         If a `dict`, passed to :meth:`loguru.logger.configure`.
         If not passed, :const:`DEFAULT_LOGGING_CONFIG` is used.
         Otherwise, we try and load this from disk using
         [`loguru_config.LoguruConfig`][https://github.com/erezinman/loguru-config].
+
+        This takes precedence over `log_level`.
+
+    log_level
+        Log level to apply to the default config.
     """
     if not enable:
         logger.disable("input4mips_validation")
@@ -73,7 +82,11 @@ def setup_logging(
 
     if config is None:
         # Not sure what is going on with type hints, one for another day
-        logger.configure(**DEFAULT_LOGGING_CONFIG)  # type: ignore
+        config = DEFAULT_LOGGING_CONFIG
+        if log_level is not None:
+            config["handlers"][0]["level"] = log_level
+
+        logger.configure(**config)  # type: ignore
 
     elif isinstance(config, dict):
         logger.configure(**config)

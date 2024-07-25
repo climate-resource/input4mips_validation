@@ -15,12 +15,12 @@ import typer
 from loguru import logger
 
 import input4mips_validation
-import input4mips_validation.cli.logging
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.database.creation import create_db_file_entries
 from input4mips_validation.inference.from_data import infer_time_start_time_end
+from input4mips_validation.logging import setup_logging
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
 from input4mips_validation.upload_ftp import upload_ftp
 from input4mips_validation.validation import (
@@ -154,7 +154,16 @@ If supplied, overrides '--logging-config'""",
         typer.Option(
             help="""Path to the logging configuration file.
 
-This will be loaded with [loguru-config](https://github.com/erezinman/loguru-config)."""
+This will be loaded with [loguru-config](https://github.com/erezinman/loguru-config).
+If supplied, this overrides any value provided with `--log-level`."""
+        ),
+    ] = None,
+    log_level: Annotated[
+        Optional[str],
+        typer.Option(
+            help="""Logging level to use.
+
+This is only applied if no other logging configuration flags are supplied."""
         ),
     ] = None,
 ) -> None:
@@ -162,12 +171,10 @@ This will be loaded with [loguru-config](https://github.com/erezinman/loguru-con
     Entrypoint for the command-line interface
     """
     if no_logging:
-        input4mips_validation.cli.logging.setup_logging(enable=False)
+        setup_logging(enable=False)
 
     else:
-        input4mips_validation.cli.logging.setup_logging(
-            enable=True, config=logging_config
-        )
+        setup_logging(enable=True, config=logging_config, log_level=log_level)
 
 
 @app.command(name="validate-file")
@@ -308,6 +315,9 @@ def validate_tree_command(  # noqa: PLR0913
 
     This checks things like whether all external variables are also provided
     and all tracking IDs are unique.
+
+    We recommend running this with a log level of INFO to start,
+    then adjusting from there.
     """
     try:
         validate_tree(
@@ -363,6 +373,9 @@ def create_db_command(  # noqa: PLR0913
 ) -> None:
     """
     Create a database from a tree of files
+
+    We recommend running this with a log level of INFO to start,
+    then adjusting from there.
     """
     if db_file.exists():
         msg = "We haven't implemented functionality for merging databases yet"
@@ -399,6 +412,8 @@ def create_db_command(  # noqa: PLR0913
     with open(db_file, "w") as fh:
         logger.info(f"Writing database to {db_file}")
         fh.write(json_dumps_cv_style(converter_json.unstructure(db_entries)))
+
+    logger.success(f"Wrote database to {db_file}")
 
 
 @app.command(name="upload-ftp")
@@ -449,6 +464,9 @@ please use your email address here."""
 ) -> None:
     """
     Upload files to an FTP server
+
+    We recommend running this with a log level of INFO to start,
+    then adjusting from there.
     """
     raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
     logger.debug(f"{raw_cvs_loader=}")
@@ -464,6 +482,7 @@ please use your email address here."""
         ftp_dir_root=ftp_dir_root,
         n_threads=n_threads,
     )
+    logger.success(f"Uploaded all files to {ftp_server}")
 
 
 if __name__ == "__main__":

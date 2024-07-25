@@ -1,7 +1,14 @@
+# A sample file, which illustrates how the logging can be configured
+# For more details, see:
+# - [loguru](https://loguru.readthedocs.io/)
+# - [loguru-config](https://github.com/erezinman/loguru-config)
+
 handlers:
   - sink: ext://sys.stderr
-    level: INFO
     # level: DEBUG
+    # level: 14
+    # level: 15
+    level: INFO
     colorize: true
     format: "{process} - {thread} - <green>{time:!UTC}</> - <lvl>{level}</> - <cyan>{name}:{file}:{line}</> - <lvl>{message}</>"
   # - sink: file_{time}.log

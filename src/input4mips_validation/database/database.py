@@ -73,8 +73,9 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
         if frequency is not None and frequency != no_time_axis_frequency:
             # Technically, this should probably use the bounds...
             time_axis = ds[time_dimension]
-            time_start = time_axis.min().values
-            time_end = time_axis.max().values
+            # xarray's types not ideal here
+            time_start: Union[np.datetime64, cftime.datetime] = time_axis.min().values  # type: ignore
+            time_end: Union[np.datetime64, cftime.datetime] = time_axis.max().values  # type: ignore
 
             md_datetime_start: Union[str, None] = format_datetime_for_db(time_start)
             md_datetime_end: Union[str, None] = format_datetime_for_db(time_end)

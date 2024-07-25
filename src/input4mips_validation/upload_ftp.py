@@ -11,10 +11,11 @@ from __future__ import annotations
 import concurrent.futures
 import ftplib
 from collections.abc import Iterable, Iterator
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
 from functools import partial
 from pathlib import Path
-from typing import Callable
+from types import TracebackType
+from typing import Callable, Protocol
 
 import tqdm
 import tqdm.utils
@@ -181,11 +182,28 @@ def upload_file(
     return ftp
 
 
+class FTPConnectionContextManager(Protocol):
+    """
+    FTP connection context manager
+    """
+
+    def __enter__(self) -> ftplib.FTP:
+        """Establish the FTP connection"""
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        """Close the FTP connection"""
+
+
 def upload_file_p(
     file: Path,
     strip_pre_upload: Path,
     ftp_dir_upload_in: str,
-    get_ftp_connection: Callable[[], Iterator[ftplib.FTP]],
+    get_ftp_connection: Callable[[], AbstractContextManager[ftplib.FTP]],
 ) -> None:
     """
     File for uploading a file to an FTP server as part of a parallel process
@@ -211,7 +229,8 @@ def upload_file_p(
     get_ftp_connection
         Callable that returns a new FTP connection with which to do the upload.
 
-        This should be a context manager that closes the FTP connection when exited.
+        The return type should be a context manager
+        that closes the FTP connection when exited.
     """
     with get_ftp_connection() as ftp:
         upload_file(
@@ -224,7 +243,7 @@ def upload_file_p(
 
 def upload_files_p(  # noqa: PLR0913
     files_to_upload: Iterable[Path],
-    get_ftp_connection: Callable[[], Iterator[ftplib.FTP]],
+    get_ftp_connection: Callable[[], AbstractContextManager[ftplib.FTP]],
     ftp_dir_root: str,
     ftp_dir_rel_to_root: str,
     cvs: Input4MIPsCVs,
@@ -241,7 +260,8 @@ def upload_files_p(  # noqa: PLR0913
     get_ftp_connection
         Callable that returns a new FTP connection with which to do the upload.
 
-        This should be a context manager that closes the FTP connection when exited.
+        The return type should be a context manager
+        that closes the FTP connection when exited.
 
     ftp_dir_root
         Root directory on the FTP server for receiving files.
@@ -278,12 +298,15 @@ def upload_files_p(  # noqa: PLR0913
                 file.parent,
                 include_root_data_dir=True,
             )
+            if directory_metadata["root_data_dir"] is None:
+                msg = f"Couldn't get root_data_dir from {file.parent}. {cvs.DRS=}"
+                raise AssertionError(msg)
 
             futures = [
                 executor.submit(
                     upload_file_p,
                     file,
-                    strip_pre_upload=directory_metadata["root_data_dir"],
+                    strip_pre_upload=Path(directory_metadata["root_data_dir"]),
                     ftp_dir_upload_in=f"{ftp_dir_root}/{ftp_dir_rel_to_root}",
                     get_ftp_connection=get_ftp_connection,
                 )

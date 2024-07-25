@@ -10,7 +10,10 @@ from typing import Any, Union
 
 import typer
 from loguru import logger
-from loguru_config import LoguruConfig
+
+# Type ignore while we wait for
+# https://github.com/erezinman/loguru-config/pull/2
+from loguru_config import LoguruConfig  # type: ignore
 
 app = typer.Typer()
 
@@ -57,8 +60,8 @@ def setup_logging(
         return
 
     if config is None:
-        config = DEFAULT_LOGGING_CONFIG
-        logger.configure(**config)
+        # Not sure what is going on with type hints, one for another day
+        logger.configure(**DEFAULT_LOGGING_CONFIG)  # type: ignore
 
     elif isinstance(config, dict):
         logger.configure(**config)

@@ -8,7 +8,7 @@ import hashlib
 from pathlib import Path
 
 
-def get_file_hash_sha256(file: Path, buffer_size: int = 2**27) -> str:
+def get_file_hash_sha256(file: Path, buffer_size: int = 2**30) -> str:
     """
     Get a file's sha256 hash
 
@@ -22,7 +22,7 @@ def get_file_hash_sha256(file: Path, buffer_size: int = 2**27) -> str:
     buffer_size
         Size of buffer to read.
 
-        The default is around 100MB.
+        The default is around 1GB.
 
     Returns
     -------

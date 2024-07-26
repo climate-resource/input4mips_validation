@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from attrs import define, fields
+from loguru import logger
 
 from input4mips_validation.database.raw import Input4MIPsDatabaseEntryFileRaw
 from input4mips_validation.inference.from_data import create_time_range
@@ -109,12 +110,27 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
         }
 
         all_metadata: dict[str, Union[str, None]] = {}
-        for md in (metadata_attributes, metadata_data, metadata_directories):
+        first_source: Union[str, None] = None
+        # TODO: make clearer, order below sets order of sources
+        for source, md in (
+            ("file attributes", metadata_attributes),
+            ("file data", metadata_data),
+            ("file path", metadata_directories),
+        ):
+            if first_source is None:
+                first_source = source
+
             keys_to_check = md.keys() & all_metadata
             for ktc in keys_to_check:
                 if all_metadata[ktc] != md[ktc]:
-                    msg = f"Value clash for {ktc}. {all_metadata[ktc]=}, {md[ktc]=}"
-                    raise AssertionError(msg)
+                    # Raise a warning, but ultimately give preference
+                    # to earlier sources
+                    msg = (
+                        f"Value clash for {ktc}. "
+                        f"{first_source} value: {all_metadata[ktc]!r}. "
+                        f"{source} value: {md[ktc]!r}"
+                    )
+                    logger.warning(msg)
 
             all_metadata = all_metadata | md
 

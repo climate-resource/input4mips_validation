@@ -6,13 +6,15 @@ from __future__ import annotations
 
 import datetime as dt
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Optional, Protocol
 
+import attr
 import cf_xarray  # noqa: F401
 import cftime
 import numpy as np
 import xarray as xr
-from attrs import asdict, field, frozen
+from attrs import asdict, field, fields, frozen
+from loguru import logger
 
 import input4mips_validation.xarray_helpers as iv_xr_helpers
 from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
@@ -74,9 +76,84 @@ class Input4MIPsDataset:
     [`load_cvs`][input4mips_validation.cvs.loading.load_cvs]
     """
 
+    non_input4mips_metadata: Optional[dict[str, str]] = field(default=None)
+    """
+    Metadata that isn't part of input4MIPs' data model
+    This will simply be written as attributes to the file,
+    as long as it doesn't clash with any of the input4MIPs keys.
+    """
+
+    @non_input4mips_metadata.validator
+    def _no_clash_with_metadata_attributes(
+        self, attribute: attr.Attribute[Any], value: dict[str, Any] | None
+    ) -> None:
+        if value is None:
+            return
+
+        clashing_keys = [key for key in value if key in asdict(self.metadata).keys()]
+        if clashing_keys:
+            msg = (
+                f"{attribute.name} must not contain any keys "
+                "that clash with the `self.metadata`. "
+                f"Keys in both {attribute.name} and `self.metadata`: {clashing_keys}"
+            )
+            raise AssertionError(msg)
+
     @cvs.default
     def _load_default_cvs(self) -> Input4MIPsCVs:
         return load_cvs()
+
+    @classmethod
+    def from_ds(
+        cls,
+        ds: xr.Dataset,
+        cvs: Input4MIPsCVs | None,
+    ) -> Input4MIPsDataset:
+        """
+        Initialise from an existing dataset
+
+        Parameters
+        ----------
+        ds
+            Dataset from which to initialise.
+            We infer the metdata from `ds.attrs`.
+
+        cvs
+            Controlled vocabularies to use with the dataset
+
+        Returns
+        -------
+            Initialised instance
+        """
+        ds_stripped = ds.copy()
+        ds_stripped.attrs = {}
+
+        metadata_fields = [
+            f.name for f in fields(Input4MIPsDatasetMetadata) if f.name in ds.attrs
+        ]
+        metadata = Input4MIPsDatasetMetadata(
+            **{k: ds.attrs[k] for k in metadata_fields}
+        )
+        non_input4mips_metadata = {
+            k: v for k, v in ds.attrs.items() if k not in metadata_fields
+        }
+
+        if cvs is None:
+            res = Input4MIPsDataset(
+                data=ds_stripped,
+                metadata=metadata,
+                non_input4mips_metadata=non_input4mips_metadata,
+            )
+
+        else:
+            res = Input4MIPsDataset(
+                data=ds_stripped,
+                metadata=metadata,
+                non_input4mips_metadata=non_input4mips_metadata,
+                cvs=cvs,
+            )
+
+        return res
 
     @classmethod
     def from_data_producer_minimum_information(  # noqa: PLR0913
@@ -462,16 +539,32 @@ class Input4MIPsDataset:
         cvs = self.cvs
 
         # Can shallow copy as we don't alter the data from here on
-        ds_disk = self.data.copy(deep=False).pint.dequantify(
-            format=pint_dequantify_format
-        )
+        ds_disk = self.data.copy(deep=False)
+        try:
+            ds_disk = ds_disk.pint.dequantify(format=pint_dequantify_format)
+        except AttributeError:
+            logger.debug(
+                "Not dequantifying with pint, "
+                "I assume you know what you're doing with units"
+            )
 
         # Add all the metadata
         ds_disk.attrs = convert_input4mips_metadata_to_ds_attrs(self.metadata)
+        if self.non_input4mips_metadata is not None:
+            # Merge the metadata.
+            # Validation ensures that there will be no clash of keys.
+            ds_disk.attrs = (
+                self.non_input4mips_metadata
+                | convert_input4mips_metadata_to_ds_attrs(self.metadata)
+            )
+
+        else:
+            ds_disk.attrs = convert_input4mips_metadata_to_ds_attrs(self.metadata)
 
         # Must be unique for every written file,
         # so we deliberately don't provide a way
         # for the user to overwrite this at present
+        # and we deliberately overwrite any existing values.
         ds_disk.attrs["tracking_id"] = generate_tracking_id()
         ds_disk.attrs["creation_date"] = generate_creation_timestamp()
 

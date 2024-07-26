@@ -11,7 +11,9 @@ nav:
   - Installation: installation.md
   - How-to guides:
     - how-to-guides/index.md
-    - How to validate a file: how-to-guides/how-to-validate-file.py
+    - How to write a single valid file: how-to-guides/how-to-write-a-single-valid-file.py
+    - How validate a single file: how-to-guides/how-to-validate-a-single-file.py
+    - How to write a single file in the DRS: how-to-guides/how-to-write-a-single-file-in-the-drs.py
   - Tutorials: tutorials.md
   - Further background:
     - Explanation: explanation.md
@@ -83,7 +85,8 @@ plugins:
   # https://myst-nb.readthedocs.io/en/v0.12.2/use/execute.html
   # One for another day.
   - mkdocs-jupyter:
-      execute: true
+      # execute: true
+      execute: false
       allow_errors: false
       # theme: dark
       include_source: True

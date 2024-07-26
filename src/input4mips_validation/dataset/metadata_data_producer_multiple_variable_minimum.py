@@ -3,10 +3,10 @@
 Minimum metadata required from an input4MIPs dataset producer for a multi-variable file
 """
 
-from attrs import define, field
+from attrs import field, frozen
 
 
-@define
+@frozen
 class Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum:
     """
     Minimum metadata required from input4MIPs dataset producer for a multi-variable file
@@ -25,12 +25,6 @@ class Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum:
 
     nominal_resolution: str
     """Nominal resolution of the data in the file"""
-
-    product: str
-    """The kind of data in the file"""
-
-    region: str
-    """The region of the data in the file"""
 
     source_id: str
     """The ID of the file's source"""

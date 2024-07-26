@@ -12,11 +12,13 @@ dependencies = [
     "cattrs",
     "cf-xarray",
     "loguru",
+    "loguru-config",
     "ncdata",
     "pandas",
     "pint",
     "pint-xarray",
     "pooch",
+    "tqdm",
     "typer",
     "validators",
     "xarray",
@@ -35,6 +37,7 @@ dev = [
     "mypy>=1.10.1",
     "towncrier>=23.11.0",
     "pandas-stubs>=2.2.2.240603",
+    "types-tqdm>=4.66.0.20240417",
 ]
 docs = [
     "mkdocs>=1.6.0",

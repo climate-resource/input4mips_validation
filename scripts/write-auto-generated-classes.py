@@ -58,7 +58,7 @@ class Attribute:
 
 class_declaration_template = Template(
     '''
-@define
+${class_decorator}
 class ${class_name}:
     """
     ${class_docstring}
@@ -89,6 +89,9 @@ class FileToWrite:
     class_attributes: tuple[Attribute, ...]
     """Attributes to write on the class"""
 
+    class_frozen: bool = True
+    """Should the generated class be frozen?"""
+
     def write(self) -> None:
         """
         Write the file
@@ -105,6 +108,7 @@ class FileToWrite:
                 class_declaration_template.substitute(
                     class_name=self.class_name,
                     class_docstring=indnt(self.class_docstring),
+                    class_decorator="@frozen" if self.class_frozen else "@define",
                 )
             )
             for attribute in self.class_attributes:
@@ -152,15 +156,7 @@ def indnt(inv: str, levels: int = 1, include_first: bool = False) -> str:
     return res
 
 
-# Things to consider:
-# - comment_provider and comment_esgf
-#   - split so that provider can provide comments,
-#     but we can also add comments to ESGF database after the file is published
-#
-# - title
-#   - seems to make little sense to track this in the database
-
-ALL_KNOWN_ATTRIBUTES = {
+ALL_KNOWN_DATABASE_FIELDS = {
     "Conventions": Attribute(
         name="Conventions",
         type_dec="str",
@@ -179,11 +175,40 @@ ALL_KNOWN_ATTRIBUTES = {
         docstring="Email addresses to contact in case of questions about the file",
         comments=["TODO: validation", "Should follow some sort of standard form"],
     ),
+    "comment": Attribute(
+        name="comment",
+        type_dec="Union[str, None] = None",
+        docstring="""Comments that apply to the file
+
+These are the comments included in the file itself.
+As a result, they can only apply to the file at the time of writing.
+For comments made about the file after the fact,
+e.g. reasons for deprecation,
+see `comment_post_publication`.""",
+        comments=["No validation, any string is fine"],
+    ),
+    "comment_post_publication": Attribute(
+        name="comment_post_publication",
+        type_dec="Union[str, None] = None",
+        docstring="""Comments that apply to the file but are added after its publication
+
+These comments can be added to the file after it has been published.
+For example, e.g. reasons for deprecating the file.
+For the comments that were made at the time of writing the file, see `comment`.
+""",
+        comments=["No validation, any string is fine"],
+    ),
     "creation_date": Attribute(
         name="creation_date",
         type_dec="str",
         docstring="Date the file was created",
         comments=["TODO: validation", "YYYY-mm-DDTHH:MM:ssZ I think i.e. ISO format"],
+    ),
+    "data_node": Attribute(
+        name="data_node",
+        type_dec="Union[str, None] = None",
+        docstring="Data node on which this file is stored on ESGF",
+        comments=["Could validate that these are only known nodes (?)"],
     ),
     "dataset_category": Attribute(
         name="dataset_category",
@@ -210,6 +235,25 @@ ALL_KNOWN_ATTRIBUTES = {
             "Should have specific form, based on file's frequency or standard",
             "but unclear right now what the rules are",
         ],
+    ),
+    "esgf_dataset_master_id": Attribute(
+        name="esgf_dataset_master_id",
+        type_dec="str",
+        docstring="""Master ID as used by the ESGF
+
+This applies to the dataset level, not the file level.
+However, it is still useful to capture.""",
+        comments=[
+            "TODO: validation (?)",
+            "Should match CVs/drs ?",
+            "Unclear what actual rules for this are, if any",
+        ],
+    ),
+    "filepath": Attribute(
+        name="filepath",
+        type_dec="str",
+        docstring="Full path in which the file is written",
+        comments=["TODO: validation (?)", "Should match CVs/drs ?"],
     ),
     "frequency": Attribute(
         name="frequency",
@@ -253,6 +297,20 @@ ALL_KNOWN_ATTRIBUTES = {
         docstring="ID of the institute that created the file",
         comments=["TODO: validation", "Should be in CVs"],
     ),
+    "latest": Attribute(
+        name="latest",
+        type_dec="Union[bool, None] = None",
+        docstring="""Is this data set still valid?
+
+A value of `None` indicates that the file has not been published yet.
+A value of `False` indicates that this file has been deprecated.
+See `comment_post_publication` for an explanation of why.""",
+        comments=[
+            "TODO: validation",
+            "Should be consistent with publication_status",
+            "If False, there should be a comment_post_publication",
+        ],
+    ),
     "license": Attribute(
         name="license",
         type_dec="str",
@@ -261,7 +319,7 @@ ALL_KNOWN_ATTRIBUTES = {
     ),
     "license_id": Attribute(
         name="license_id",
-        type_dec="str",
+        type_dec="Union[str, None] = None",
         docstring="ID of the license that applies to this dataset",
         comments=["TODO: validation", "Should be in CVs"],
     ),
@@ -283,9 +341,19 @@ ALL_KNOWN_ATTRIBUTES = {
     ),
     "product": Attribute(
         name="product",
-        type_dec="str",
+        type_dec="Union[str, None] = None",
         docstring="The kind of data in the file",
         comments=["TODO: validation", "Should be in CVs"],
+    ),
+    "publication_status": Attribute(
+        name="publication_status",
+        type_dec='str = "in_publishing_queue"',
+        docstring="The file's publication status",
+        comments=[
+            "TODO: validation",
+            "Should be in CVs and consistent with latest",
+            "Should be consistent with comment_post_publication",
+        ],
     ),
     "realm": Attribute(
         name="realm",
@@ -301,13 +369,25 @@ ALL_KNOWN_ATTRIBUTES = {
     ),
     "region": Attribute(
         name="region",
-        type_dec="str",
+        type_dec="Union[str, None] = None",
         docstring="The region of the data in the file",
         comments=[
             "TODO: validation",
             "Has to be validated against CV/CF conventions",
             "https://github.com/PCMDI/obs4MIPs-cmor-tables/blob/master/obs4MIPs_region.json",
         ],
+    ),
+    "replica": Attribute(
+        name="replica",
+        type_dec="Union[bool, None] = None",
+        docstring="Is this dataset a replica on its ESGF node or the 'original'",
+        comments=[],
+    ),
+    "sha256": Attribute(
+        name="sha256",
+        type_dec="str",
+        docstring="sha256 hash of the file",
+        comments=["TODO: validation", "Should be a valid hash"],
     ),
     "source": Attribute(
         name="source",
@@ -353,6 +433,12 @@ ALL_KNOWN_ATTRIBUTES = {
             "Should match file name",
         ],
     ),
+    "timestamp": Attribute(
+        name="timestamp",
+        type_dec="Union[str, None] = None",
+        docstring="The file's publication timestamp on the ESGF",
+        comments=["TODO: validation (should have certain form?)"],
+    ),
     "tracking_id": Attribute(
         name="tracking_id",
         type_dec="str",
@@ -371,6 +457,12 @@ tracking_id = f"hdl:21.14100/{uuid.uuid4()}"
             "TODO: validation",
             "Should match specific regexp",
         ],
+    ),
+    "validated_input4mips": Attribute(
+        name="validated_input4mips",
+        type_dec="bool = False",
+        docstring="Has this file been validated by the input4MIPs team?",
+        comments=[],
     ),
     "variable_id": Attribute(
         name="variable_id",
@@ -392,6 +484,12 @@ tracking_id = f"hdl:21.14100/{uuid.uuid4()}"
             "(which is unverifiable within this package)",
         ],
     ),
+    "xlink": Attribute(
+        name="xlink",
+        type_dec="Union[str, None] = None",
+        docstring="Cross-link to more information about the file (DOI?)",
+        comments=["TODO: validation (should have certain form and be live link?)"],
+    ),
 }
 
 
@@ -411,17 +509,17 @@ def get_files_to_write() -> Iterable[FileToWrite]:
         "dataset_category",
         "datetime_end",
         "datetime_start",
+        "esgf_dataset_master_id",
+        "filepath",
         "frequency",
         "further_info_url",
         "grid_label",
         "institution_id",
         "license",
-        "license_id",
         "mip_era",
         "nominal_resolution",
-        "product",
         "realm",
-        "region",
+        "sha256",
         "source_id",
         "source_version",
         "target_mip",
@@ -430,13 +528,25 @@ def get_files_to_write() -> Iterable[FileToWrite]:
         "variable_id",
         "version",
         # Fields with default values have to go at the end
+        "comment",
+        "comment_post_publication",
+        "data_node",
         "grid",
         "institution",
+        "latest",
+        "license_id",
+        "publication_status",
+        "product",
         "references",
+        "region",
+        "replica",
         "source",
+        "timestamp",
+        "validated_input4mips",
+        "xlink",
     ]
 
-    missing = set(ALL_KNOWN_ATTRIBUTES.keys()).difference(set(RAW_DATABASE_FIELDS))
+    missing = set(ALL_KNOWN_DATABASE_FIELDS.keys()).difference(set(RAW_DATABASE_FIELDS))
     if missing:
         raise AssertionError(missing)
 
@@ -452,11 +562,11 @@ For a more useful class, see
         imports=(
             "from typing import Union",
             "",
-            "from attrs import define, field",
+            "from attrs import field, frozen",
         ),
         class_name="Input4MIPsDatabaseEntryFileRaw",
         class_docstring="Raw data model for a file entry in the input4MIPs database",
-        class_attributes=(ALL_KNOWN_ATTRIBUTES[k] for k in RAW_DATABASE_FIELDS),
+        class_attributes=(ALL_KNOWN_DATABASE_FIELDS[k] for k in RAW_DATABASE_FIELDS),
     )
 
     DATASET_METADATA_FIELDS = (
@@ -468,18 +578,19 @@ For a more useful class, see
         "grid_label",
         "institution_id",
         "license",
-        "license_id",
         "mip_era",
         "nominal_resolution",
-        "product",
         "realm",
-        "region",
         "source_id",
         "source_version",
         "target_mip",
         "variable_id",
         # Fields with default values have to go at the end
+        "comment",
         "institution",
+        "license_id",
+        "product",
+        "region",
         "source",
     )
     file_input4mips_dataset_metadata = FileToWrite(
@@ -492,18 +603,18 @@ See [Input4MIPsDataset][input4mips_validation.dataset.dataset.Input4MIPsDataset]
         imports=(
             "from typing import Union",
             "",
-            "from attrs import define, field",
+            "from attrs import field, frozen",
         ),
         class_name="Input4MIPsDatasetMetadata",
         class_docstring="""Metadata for an input4MIPs dataset""",
-        class_attributes=(ALL_KNOWN_ATTRIBUTES[k] for k in DATASET_METADATA_FIELDS),
+        class_attributes=(
+            ALL_KNOWN_DATABASE_FIELDS[k] for k in DATASET_METADATA_FIELDS
+        ),
     )
 
     DATASET_PRODUCER_MINIMUM_ATTRIBUTES = (
         "grid_label",
         "nominal_resolution",
-        "product",
-        "region",
         "source_id",
         "target_mip",
     )
@@ -512,7 +623,7 @@ See [Input4MIPsDataset][input4mips_validation.dataset.dataset.Input4MIPsDataset]
         module_docstring=(
             "Minimum metadata required from an input4MIPs dataset producer"
         ),
-        imports=("from attrs import define, field",),
+        imports=("from attrs import field, frozen",),
         class_name="Input4MIPsDatasetMetadataDataProducerMinimum",
         class_docstring="""Minimum metadata required from an input4MIPs dataset producer
 
@@ -520,7 +631,7 @@ This is the minimum metadata required to create a valid
 [`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset] object using
 [`from_data_producer_minimum_information`][input4mips_validation.dataset.Input4MIPsDataset.from_data_producer_minimum_information].""",
         class_attributes=(
-            ALL_KNOWN_ATTRIBUTES[k] for k in DATASET_PRODUCER_MINIMUM_ATTRIBUTES
+            ALL_KNOWN_DATABASE_FIELDS[k] for k in DATASET_PRODUCER_MINIMUM_ATTRIBUTES
         ),
     )
 
@@ -529,7 +640,7 @@ This is the minimum metadata required to create a valid
         module_docstring="""
 Minimum metadata required from an input4MIPs dataset producer for a multi-variable file
 """,
-        imports=("from attrs import define, field",),
+        imports=("from attrs import field, frozen",),
         class_name="Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum",
         class_docstring="""Minimum metadata required from input4MIPs dataset producer for a multi-variable file
 
@@ -537,7 +648,7 @@ This is the minimum metadata required to create a valid
 [`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset] object using
 [`from_data_producer_minimum_information_multiple_variable`][input4mips_validation.dataset.dataset.Input4MIPsDataset.from_data_producer_minimum_information_multiple_variable].""",  # noqa E501
         class_attributes=(
-            ALL_KNOWN_ATTRIBUTES[k]
+            ALL_KNOWN_DATABASE_FIELDS[k]
             for k in [
                 *DATASET_PRODUCER_MINIMUM_ATTRIBUTES,
                 "dataset_category",
@@ -549,18 +660,22 @@ This is the minimum metadata required to create a valid
     file_source_id_values = FileToWrite(
         SRC / "cvs" / "source_id" / "values.py",
         module_docstring="Source ID values definition",
-        imports=("from attrs import define",),
+        imports=(
+            "from typing import Union",
+            "",
+            "from attrs import frozen",
+        ),
         class_name="SourceIDValues",
         class_docstring="Values defined by a source ID",
         class_attributes=(
-            ALL_KNOWN_ATTRIBUTES[k]
+            ALL_KNOWN_DATABASE_FIELDS[k]
             for k in [
                 "contact",
                 "further_info_url",
                 "institution_id",
-                "license_id",
                 "mip_era",
                 "source_version",
+                "license_id",
             ]
         ),
     )

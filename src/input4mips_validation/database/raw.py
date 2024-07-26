@@ -9,10 +9,10 @@ For a more useful class, see
 
 from typing import Union
 
-from attrs import define, field
+from attrs import field, frozen
 
 
-@define
+@frozen
 class Input4MIPsDatabaseEntryFileRaw:
     """
     Raw data model for a file entry in the input4MIPs database
@@ -39,6 +39,17 @@ class Input4MIPsDatabaseEntryFileRaw:
     datetime_start: str
     """The file's start time"""
 
+    esgf_dataset_master_id: str
+    """
+    Master ID as used by the ESGF
+
+    This applies to the dataset level, not the file level.
+    However, it is still useful to capture.
+    """
+
+    filepath: str
+    """Full path in which the file is written"""
+
     frequency: str
     """Frequency of the data in the file"""
 
@@ -58,23 +69,17 @@ class Input4MIPsDatabaseEntryFileRaw:
     license: str
     """License information for the dataset"""
 
-    license_id: str
-    """ID of the license that applies to this dataset"""
-
     mip_era: str
     """The MIP era to which this file belong"""
 
     nominal_resolution: str
     """Nominal resolution of the data in the file"""
 
-    product: str
-    """The kind of data in the file"""
-
     realm: str
     """The realm of the data in the file"""
 
-    region: str
-    """The region of the data in the file"""
+    sha256: str
+    """sha256 hash of the file"""
 
     source_id: str
     """The ID of the file's source"""
@@ -109,14 +114,71 @@ class Input4MIPsDatabaseEntryFileRaw:
     version: str
     """The version of the file, as defined by the ESGF index"""
 
+    comment: Union[str, None] = None
+    """
+    Comments that apply to the file
+
+    These are the comments included in the file itself.
+    As a result, they can only apply to the file at the time of writing.
+    For comments made about the file after the fact,
+    e.g. reasons for deprecation,
+    see `comment_post_publication`.
+    """
+
+    comment_post_publication: Union[str, None] = None
+    """
+    Comments that apply to the file but are added after its publication
+
+    These comments can be added to the file after it has been published.
+    For example, e.g. reasons for deprecating the file.
+    For the comments that were made at the time of writing the file, see `comment`.
+
+    """
+
+    data_node: Union[str, None] = None
+    """Data node on which this file is stored on ESGF"""
+
     grid: Union[str, None] = None
     """Long-form description of the grid referred to by `grid_label`"""
 
     institution: Union[str, None] = None
     """Long-form description of the institute referred to by `institution_id`"""
 
+    latest: Union[bool, None] = None
+    """
+    Is this data set still valid?
+
+    A value of `None` indicates that the file has not been published yet.
+    A value of `False` indicates that this file has been deprecated.
+    See `comment_post_publication` for an explanation of why.
+    """
+
+    license_id: Union[str, None] = None
+    """ID of the license that applies to this dataset"""
+
+    publication_status: str = "in_publishing_queue"
+    """The file's publication status"""
+
+    product: Union[str, None] = None
+    """The kind of data in the file"""
+
     references: Union[str, None] = None
     """References relevant to the file"""
 
+    region: Union[str, None] = None
+    """The region of the data in the file"""
+
+    replica: Union[bool, None] = None
+    """Is this dataset a replica on its ESGF node or the 'original'"""
+
     source: Union[str, None] = None
     """Long-form description of the source referred to by `source_id`"""
+
+    timestamp: Union[str, None] = None
+    """The file's publication timestamp on the ESGF"""
+
+    validated_input4mips: bool = False
+    """Has this file been validated by the input4MIPs team?"""
+
+    xlink: Union[str, None] = None
+    """Cross-link to more information about the file (DOI?)"""

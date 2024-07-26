@@ -2,7 +2,11 @@
 
 ## Where to next?
 
+If you want to use the tool to create input4MIPs files,
+we recommend going to our [how-to guides][how-to-guides].
+Some other potential points of interest:
+
 - Installation instructions: [Installation][installation]
-- All of our how-to guides: [How-to ...][how-to-guides]
+- (How-to guides, just in case you missed it the first time: [How-to...][how-to-guides])
 - The command-line interface's documentation: [CLI][cli]
 - The full API docs: [API reference][input4mips_validation]

@@ -14,12 +14,14 @@ import rich
 import typer
 from loguru import logger
 
-import input4mips_validation.cli.logging
+import input4mips_validation
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.database.creation import create_db_file_entries
+from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.inference.from_data import infer_time_start_time_end
+from input4mips_validation.logging import setup_logging
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
 from input4mips_validation.validation import (
     InvalidFileError,
@@ -101,32 +103,78 @@ TIME_DIMENSION_TYPE = Annotated[
     ),
 ]
 
-VERBOSE_TYPE = Annotated[
-    int,
-    typer.Option(
-        "--verbose",
-        "-v",
-        count=True,
-        help=(
-            "Increase the verbosity of the output "
-            "(the verbosity flag is equal to the number of times the flag is supplied, "
-            "e.g. `-vvv` sets the verbosity to 3)."
-            "(Despite what the help says, this is a boolean flag input, "
-            "If you try and supply an integer, e.g. `-v 3`, you will get an error.)"
-        ),
-    ),
-]
+# May be handy, although my current feeling is that logging via loguru
+# can offer same thing with much better control.
+# VERBOSE_TYPE = Annotated[
+#     int,
+#     typer.Option(
+#         "--verbose",
+#         "-v",
+#         count=True,
+#         help=(
+#             "Increase the verbosity of the output "
+#             "(the verbosity flag is equal to the number of times "
+#             "the flag is supplied, "
+#             "e.g. `-vvv` sets the verbosity to 3)."
+#             "(Despite what the help says, this is a boolean flag input, "
+#             "If you try and supply an integer, e.g. `-v 3`, you will get an error.)"
+#         ),
+#     ),
+# ]
+
+
+def version_callback(version: Optional[bool]) -> None:
+    """
+    If requested, print the version string and exit
+    """
+    if version:
+        print(f"input4mips-validation {input4mips_validation.__version__}")
+        raise typer.Exit(code=0)
 
 
 @app.callback()
-def cli(setup_logging: bool = True) -> None:
+def cli(
+    version: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--version",
+            help="Print the version number and exit",
+            callback=version_callback,
+            is_eager=True,
+        ),
+    ] = None,
+    no_logging: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--no-logging",
+            help="""Disable all logging.
+If supplied, overrides '--logging-config'""",
+        ),
+    ] = None,
+    logging_config: Annotated[
+        Optional[Path],
+        typer.Option(
+            help="""Path to the logging configuration file.
+This will be loaded with [loguru-config](https://github.com/erezinman/loguru-config).
+If supplied, this overrides any value provided with `--log-level`."""
+        ),
+    ] = None,
+    log_level: Annotated[
+        Optional[str],
+        typer.Option(
+            help="""Logging level to use.
+This is only applied if no other logging configuration flags are supplied."""
+        ),
+    ] = None,
+) -> None:
     """
     Entrypoint for the command-line interface
     """
-    if not setup_logging:
-        # If you want fully configurable logging from the CLI,
-        # please make an issue or PRs welcome :)
-        input4mips_validation.cli.logging.setup_logging()
+    if no_logging:
+        setup_logging(enable=False)
+
+    else:
+        setup_logging(enable=True, config=logging_config, log_level=log_level)
 
 
 @app.command(name="validate-file")
@@ -166,7 +214,6 @@ def validate_file_command(  # noqa: PLR0913
     frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
     time_dimension: TIME_DIMENSION_TYPE = "time",
-    verbose: VERBOSE_TYPE = 0,
 ) -> None:
     """
     Validate a single file
@@ -177,11 +224,10 @@ def validate_file_command(  # noqa: PLR0913
     """
     try:
         validate_file(file, cv_source=cv_source)
-    except InvalidFileError:
-        if verbose >= 1:
-            logger.exception("Validation failed")
+    except InvalidFileError as exc:
+        logger.debug(f"{type(exc).__name__}: {exc}")
 
-        typer.Exit(code=1)
+        raise typer.Exit(code=1)
 
     if write_in_drs:
         raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
@@ -204,18 +250,31 @@ def validate_file_command(  # noqa: PLR0913
             time_start=time_start,
             time_end=time_end,
         )
-        write_path = full_file_path.parent / file.name
 
-        if write_path.exists():
-            raise NotImplementedError()
+        if full_file_path.exists():
+            logger.error("We will not overwrite existing files")
+            raise FileExistsError(full_file_path)
 
-        write_path.parent.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Copying {file} to {write_path}")
-        shutil.copy(file, write_path)
+        full_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if full_file_path.name != file.name:
+            logger.info(f"Re-writing {file} to {full_file_path}")
+            Input4MIPsDataset.from_ds(ds, cvs=cvs).write(
+                root_data_dir=write_in_drs,
+                frequency_metadata_key=frequency_metadata_key,
+                no_time_axis_frequency=no_time_axis_frequency,
+                time_dimension=time_dimension,
+            )
+
+        else:
+            logger.info(f"Copying {file} to {full_file_path}")
+            shutil.copy(file, full_file_path)
+
+        logger.success(f"File written according to the DRS in {full_file_path}")
 
     if create_db_entry:
         if write_in_drs:
-            db_entry_creation_file = write_path
+            db_entry_creation_file = full_file_path
         else:
             db_entry_creation_file = file
 
@@ -252,7 +311,6 @@ def validate_tree_command(  # noqa: PLR0913
     frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
     time_dimension: TIME_DIMENSION_TYPE = "time",
-    verbose: VERBOSE_TYPE = 0,
 ) -> None:
     """
     Validate a tree of files
@@ -268,11 +326,10 @@ def validate_tree_command(  # noqa: PLR0913
             no_time_axis_frequency=no_time_axis_frequency,
             time_dimension=time_dimension,
         )
-    except InvalidTreeError:
-        if verbose >= 1:
-            logger.exception("Validation failed")
+    except InvalidTreeError as exc:
+        logger.debug(f"{type(exc).__name__}: {exc}")
 
-        typer.Exit(code=1)
+        raise typer.Exit(code=1)
 
 
 @app.command(name="create-db")
@@ -309,7 +366,6 @@ def create_db_command(  # noqa: PLR0913
     frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
     time_dimension: TIME_DIMENSION_TYPE = "time",
-    verbose: VERBOSE_TYPE = 0,
 ) -> None:
     """
     Create a database from a tree of files
@@ -327,11 +383,10 @@ def create_db_command(  # noqa: PLR0913
                 no_time_axis_frequency=no_time_axis_frequency,
                 time_dimension=time_dimension,
             )
-        except InvalidTreeError:
-            if verbose >= 1:
-                logger.exception("Validation failed")
+        except InvalidFileError as exc:
+            logger.debug(f"{type(exc).__name__}: {exc}")
 
-            typer.Exit(code=1)
+            raise typer.Exit(code=1)
 
     db_entries = create_db_file_entries(
         root=tree_root,

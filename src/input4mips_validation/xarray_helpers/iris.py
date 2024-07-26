@@ -4,9 +4,12 @@ Helpers for interchanging with iris
 
 from __future__ import annotations
 
+import iris
 import ncdata.iris_xarray
 import xarray as xr
 from iris.cube import CubeList
+
+iris.FUTURE.save_split_attrs = True
 
 
 def ds_from_iris_cubes(

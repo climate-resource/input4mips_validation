@@ -166,5 +166,8 @@ class Input4MIPsDatabaseEntryFileRaw:
     timestamp: Union[str, None] = None
     """The file's publication timestamp"""
 
+    validated_input4mips: bool = False
+    """Has this file been validated by the input4MIPs team?"""
+
     xlink: Union[str, None] = None
     """Cross-link to more information about the file (DOI?)"""

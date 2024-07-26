@@ -415,6 +415,8 @@ def create_db_command(  # noqa: PLR0913
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
         time_dimension=time_dimension,
+        # TODO: add validation passing here or somehow otherwise do that.
+        # Will also need something in validate tree too.
     )
     with open(db_file, "w") as fh:
         logger.info(f"Writing database to {db_file}")

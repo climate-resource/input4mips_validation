@@ -435,6 +435,12 @@ tracking_id = f"hdl:21.14100/{uuid.uuid4()}"
             "Should match specific regexp",
         ],
     ),
+    "validated_input4mips": Attribute(
+        name="validated_input4mips",
+        type_dec="bool = False",
+        docstring="Has this file been validated by the input4MIPs team?",
+        comments=[],
+    ),
     "variable_id": Attribute(
         name="variable_id",
         type_dec="str",
@@ -511,6 +517,7 @@ def get_files_to_write() -> Iterable[FileToWrite]:
         "replica",
         "source",
         "timestamp",
+        "validated_input4mips",
         "xlink",
     ]
 

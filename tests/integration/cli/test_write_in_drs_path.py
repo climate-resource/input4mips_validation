@@ -25,6 +25,7 @@ from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
+from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
 
 UR = pint.get_application_registry()
@@ -105,7 +106,7 @@ def test_validate_write_in_drs(tmp_path):
 
     database_entry = Input4MIPsDatabaseEntryFile.from_file(written_file, cvs=cvs)
 
-    ds_attrs = xr.load_dataset(written_file).attrs
+    ds_attrs = xr.open_dataset(written_file).attrs
     # If this gets run just at the turn of midnight, this may fail.
     # That is a risk I am willing to take.
     version_exp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")
@@ -117,6 +118,8 @@ def test_validate_write_in_drs(tmp_path):
         dataset_category="GHGConcentrations",
         datetime_end="2010-12-01T00:00:00Z",
         datetime_start="2000-01-01T00:00:00Z",
+        esgf_dataset_master_id=f"input4MIPs.CMIP6Plus.CMIP.CR.CR-CMIP-0-2-0.atmos.mon.mole-fraction-of-carbon-dioxide-in-air.gn.v{version_exp}",
+        filepath=str(written_file),
         frequency="mon",
         further_info_url="http://www.tbd.invalid",
         grid_label="gn",
@@ -138,9 +141,10 @@ def test_validate_write_in_drs(tmp_path):
         license_id="CC BY 4.0",
         mip_era="CMIP6Plus",
         nominal_resolution="10000 km",
-        product="derived",
+        product=None,
         realm="atmos",
-        region="global",
+        region=None,
+        sha256=get_file_hash_sha256(written_file),
         source_id="CR-CMIP-0-2-0",
         source_version="0.2.0",
         target_mip="CMIP",

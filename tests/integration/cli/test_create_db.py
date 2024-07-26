@@ -24,6 +24,7 @@ from input4mips_validation.database.creation import create_db_file_entries
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
+from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.serialisation import converter_json
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
 
@@ -78,8 +79,13 @@ def test_basic(tmp_path, include_validation):
 
         written_files.append(written_file)
 
-        ds = xr.load_dataset(written_file)
+        ds = xr.open_dataset(written_file)
         info[variable_id] = {k: ds.attrs[k] for k in ["creation_date", "tracking_id"]}
+        info[variable_id]["sha256"] = get_file_hash_sha256(written_file)
+        info[variable_id]["filepath"] = str(written_file)
+        info[variable_id]["esgf_dataset_master_id"] = str(
+            written_file.relative_to(tree_root).parent
+        ).replace(os.sep, ".")
 
     # Test the function directly first (helps with debugging)
     db_entries = create_db_file_entries(
@@ -98,6 +104,8 @@ def test_basic(tmp_path, include_validation):
             dataset_category="GHGConcentrations",
             datetime_end="2010-12-01T00:00:00Z",
             datetime_start="2000-01-01T00:00:00Z",
+            esgf_dataset_master_id=info[variable_id]["esgf_dataset_master_id"],
+            filepath=info[variable_id]["filepath"],
             frequency="mon",
             further_info_url="http://www.tbd.invalid",
             grid_label="gn",
@@ -119,9 +127,10 @@ def test_basic(tmp_path, include_validation):
             license_id="CC BY 4.0",
             mip_era="CMIP6Plus",
             nominal_resolution="10000 km",
-            product="derived",
+            product=None,
             realm="atmos",
-            region="global",
+            region=None,
+            sha256=info[variable_id]["sha256"],
             source_id="CR-CMIP-0-2-0",
             source_version="0.2.0",
             target_mip="CMIP",
@@ -140,7 +149,7 @@ def test_basic(tmp_path, include_validation):
         ]
     )
 
-    assert db_entries == db_entries_exp
+    assert set(db_entries) == set(db_entries_exp)
 
     db_file = tmp_path / "test_create_db_basic.json"
     # Then test the CLI
@@ -161,4 +170,4 @@ def test_basic(tmp_path, include_validation):
             fh.read(), tuple[Input4MIPsDatabaseEntryFile, ...]
         )
 
-    assert db_entries_cli == db_entries_exp
+    assert set(db_entries_cli) == set(db_entries_exp)

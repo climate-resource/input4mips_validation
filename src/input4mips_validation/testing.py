@@ -57,8 +57,6 @@ def get_valid_ds_min_metadata_example(
     metadata_minimum = Input4MIPsDatasetMetadataDataProducerMinimum(
         grid_label="gn",
         nominal_resolution="10000 km",
-        product="derived",
-        region="global",
         source_id="CR-CMIP-0-2-0",
         target_mip="CMIP",
     )

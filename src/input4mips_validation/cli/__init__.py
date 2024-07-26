@@ -14,13 +14,16 @@ import rich
 import typer
 from loguru import logger
 
-import input4mips_validation.cli.logging
+import input4mips_validation
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.database.creation import create_db_file_entries
+from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.inference.from_data import infer_time_start_time_end
+from input4mips_validation.logging import setup_logging
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
+from input4mips_validation.upload_ftp import upload_ftp
 from input4mips_validation.validation import (
     InvalidFileError,
     InvalidTreeError,
@@ -118,15 +121,61 @@ VERBOSE_TYPE = Annotated[
 ]
 
 
+def version_callback(version: Optional[bool]) -> None:
+    """
+    If requested, print the version string and exit
+    """
+    if version:
+        print(f"input4mips-validation {input4mips_validation.__version__}")
+        raise typer.Exit(code=0)
+
+
 @app.callback()
-def cli(setup_logging: bool = True) -> None:
+def cli(
+    version: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--version",
+            help="Print the version number and exit",
+            callback=version_callback,
+            is_eager=True,
+        ),
+    ] = None,
+    no_logging: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--no-logging",
+            help="""Disable all logging.
+
+If supplied, overrides '--logging-config'""",
+        ),
+    ] = None,
+    logging_config: Annotated[
+        Optional[Path],
+        typer.Option(
+            help="""Path to the logging configuration file.
+
+This will be loaded with [loguru-config](https://github.com/erezinman/loguru-config).
+If supplied, this overrides any value provided with `--log-level`."""
+        ),
+    ] = None,
+    log_level: Annotated[
+        Optional[str],
+        typer.Option(
+            help="""Logging level to use.
+
+This is only applied if no other logging configuration flags are supplied."""
+        ),
+    ] = None,
+) -> None:
     """
     Entrypoint for the command-line interface
     """
-    if not setup_logging:
-        # If you want fully configurable logging from the CLI,
-        # please make an issue or PRs welcome :)
-        input4mips_validation.cli.logging.setup_logging()
+    if no_logging:
+        setup_logging(enable=False)
+
+    else:
+        setup_logging(enable=True, config=logging_config, log_level=log_level)
 
 
 @app.command(name="validate-file")
@@ -177,10 +226,11 @@ def validate_file_command(  # noqa: PLR0913
     """
     try:
         validate_file(file, cv_source=cv_source)
-    except InvalidFileError:
+    except InvalidFileError as exc:
         if verbose >= 1:
             logger.exception("Validation failed")
 
+        logger.debug(f"{type(exc).__name__}: {exc}")
         typer.Exit(code=1)
 
     if write_in_drs:
@@ -204,18 +254,31 @@ def validate_file_command(  # noqa: PLR0913
             time_start=time_start,
             time_end=time_end,
         )
-        write_path = full_file_path.parent / file.name
 
-        if write_path.exists():
-            raise NotImplementedError()
+        if full_file_path.exists():
+            logger.error("We will not overwrite existing files")
+            raise FileExistsError(full_file_path)
 
-        write_path.parent.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Copying {file} to {write_path}")
-        shutil.copy(file, write_path)
+        full_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if full_file_path.name != file.name:
+            logger.info(f"Re-writing {file} to {full_file_path}")
+            Input4MIPsDataset.from_ds(ds, cvs=cvs).write(
+                root_data_dir=write_in_drs,
+                frequency_metadata_key=frequency_metadata_key,
+                no_time_axis_frequency=no_time_axis_frequency,
+                time_dimension=time_dimension,
+            )
+
+        else:
+            logger.info(f"Copying {file} to {full_file_path}")
+            shutil.copy(file, full_file_path)
+
+        logger.success(f"File written according to the DRS in {full_file_path}")
 
     if create_db_entry:
         if write_in_drs:
-            db_entry_creation_file = write_path
+            db_entry_creation_file = full_file_path
         else:
             db_entry_creation_file = file
 
@@ -259,6 +322,9 @@ def validate_tree_command(  # noqa: PLR0913
 
     This checks things like whether all external variables are also provided
     and all tracking IDs are unique.
+
+    We recommend running this with a log level of INFO to start,
+    then adjusting from there.
     """
     try:
         validate_tree(
@@ -268,10 +334,11 @@ def validate_tree_command(  # noqa: PLR0913
             no_time_axis_frequency=no_time_axis_frequency,
             time_dimension=time_dimension,
         )
-    except InvalidTreeError:
+    except InvalidTreeError as exc:
         if verbose >= 1:
             logger.exception("Validation failed")
 
+        logger.debug(f"{type(exc).__name__}: {exc}")
         typer.Exit(code=1)
 
 
@@ -310,15 +377,22 @@ def create_db_command(  # noqa: PLR0913
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
     time_dimension: TIME_DIMENSION_TYPE = "time",
     verbose: VERBOSE_TYPE = 0,
+    n_processes: Annotated[
+        int, typer.Option(help="Number of processes to use during database creation")
+    ] = 4,
 ) -> None:
     """
     Create a database from a tree of files
+
+    We recommend running this with a log level of INFO to start,
+    then adjusting from there.
     """
     if db_file.exists():
         msg = "We haven't implemented functionality for merging databases yet"
         raise NotImplementedError(msg)
 
     if validate:
+        logger.info(f"Validating {tree_root} before creating the database")
         try:
             validate_tree(
                 root=tree_root,
@@ -327,21 +401,101 @@ def create_db_command(  # noqa: PLR0913
                 no_time_axis_frequency=no_time_axis_frequency,
                 time_dimension=time_dimension,
             )
-        except InvalidTreeError:
+        except InvalidTreeError as exc:
             if verbose >= 1:
                 logger.exception("Validation failed")
 
-            typer.Exit(code=1)
+            logger.debug(f"{type(exc).__name__}: {exc}")
+            raise typer.Exit(code=1) from exc
 
+    else:
+        logger.debug("Skipping validation")
+
+    logger.debug("Creating database entries")
     db_entries = create_db_file_entries(
         root=tree_root,
         cv_source=cv_source,
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
         time_dimension=time_dimension,
+        n_processes=n_processes,
+        # TODO: add validation passing here or somehow otherwise do that.
+        # Will also need something in validate tree too.
     )
     with open(db_file, "w") as fh:
+        logger.info(f"Writing database to {db_file}")
         fh.write(json_dumps_cv_style(converter_json.unstructure(db_entries)))
+
+    logger.success(f"Wrote database to {db_file}")
+
+
+@app.command(name="upload-ftp")
+def upload_ftp_command(  # noqa: PLR0913
+    tree_root: Annotated[
+        Path,
+        typer.Argument(
+            help="The root of the tree to upload",
+            exists=True,
+            dir_okay=True,
+            file_okay=False,
+        ),
+    ],
+    ftp_dir_rel_to_root: Annotated[
+        str,
+        typer.Option(
+            help="""Directory, relative to `root_dir_ftp_incoming_files`, in which to upload the files on the FTP server.
+
+For example, "my-institute-input4mips"
+"""  # noqa: E501
+        ),
+    ],
+    password: Annotated[
+        str,
+        typer.Option(
+            help="""Password to use when logging in.
+
+If you are uploading to LLNL's FTP server,
+please use your email address here."""
+        ),
+    ],
+    username: Annotated[
+        str,
+        typer.Option(help="Username to use when logging in to the server."),
+    ] = "anonymous",
+    ftp_server: Annotated[
+        str,
+        typer.Option(help="FTP server to upload to."),
+    ] = "ftp.llnl.gov",
+    ftp_dir_root: Annotated[
+        str,
+        typer.Option(help="Root directory on the FTP server for receiving files"),
+    ] = "/incoming",
+    n_threads: Annotated[
+        int, typer.Option(help="Number of threads to use during upload")
+    ] = 4,
+    cv_source: CV_SOURCE_TYPE = None,
+) -> None:
+    """
+    Upload files to an FTP server
+
+    We recommend running this with a log level of INFO to start,
+    then adjusting from there.
+    """
+    raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
+    logger.debug(f"{raw_cvs_loader=}")
+    cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+
+    upload_ftp(
+        tree_root=tree_root,
+        ftp_dir_rel_to_root=ftp_dir_rel_to_root,
+        password=password,
+        cvs=cvs,
+        username=username,
+        ftp_server=ftp_server,
+        ftp_dir_root=ftp_dir_root,
+        n_threads=n_threads,
+    )
+    logger.success(f"Uploaded all files to {ftp_server}")
 
 
 if __name__ == "__main__":

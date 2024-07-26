@@ -26,6 +26,7 @@ TITLE_RENAMINGS = {
     "io": "IO",
     "cvs": "CVs",
     "drs": "DRS",
+    "upload_ftp": "Upload FTP",
     "input4mips_validation": "input4mips_validation",
 }
 

@@ -7,10 +7,10 @@ See [Input4MIPsDataset][input4mips_validation.dataset.dataset.Input4MIPsDataset]
 
 from typing import Union
 
-from attrs import define, field
+from attrs import field, frozen
 
 
-@define
+@frozen
 class Input4MIPsDatasetMetadata:
     """
     Metadata for an input4MIPs dataset
@@ -44,23 +44,14 @@ class Input4MIPsDatasetMetadata:
     license: str
     """License information for the dataset"""
 
-    license_id: str
-    """ID of the license that applies to this dataset"""
-
     mip_era: str
     """The MIP era to which this file belong"""
 
     nominal_resolution: str
     """Nominal resolution of the data in the file"""
 
-    product: str
-    """The kind of data in the file"""
-
     realm: str
     """The realm of the data in the file"""
-
-    region: str
-    """The region of the data in the file"""
 
     source_id: str
     """The ID of the file's source"""
@@ -74,8 +65,28 @@ class Input4MIPsDatasetMetadata:
     variable_id: str
     """The ID of the variable contained in the file"""
 
+    comment: Union[str, None] = None
+    """
+    Comments that apply to the file
+
+    These are the comments included in the file itself.
+    As a result, they can only apply to the file at the time of writing.
+    For comments made about the file after the fact,
+    e.g. reasons for deprecation,
+    see `comment_post_publication`.
+    """
+
     institution: Union[str, None] = None
     """Long-form description of the institute referred to by `institution_id`"""
+
+    license_id: Union[str, None] = None
+    """ID of the license that applies to this dataset"""
+
+    product: Union[str, None] = None
+    """The kind of data in the file"""
+
+    region: Union[str, None] = None
+    """The region of the data in the file"""
 
     source: Union[str, None] = None
     """Long-form description of the source referred to by `source_id`"""

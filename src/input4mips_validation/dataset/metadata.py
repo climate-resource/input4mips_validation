@@ -7,10 +7,10 @@ See [Input4MIPsDataset][input4mips_validation.dataset.dataset.Input4MIPsDataset]
 
 from typing import Union
 
-from attrs import define, field
+from attrs import field, frozen
 
 
-@define
+@frozen
 class Input4MIPsDatasetMetadata:
     """
     Metadata for an input4MIPs dataset

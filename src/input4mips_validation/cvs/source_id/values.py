@@ -3,10 +3,10 @@
 
 from typing import Union
 
-from attrs import define
+from attrs import frozen
 
 
-@define
+@frozen
 class SourceIDValues:
     """
     Values defined by a source ID

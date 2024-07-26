@@ -149,7 +149,7 @@ def test_basic(tmp_path, include_validation):
         ]
     )
 
-    assert db_entries == db_entries_exp
+    assert set(db_entries) == set(db_entries_exp)
 
     db_file = tmp_path / "test_create_db_basic.json"
     # Then test the CLI
@@ -170,4 +170,4 @@ def test_basic(tmp_path, include_validation):
             fh.read(), tuple[Input4MIPsDatabaseEntryFile, ...]
         )
 
-    assert db_entries_cli == db_entries_exp
+    assert set(db_entries_cli) == set(db_entries_exp)

@@ -377,6 +377,9 @@ def create_db_command(  # noqa: PLR0913
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
     time_dimension: TIME_DIMENSION_TYPE = "time",
     verbose: VERBOSE_TYPE = 0,
+    n_processes: Annotated[
+        int, typer.Option(help="Number of processes to use during database creation")
+    ] = 4,
 ) -> None:
     """
     Create a database from a tree of files
@@ -415,6 +418,7 @@ def create_db_command(  # noqa: PLR0913
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
         time_dimension=time_dimension,
+        n_processes=n_processes,
         # TODO: add validation passing here or somehow otherwise do that.
         # Will also need something in validate tree too.
     )

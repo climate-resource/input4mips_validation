@@ -9,10 +9,10 @@ For a more useful class, see
 
 from typing import Union
 
-from attrs import define, field
+from attrs import field, frozen
 
 
-@define
+@frozen
 class Input4MIPsDatabaseEntryFileRaw:
     """
     Raw data model for a file entry in the input4MIPs database

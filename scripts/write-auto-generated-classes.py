@@ -58,7 +58,7 @@ class Attribute:
 
 class_declaration_template = Template(
     '''
-@define
+${class_decorator}
 class ${class_name}:
     """
     ${class_docstring}
@@ -89,6 +89,9 @@ class FileToWrite:
     class_attributes: tuple[Attribute, ...]
     """Attributes to write on the class"""
 
+    class_frozen: bool = True
+    """Should the generated class be frozen?"""
+
     def write(self) -> None:
         """
         Write the file
@@ -105,6 +108,7 @@ class FileToWrite:
                 class_declaration_template.substitute(
                     class_name=self.class_name,
                     class_docstring=indnt(self.class_docstring),
+                    class_decorator="@frozen" if self.class_frozen else "@define",
                 )
             )
             for attribute in self.class_attributes:
@@ -558,7 +562,7 @@ For a more useful class, see
         imports=(
             "from typing import Union",
             "",
-            "from attrs import define, field",
+            "from attrs import field, frozen",
         ),
         class_name="Input4MIPsDatabaseEntryFileRaw",
         class_docstring="Raw data model for a file entry in the input4MIPs database",
@@ -599,7 +603,7 @@ See [Input4MIPsDataset][input4mips_validation.dataset.dataset.Input4MIPsDataset]
         imports=(
             "from typing import Union",
             "",
-            "from attrs import define, field",
+            "from attrs import field, frozen",
         ),
         class_name="Input4MIPsDatasetMetadata",
         class_docstring="""Metadata for an input4MIPs dataset""",
@@ -619,7 +623,7 @@ See [Input4MIPsDataset][input4mips_validation.dataset.dataset.Input4MIPsDataset]
         module_docstring=(
             "Minimum metadata required from an input4MIPs dataset producer"
         ),
-        imports=("from attrs import define, field",),
+        imports=("from attrs import field, frozen",),
         class_name="Input4MIPsDatasetMetadataDataProducerMinimum",
         class_docstring="""Minimum metadata required from an input4MIPs dataset producer
 
@@ -636,7 +640,7 @@ This is the minimum metadata required to create a valid
         module_docstring="""
 Minimum metadata required from an input4MIPs dataset producer for a multi-variable file
 """,
-        imports=("from attrs import define, field",),
+        imports=("from attrs import field, frozen",),
         class_name="Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum",
         class_docstring="""Minimum metadata required from input4MIPs dataset producer for a multi-variable file
 
@@ -659,7 +663,7 @@ This is the minimum metadata required to create a valid
         imports=(
             "from typing import Union",
             "",
-            "from attrs import define",
+            "from attrs import frozen",
         ),
         class_name="SourceIDValues",
         class_docstring="Values defined by a source ID",

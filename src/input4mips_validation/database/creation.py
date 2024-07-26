@@ -4,6 +4,7 @@ Creation of database entries
 
 from __future__ import annotations
 
+import concurrent.futures
 from pathlib import Path
 
 import tqdm
@@ -22,6 +23,7 @@ def create_db_file_entries(  # noqa: PLR0913
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
     rglob_input: str = "*.nc",
+    n_processes: int = 4,
 ) -> tuple[Input4MIPsDatabaseEntryFile, ...]:
     """
     Create database file entries for all the files in a given path
@@ -54,6 +56,12 @@ def create_db_file_entries(  # noqa: PLR0913
 
         This helps us only select relevant files to check.
 
+    n_processes
+        Number of processes to use when generating the database entries.
+
+        Running in parallel is recommended
+        because creating the file hashes can be a bit slow.
+
     Returns
     -------
     :
@@ -67,16 +75,31 @@ def create_db_file_entries(  # noqa: PLR0913
 
     db_entries = []
     logger.info("Creating database entries for globbed files")
-    for file in tqdm.tqdm(all_files, desc="Files"):
-        logger.log(LOG_LEVEL_INFO_FILE, f"Creating database entry for {file}")
-        database_entry = Input4MIPsDatabaseEntryFile.from_file(
-            file,
-            cvs=cvs,
-            frequency_metadata_key=frequency_metadata_key,
-            no_time_axis_frequency=no_time_axis_frequency,
-            time_dimension=time_dimension,
-        )
+    logger.info(
+        f"Using {n_processes} {'processes' if n_processes > 1 else 'processes'}"
+    )
+    with concurrent.futures.ProcessPoolExecutor(max_workers=n_processes) as executor:
+        futures = []
+        for file in tqdm.tqdm(all_files, desc="Add files to queue"):
+            logger.log(
+                LOG_LEVEL_INFO_FILE,
+                f"Adding creation of database entry for {file} to the queue",
+            )
 
-        db_entries.append(database_entry)
+            futures.append(
+                executor.submit(
+                    Input4MIPsDatabaseEntryFile.from_file,
+                    file,
+                    cvs=cvs,
+                    frequency_metadata_key=frequency_metadata_key,
+                    no_time_axis_frequency=no_time_axis_frequency,
+                    time_dimension=time_dimension,
+                )
+            )
+
+        for future in tqdm.tqdm(
+            concurrent.futures.as_completed(futures), desc="Database entries"
+        ):
+            db_entries.append(future.result())
 
     return tuple(db_entries)

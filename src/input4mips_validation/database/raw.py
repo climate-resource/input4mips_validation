@@ -175,7 +175,7 @@ class Input4MIPsDatabaseEntryFileRaw:
     """Long-form description of the source referred to by `source_id`"""
 
     timestamp: Union[str, None] = None
-    """The file's publication timestamp"""
+    """The file's publication timestamp on the ESGF"""
 
     validated_input4mips: bool = False
     """Has this file been validated by the input4MIPs team?"""

@@ -436,7 +436,7 @@ See `comment_post_publication` for an explanation of why.""",
     "timestamp": Attribute(
         name="timestamp",
         type_dec="Union[str, None] = None",
-        docstring="The file's publication timestamp",
+        docstring="The file's publication timestamp on the ESGF",
         comments=["TODO: validation (should have certain form?)"],
     ),
     "tracking_id": Attribute(

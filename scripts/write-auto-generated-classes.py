@@ -232,6 +232,12 @@ For the comments that were made at the time of writing the file, see `comment`.
             "but unclear right now what the rules are",
         ],
     ),
+    "filepath": Attribute(
+        name="filepath",
+        type_dec="str",
+        docstring="Full path in which the file is written",
+        comments=["TODO: validation (?)", "Should match CVs/drs ?"],
+    ),
     "frequency": Attribute(
         name="frequency",
         type_dec="str",
@@ -486,6 +492,7 @@ def get_files_to_write() -> Iterable[FileToWrite]:
         "dataset_category",
         "datetime_end",
         "datetime_start",
+        "filepath",
         "frequency",
         "further_info_url",
         "grid_label",

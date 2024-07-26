@@ -82,6 +82,7 @@ def test_basic(tmp_path, include_validation):
         ds = xr.open_dataset(written_file)
         info[variable_id] = {k: ds.attrs[k] for k in ["creation_date", "tracking_id"]}
         info[variable_id]["sha256"] = get_file_hash_sha256(written_file)
+        info[variable_id]["filepath"] = str(written_file)
 
     # Test the function directly first (helps with debugging)
     db_entries = create_db_file_entries(
@@ -100,6 +101,7 @@ def test_basic(tmp_path, include_validation):
             dataset_category="GHGConcentrations",
             datetime_end="2010-12-01T00:00:00Z",
             datetime_start="2000-01-01T00:00:00Z",
+            filepath=info[variable_id]["filepath"],
             frequency="mon",
             further_info_url="http://www.tbd.invalid",
             grid_label="gn",

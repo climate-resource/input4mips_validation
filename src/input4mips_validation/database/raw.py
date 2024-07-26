@@ -39,6 +39,9 @@ class Input4MIPsDatabaseEntryFileRaw:
     datetime_start: str
     """The file's start time"""
 
+    filepath: str
+    """Full path in which the file is written"""
+
     frequency: str
     """Frequency of the data in the file"""
 

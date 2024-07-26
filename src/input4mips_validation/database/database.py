@@ -136,6 +136,7 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
 
             all_metadata = md | all_metadata
 
+        all_metadata["filepath"] = str(file)
         all_metadata["sha256"] = get_file_hash_sha256(file)
 
         # Make sure we only pass metadata that is actully of interest to the database

@@ -79,7 +79,7 @@ def generate_tracking_id() -> str:
         Tracking ID
     """
     # TODO: ask Paul what this hdl business is about
-    return "hdl:21.14100/" + str(uuid.uuid4())
+    return f"hdl:21.14100/{uuid.uuid4()}"
 
 
 def generate_creation_timestamp() -> str:

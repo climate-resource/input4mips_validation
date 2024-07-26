@@ -113,9 +113,9 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
         first_source: Union[str, None] = None
         # TODO: make clearer, order below sets order of sources
         for source, md in (
-            ("file data", metadata_data),
-            ("file path", metadata_directories),
-            ("file attributes", metadata_attributes),
+            ("inferred from the file's data", metadata_data),
+            ("inferred from the file path", metadata_directories),
+            ("retrieved from the file's attributes", metadata_attributes),
         ):
             if first_source is None:
                 first_source = source
@@ -127,8 +127,9 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
                     # to earlier sources
                     msg = (
                         f"Value clash for {ktc}. "
-                        f"{first_source} value: {all_metadata[ktc]!r}. "
-                        f"{source} value: {md[ktc]!r}"
+                        f"Value {first_source}: {all_metadata[ktc]!r}. "
+                        f"Value {source}: {md[ktc]!r}. "
+                        f"{file=}"
                     )
                     logger.warning(msg)
 

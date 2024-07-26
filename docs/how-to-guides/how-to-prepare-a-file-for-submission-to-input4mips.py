@@ -25,15 +25,6 @@
 # there are a few other steps you need to do too.
 # See the [instructions for data producers in the input4MIPs CVS repository](https://github.com/PCMDI/input4MIPs_CVs#as-a-data-producer).
 # Don't forget to do those steps at some point too.
-#
-# **Second note:** This tool is still under active development.
-# It is very likely that files that pass now may not in future,
-# as we tighten the checks.
-# This may be annoying, as files have to be re-written,
-# but having clean data makes a massive difference to users
-# so we hope you can appreciate the importance of this
-# (and we hope to get the importance recognised at some point in the future too,
-# watch this space).
 
 # %% editable=true slideshow={"slide_type": ""}
 import tempfile

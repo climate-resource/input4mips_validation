@@ -33,6 +33,10 @@ As a user, please note that input4MIPs validation is undergoing heavy developmen
 This means that files which pass validation today may not pass in future.
 While this will initially be frustrating, it will pay off in the long run
 by helping us to create the cleanest, clearest set of data possible.
+We hope that you can appreciate the importance of this too
+(and we hope to get the effort it takes to do this
+recognised at some point in the future too,
+watch this space).
 So, please enjoy the tool, please make use of it,
 please [raise an issue](https://github.com/climate-resource/input4mips_validation/issues/new/choose)
 whenever there is a problem,

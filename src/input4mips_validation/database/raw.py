@@ -67,6 +67,9 @@ class Input4MIPsDatabaseEntryFileRaw:
     realm: str
     """The realm of the data in the file"""
 
+    sha256: str
+    """sha256 hash of the file"""
+
     source_id: str
     """The ID of the file's source"""
 

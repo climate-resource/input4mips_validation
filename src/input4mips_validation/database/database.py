@@ -16,6 +16,7 @@ from attrs import define, fields
 from loguru import logger
 
 from input4mips_validation.database.raw import Input4MIPsDatabaseEntryFileRaw
+from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.inference.from_data import create_time_range
 
 if TYPE_CHECKING:
@@ -134,6 +135,8 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
                     logger.warning(msg)
 
             all_metadata = md | all_metadata
+
+        all_metadata["sha256"] = get_file_hash_sha256(file)
 
         # Make sure we only pass metadata that is actully of interest to the database
         cls_fields = [v.name for v in fields(cls)]

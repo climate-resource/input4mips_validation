@@ -24,6 +24,7 @@ from input4mips_validation.database.creation import create_db_file_entries
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
+from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.serialisation import converter_json
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
 
@@ -80,6 +81,7 @@ def test_basic(tmp_path, include_validation):
 
         ds = xr.open_dataset(written_file)
         info[variable_id] = {k: ds.attrs[k] for k in ["creation_date", "tracking_id"]}
+        info[variable_id]["sha256"] = get_file_hash_sha256(written_file)
 
     # Test the function directly first (helps with debugging)
     db_entries = create_db_file_entries(
@@ -122,6 +124,7 @@ def test_basic(tmp_path, include_validation):
             product=None,
             realm="atmos",
             region=None,
+            sha256=info[variable_id]["sha256"],
             source_id="CR-CMIP-0-2-0",
             source_version="0.2.0",
             target_mip="CMIP",

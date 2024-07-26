@@ -26,11 +26,13 @@
 # Once you've done those steps, then come back here.
 #
 # **Second note:** This tool is still under active development.
-# It is very likely that files that pass now may not in future, as we tighten the checks.
+# It is very likely that files that pass now may not in future,
+# as we tighten the checks.
 # This may be annoying, as files have to be re-written,
 # but having clean data makes a massive difference to users
 # so we hope you can appreciate the importance of this
-# (and we hope to get the importance recognised at some point in the future too, watch this space).
+# (and we hope to get the importance recognised at some point in the future too,
+# watch this space).
 
 # %%
 import tempfile
@@ -96,7 +98,8 @@ start_iris
 # **Note:** This produces **a lot** more output.
 
 # %%
-# !input4mips-validation --log-level "DEBUG" validate-file --cv-source "gh:main" {starting_file}
+# !input4mips-validation --log-level "DEBUG" \
+#     validate-file --cv-source "gh:main" {starting_file}
 
 # %% [markdown]
 # ### Understanding the issue
@@ -156,7 +159,7 @@ fixed["CH4"].attrs["long_name"] = fixed["CH4"].attrs.pop("standard_name")
 TMP_DIR = Path(tempfile.mkdtemp())
 fixed_file = (
     TMP_DIR
-    / "fixed_CH4-em-biomassburning_input4MIPs_emissions_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc"
+    / "fixed_CH4-em-biomassburning_input4MIPs_emissions_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc"  # noqa: E501
 )
 
 cubes = ncdata.iris_xarray.cubes_from_xarray(fixed)
@@ -189,10 +192,12 @@ tree_to_write_in = (
     TMP_DIR
     / "how-to-prepare-a-file-for-submission-to-input4mips-example-input4mips-ready-data"
 )
-# !input4mips-validation validate-file --cv-source "gh:main" {fixed_file} --write-in-drs {tree_to_write_in}
+# !input4mips-validation \
+#     validate-file --cv-source "gh:main" {fixed_file} --write-in-drs {tree_to_write_in}
 
 # %% [markdown]
-# As the log output shows, the file is re-written with a full file path that matches the DRS.
+# As the log output shows,
+# the file is re-written with a full file path that matches the DRS.
 # This file is then ready for submission to input4MIPs.
 
 # %% [markdown]
@@ -206,7 +211,8 @@ if len(written_file) != 1:
 written_file = written_file[0]
 print(f"The file's name according to the DRS is {written_file.name}")
 print(
-    f"The file's path according to the DRS is {written_file.parent.relative_to(tree_to_write_in)}"
+    "The file's path according to the DRS is "
+    f"{written_file.parent.relative_to(tree_to_write_in)}"
 )
 
 # %%
@@ -217,10 +223,11 @@ rewritten
 # ## Creating a complete dataset and uploading to LLNL
 #
 # This procedure can obviously be repeated over a number of files with loops etc.
-# We currently don’t have a tool that repeats this procedure over numerous files,
+# We currently don't have a tool that repeats this procedure over numerous files,
 # but are happy to receive requests for one in
 # [our issues](https://github.com/climate-resource/input4mips_validation).
-# Having said that, if you’ve got this far, we assume you can write a loop in Python or bash :)
+# Having said that, if you've got this far,
+# we assume you can write a loop in Python or bash :)
 #
 # Once you have written your files,
 # you can upload them to LLNL's ftp server using our upload FTP command, docs to come.

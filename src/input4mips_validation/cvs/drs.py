@@ -607,6 +607,45 @@ class DataReferenceSyntax:
             msg = "\n".join(msg_l)
             raise ValueError(msg)
 
+    def get_esgf_dataset_master_id(self, file: Path) -> str:
+        """
+        Get the ESGF's master ID for the dataset to which a file belongs
+
+        Note: we still have to confirm that this is actually correct,
+        right now it's best thought of as a placeholder.
+
+        Parameters
+        ----------
+        file
+            File for which to get the dataset ID
+
+        Returns
+        -------
+        :
+            ESGF master ID for the dataset to which `file` belongs
+
+        Examples
+        --------
+        >>> drs = DataReferenceSyntax(
+        ...     directory_path_template="<model_id>/v<version>",
+        ...     directory_path_example="ACCESS/v20240726",
+        ...     filename_template="<variable_id>_<model_id>.nc",
+        ...     filename_example="tas_ACCESS.nc",
+        ... )
+        >>> file = Path("/path/to/somewhere/CanESM/v20240812/tas_CanESM.nc")
+        >>> drs.get_esgf_dataset_master_id(file)
+        'CanESM.v20240812'
+        """
+        metadata_directories = self.extract_metadata_from_path(
+            file.parent, include_root_data_dir=True
+        )
+
+        res = str(
+            file.parent.relative_to(metadata_directories["root_data_dir"])
+        ).replace(os.sep, ".")
+
+        return res
+
 
 def get_regexp_from_template_and_substitutions(
     drs_template: str,

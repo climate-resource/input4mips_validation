@@ -232,6 +232,19 @@ For the comments that were made at the time of writing the file, see `comment`.
             "but unclear right now what the rules are",
         ],
     ),
+    "esgf_dataset_master_id": Attribute(
+        name="esgf_dataset_master_id",
+        type_dec="str",
+        docstring="""Master ID as used by the ESGF
+
+This applies to the dataset level, not the file level.
+However, it is still useful to capture.""",
+        comments=[
+            "TODO: validation (?)",
+            "Should match CVs/drs ?",
+            "Unclear what actual rules for this are, if any",
+        ],
+    ),
     "filepath": Attribute(
         name="filepath",
         type_dec="str",
@@ -492,6 +505,7 @@ def get_files_to_write() -> Iterable[FileToWrite]:
         "dataset_category",
         "datetime_end",
         "datetime_start",
+        "esgf_dataset_master_id",
         "filepath",
         "frequency",
         "further_info_url",

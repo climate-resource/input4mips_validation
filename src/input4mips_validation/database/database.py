@@ -138,6 +138,9 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
 
         all_metadata["filepath"] = str(file)
         all_metadata["sha256"] = get_file_hash_sha256(file)
+        all_metadata["esgf_dataset_master_id"] = cvs.DRS.get_esgf_dataset_master_id(
+            file
+        )
 
         # Make sure we only pass metadata that is actully of interest to the database
         cls_fields = [v.name for v in fields(cls)]

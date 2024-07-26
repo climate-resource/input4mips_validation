@@ -39,6 +39,14 @@ class Input4MIPsDatabaseEntryFileRaw:
     datetime_start: str
     """The file's start time"""
 
+    esgf_dataset_master_id: str
+    """
+    Master ID as used by the ESGF
+
+    This applies to the dataset level, not the file level.
+    However, it is still useful to capture.
+    """
+
     filepath: str
     """Full path in which the file is written"""
 

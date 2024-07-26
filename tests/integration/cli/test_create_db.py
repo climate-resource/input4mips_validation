@@ -83,6 +83,9 @@ def test_basic(tmp_path, include_validation):
         info[variable_id] = {k: ds.attrs[k] for k in ["creation_date", "tracking_id"]}
         info[variable_id]["sha256"] = get_file_hash_sha256(written_file)
         info[variable_id]["filepath"] = str(written_file)
+        info[variable_id]["esgf_dataset_master_id"] = str(
+            written_file.relative_to(tree_root).parent
+        ).replace(os.sep, ".")
 
     # Test the function directly first (helps with debugging)
     db_entries = create_db_file_entries(
@@ -101,6 +104,7 @@ def test_basic(tmp_path, include_validation):
             dataset_category="GHGConcentrations",
             datetime_end="2010-12-01T00:00:00Z",
             datetime_start="2000-01-01T00:00:00Z",
+            esgf_dataset_master_id=info[variable_id]["esgf_dataset_master_id"],
             filepath=info[variable_id]["filepath"],
             frequency="mon",
             further_info_url="http://www.tbd.invalid",

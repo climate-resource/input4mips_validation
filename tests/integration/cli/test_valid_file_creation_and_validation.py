@@ -21,6 +21,7 @@ from input4mips_validation.dataset import (
     Input4MIPsDataset,
     Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum,
 )
+from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
 from input4mips_validation.validation import validate_file
 
@@ -94,6 +95,8 @@ def test_validate_written_single_variable_file(tmp_path):
         dataset_category="GHGConcentrations",
         datetime_end="2010-12-01T00:00:00Z",
         datetime_start="2000-01-01T00:00:00Z",
+        esgf_dataset_master_id=f"input4MIPs.CMIP6Plus.CMIP.CR.CR-CMIP-0-2-0.atmos.mon.mole-fraction-of-carbon-dioxide-in-air.gn.v{version_exp}",
+        filepath=str(written_file),
         frequency="mon",
         further_info_url="http://www.tbd.invalid",
         grid_label="gn",
@@ -118,6 +121,7 @@ def test_validate_written_single_variable_file(tmp_path):
         product=None,
         realm="atmos",
         region=None,
+        sha256=get_file_hash_sha256(written_file),
         source_id="CR-CMIP-0-2-0",
         source_version="0.2.0",
         target_mip="CMIP",
@@ -213,6 +217,8 @@ def test_validate_written_multi_variable_file(tmp_path):
         dataset_category="GHGConcentrations",
         datetime_end="2010-12-01T00:00:00Z",
         datetime_start="2000-01-01T00:00:00Z",
+        esgf_dataset_master_id=f"input4MIPs.CMIP6Plus.CMIP.CR.CR-CMIP-0-2-0.atmos.mon.multiple.gn.v{version_exp}",
+        filepath=str(written_file),
         frequency="mon",
         further_info_url="http://www.tbd.invalid",
         grid_label="gn",
@@ -237,6 +243,7 @@ def test_validate_written_multi_variable_file(tmp_path):
         product=None,
         realm="atmos",
         region=None,
+        sha256=get_file_hash_sha256(written_file),
         source_id="CR-CMIP-0-2-0",
         source_version="0.2.0",
         target_mip="CMIP",

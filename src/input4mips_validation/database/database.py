@@ -113,9 +113,9 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
         first_source: Union[str, None] = None
         # TODO: make clearer, order below sets order of sources
         for source, md in (
-            ("file attributes", metadata_attributes),
             ("file data", metadata_data),
             ("file path", metadata_directories),
+            ("file attributes", metadata_attributes),
         ):
             if first_source is None:
                 first_source = source
@@ -132,7 +132,7 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
                     )
                     logger.warning(msg)
 
-            all_metadata = all_metadata | md
+            all_metadata = md | all_metadata
 
         # Make sure we only pass metadata that is actully of interest to the database
         cls_fields = [v.name for v in fields(cls)]

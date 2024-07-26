@@ -124,15 +124,20 @@ class Input4MIPsDataset:
             k: v for k, v in ds.attrs.items() if k not in metadata_fields
         }
 
-        init_kwargs = dict(
-            data=ds_stripped,
-            metadata=metadata,
-            non_input4mips_metadata=non_input4mips_metadata,
-        )
-        if cvs is not None:
-            init_kwargs["cvs"] = cvs
+        if cvs is None:
+            res = Input4MIPsDataset(
+                data=ds_stripped,
+                metadata=metadata,
+                non_input4mips_metadata=non_input4mips_metadata,
+            )
 
-        res = Input4MIPsDataset(**init_kwargs)
+        else:
+            res = Input4MIPsDataset(
+                data=ds_stripped,
+                metadata=metadata,
+                non_input4mips_metadata=non_input4mips_metadata,
+                cvs=cvs,
+            )
 
         return res
 

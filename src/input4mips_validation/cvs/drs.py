@@ -640,6 +640,9 @@ class DataReferenceSyntax:
             file.parent, include_root_data_dir=True
         )
 
+        if metadata_directories["root_data_dir"] is None:
+            raise AssertionError
+
         res = str(
             file.parent.relative_to(metadata_directories["root_data_dir"])
         ).replace(os.sep, ".")

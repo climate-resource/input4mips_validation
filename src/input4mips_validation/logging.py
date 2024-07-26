@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from loguru import logger
 
@@ -51,8 +51,8 @@ DEFAULT_LOGGING_CONFIG = dict(
 
 def setup_logging(
     enable: bool,
-    config: Optional[Path, dict[str, Any]] = None,
-    log_level: Optional[int] = None,
+    config: Optional[Union[Path, dict[str, Any]]] = None,
+    log_level: Optional[str] = None,
 ) -> None:
     """
     Early setup for logging.
@@ -81,11 +81,11 @@ def setup_logging(
         return
 
     if config is None:
-        # Not sure what is going on with type hints, one for another day
         config = DEFAULT_LOGGING_CONFIG
         if log_level is not None:
             config["handlers"][0]["level"] = log_level
 
+        # Not sure what is going on with type hints, one for another day
         logger.configure(**config)  # type: ignore
 
     elif isinstance(config, dict):

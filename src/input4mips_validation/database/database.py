@@ -18,6 +18,7 @@ from loguru import logger
 from input4mips_validation.database.raw import Input4MIPsDatabaseEntryFileRaw
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.inference.from_data import create_time_range
+from input4mips_validation.logging import LOG_LEVEL_INFO_FILE
 
 if TYPE_CHECKING:
     from input4mips_validation.cvs import Input4MIPsCVs
@@ -65,6 +66,10 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
         -------
             Initialised database entry
         """
+        logger.log(
+            LOG_LEVEL_INFO_FILE,
+            f"Creating file database entry for {file}",
+        )
         ds = xr.open_dataset(file)
         metadata_attributes: dict[str, Union[str, None]] = ds.attrs
 

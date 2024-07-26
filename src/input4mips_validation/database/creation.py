@@ -98,8 +98,15 @@ def create_db_file_entries(  # noqa: PLR0913
             )
 
         for future in tqdm.tqdm(
-            concurrent.futures.as_completed(futures), desc="Database entries"
+            concurrent.futures.as_completed(futures),
+            desc="Database entries",
+            total=len(futures),
         ):
-            db_entries.append(future.result())
+            entry = future.result()
+            logger.log(
+                LOG_LEVEL_INFO_FILE,
+                f"Finished creation of database entry for {entry.filepath}",
+            )
+            db_entries.append(entry)
 
     return tuple(db_entries)

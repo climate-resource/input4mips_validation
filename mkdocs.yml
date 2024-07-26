@@ -89,6 +89,9 @@ plugins:
       # theme: dark
       include_source: True
       ignore: ["*.ipynb", "docs/gen_doc_stubs.py"]
+      remove_tag_config:
+        remove_input_tags:
+          - remove_input
 
 markdown_extensions:
   - attr_list

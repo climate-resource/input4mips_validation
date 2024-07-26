@@ -12,7 +12,7 @@
 #     name: python3
 # ---
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # # How to prepare a file for submission to input4MIPs
 #
 # Here we document how to prepare a file for submission to the input4MIPs collection
@@ -21,9 +21,10 @@
 # If you want to create the file from scratch,
 # check out [TODO: cross reference once we have made the notebook].
 #
-# **Note:** Before you submit your files, there are a few other steps you need to do.
+# **Note:** Before you submit your files,
+# there are a few other steps you need to do too.
 # See the [instructions for data producers in the input4MIPs CVS repository](https://github.com/PCMDI/input4MIPs_CVs#as-a-data-producer).
-# Once you've done those steps, then come back here.
+# Don't forget to do those steps at some point too.
 #
 # **Second note:** This tool is still under active development.
 # It is very likely that files that pass now may not in future,
@@ -34,7 +35,7 @@
 # (and we hope to get the importance recognised at some point in the future too,
 # watch this space).
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 import tempfile
 from pathlib import Path
 
@@ -42,11 +43,16 @@ import iris
 import ncdata.iris_xarray
 import xarray as xr
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
+# Some iris config they recommend
+iris.FUTURE.save_split_attrs = True
+
+# %% editable=true slideshow={"slide_type": ""}
 starting_file = Path(
     "CH4-em-biomassburning_input4MIPs_emissions_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc"
 )
 
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
 # Some trickery to make sure we pick up files in the right path,
 # even when building the docs :)
 if not starting_file.exists():
@@ -54,24 +60,21 @@ if not starting_file.exists():
     if not starting_file.exists():
         raise AssertionError
 
-# %%
-iris.FUTURE.save_split_attrs = True
-
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Starting point
 #
 # We assume that you are starting from an existing file.
 # We have prepared one for this demo.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 start = xr.open_dataset(starting_file)
-start
+start.data_vars
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 start_iris = iris.load(starting_file)
 start_iris
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Validate the file
 #
 # As a first step, run the file through our validation.
@@ -101,7 +104,7 @@ start_iris
 # !input4mips-validation --log-level "DEBUG" \
 #     validate-file --cv-source "gh:main" {starting_file}
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Understanding the issue
 #
 # From the above we can see three issues:
@@ -114,7 +117,7 @@ start_iris
 # However, in general, there can be quite some mystery surrounding these errors.
 # If something doesn't make sense, please
 # [make an issue](https://github.com/climate-resource/input4mips_validation/issues/new)
-# and tag @znichollscr and @durack1 so we can help you.
+# and tag "@znichollscr" and "@durack1" so we can help you.
 # Please don't spend lots of time banging your head against a wall.
 #
 # In this particular case, the errors are the following:
@@ -135,7 +138,7 @@ start_iris
 #   that cell_measures refers to variables which aren't properly documented.
 #   As we will see, fixing the issue with "external_variables" will also fix this issue.
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Fixing the file
 #
 # In this case, the fixes are relatively trivial.
@@ -149,9 +152,12 @@ start_iris
 # and ncdata is the best to translate between the two
 # (yes, you can imagine how fun it was figuring all of this out).
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 fixed = xr.open_dataset(starting_file)
+# Fix the whitespace issue in external_variables
 fixed.attrs["external_variables"] = fixed.attrs["external_variables"].replace(",", " ")
+# Convert long_name to standard_name
+# (iris would actually do this for us, but for completeness...)
 fixed["CH4"].attrs["long_name"] = fixed["CH4"].attrs.pop("standard_name")
 
 # The eagle eyed will notice that this file name is definitely not correct.
@@ -165,20 +171,22 @@ fixed_file = (
 cubes = ncdata.iris_xarray.cubes_from_xarray(fixed)
 iris.save(cubes, fixed_file)
 
-# !ncdump -h {fixed_file}
+# Check the updated attributes, could also be done with e.g. ncdump
+print(f"New external_variables: {fixed.attrs['external_variables']!r}")
+print(f"New variable attributes: {fixed['CH4'].attrs!r}")
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Validate again
 #
 # To make sure we have actually fixed the issues, let's run the validation again.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 # !input4mips-validation validate-file --cv-source "gh:main" {fixed_file}
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # Now the file passes all of the validation.
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Write the file in the data reference syntax (DRS)
 #
 # The file is currently just a single file.
@@ -219,7 +227,7 @@ print(
 rewritten = xr.open_dataset(written_file)
 rewritten
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Creating a complete dataset and uploading to LLNL
 #
 # This procedure can obviously be repeated over a number of files with loops etc.

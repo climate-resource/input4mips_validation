@@ -148,22 +148,25 @@ def cli(
         typer.Option(
             "--no-logging",
             help="""Disable all logging.
+
 If supplied, overrides '--logging-config'""",
+        ),
+    ] = None,
+    logging_level: Annotated[
+        Optional[str],
+        typer.Option(
+            help="""Logging level to use.
+
+This is only applied if no other logging configuration flags are supplied."""
         ),
     ] = None,
     logging_config: Annotated[
         Optional[Path],
         typer.Option(
             help="""Path to the logging configuration file.
+
 This will be loaded with [loguru-config](https://github.com/erezinman/loguru-config).
 If supplied, this overrides any value provided with `--log-level`."""
-        ),
-    ] = None,
-    log_level: Annotated[
-        Optional[str],
-        typer.Option(
-            help="""Logging level to use.
-This is only applied if no other logging configuration flags are supplied."""
         ),
     ] = None,
 ) -> None:
@@ -174,7 +177,9 @@ This is only applied if no other logging configuration flags are supplied."""
         setup_logging(enable=False)
 
     else:
-        setup_logging(enable=True, config=logging_config, log_level=log_level)
+        setup_logging(
+            enable=True, logging_config=logging_config, logging_level=logging_level
+        )
 
 
 @app.command(name="validate-file")
@@ -227,7 +232,7 @@ def validate_file_command(  # noqa: PLR0913
     except InvalidFileError as exc:
         logger.debug(f"{type(exc).__name__}: {exc}")
 
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from exc
 
     if write_in_drs:
         raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
@@ -329,7 +334,7 @@ def validate_tree_command(  # noqa: PLR0913
     except InvalidTreeError as exc:
         logger.debug(f"{type(exc).__name__}: {exc}")
 
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from exc
 
 
 @app.command(name="create-db")
@@ -386,7 +391,7 @@ def create_db_command(  # noqa: PLR0913
         except InvalidFileError as exc:
             logger.debug(f"{type(exc).__name__}: {exc}")
 
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from exc
 
     db_entries = create_db_file_entries(
         root=tree_root,

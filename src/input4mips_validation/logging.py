@@ -82,8 +82,8 @@ DEFAULT_LOGGING_CONFIG = dict(
 
 def setup_logging(
     enable: bool,
-    config: Optional[Union[Path, dict[str, Any]]] = None,
-    log_level: Optional[str] = None,
+    logging_config: Optional[Union[Path, dict[str, Any]]] = None,
+    logging_level: Optional[str] = None,
 ) -> None:
     """
     Early setup for logging.
@@ -104,25 +104,28 @@ def setup_logging(
 
         This takes precedence over `log_level`.
 
-    log_level
+    logging_level
         Log level to apply to the default config.
     """
     if not enable:
         logger.disable("input4mips_validation")
         return
 
-    if config is None:
-        config = DEFAULT_LOGGING_CONFIG
-        if log_level is not None:
-            config["handlers"][0]["level"] = log_level
+    if logging_config is None:
+        logging_config = DEFAULT_LOGGING_CONFIG
+        if logging_level is not None:
+            logging_config["handlers"][0]["level"] = logging_level
 
         # Not sure what is going on with type hints, one for another day
-        logger.configure(**config)  # type: ignore
+        logger.configure(**logging_config)  # type: ignore
 
-    elif isinstance(config, dict):
-        logger.configure(**config)
+    elif isinstance(logging_config, dict):
+        logger.configure(**logging_config)
 
     else:
-        config = LoguruConfig.load(config, configure=True)
+        logging_config = LoguruConfig.load(logging_config, configure=True)
 
     logger.enable("input4mips_validation")
+
+    if logging_config is not None and logging_level is not None:
+        logger.warning("`logging_level` is ignored if `logging_config` is supplied")

@@ -255,16 +255,6 @@ print(f"{cvs.DRS.filename_template=}")
 
 # %% editable=true slideshow={"slide_type": ""}
 TMP_DIR = Path(tempfile.mkdtemp())
-
-# %% editable=true slideshow={"slide_type": ""}
-# Trickery to make RtD behave
-import os
-
-if bool(os.environ.get("READTHEDOCS", False)):
-    TMP_DIR = Path("rtd-created-files")
-    TMP_DIR.mkdir(exist_ok=True, parents=True)
-
-# %% editable=true slideshow={"slide_type": ""}
 written_file = input4mips_ds.write(TMP_DIR)
 print(f"The file was written in {written_file}")
 

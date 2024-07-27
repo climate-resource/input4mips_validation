@@ -101,7 +101,8 @@ tree_to_write_in = TMP_DIR / "how-to-write-a-single-file-in-drs"
 # %% editable=true slideshow={"slide_type": ""}
 written_file = list(Path(tree_to_write_in).rglob("*.nc"))
 if len(written_file) != 1:
-    raise AssertionError
+    msg = f"Found {written_file=}"
+    raise AssertionError(msg)
 
 written_file = written_file[0]
 print(f"The file's name according to the DRS is {written_file.name}")

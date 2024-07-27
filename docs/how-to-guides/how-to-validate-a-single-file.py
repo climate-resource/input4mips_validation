@@ -95,11 +95,41 @@ start_iris
 # so the default shown messages are different,
 # but the behaviour is the same and you can always adjust the logging
 # to suit your own preferences).
+#
+# ### The CVs
+#
+# In the below, you will notice that there is an option, `--cv-source`.
+# This points to the source of the controlled vocabularies (CVs).
+# You can pick different sources for the CVs.
+# For example, you can load the CVs from local files,
+# or from the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs)
+# (or any other web source).
+#
+# In this example, we're going to use a specific commit
+# from the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs)
+# to avoid anything breaking, even if we make further changes to the CVs.
+# For your own work, you will probably want to use either:
+#
+# 1. local files, e.g. `--cv-source path/to/local/files`
+# 1. the branch where you have added your information to the CVs,
+#    `--cv-source https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/branch_name/CVs/`
+# 1. a tagged version of the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs)
+#    `--cv-source gh:tag-id`
+# 1. the main branch of the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs)
+#    `--cv-source gh:main`
+# 1. a specific commit in the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs),
+#    like we do below, `--cv-source gh:commit-hash`
+#
+# This is definitely not the best documented feature of the library,
+# so if anything is unclear,
+# please [raise an issue](https://github.com/climate-resource/input4mips_validation/issues/new?assignees=&labels=triage&projects=&template=default.md&title=).
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 # The full docs of this command can be accessed with
 # # !input4mips-validation validate-file --help
-# !input4mips-validation validate-file --cv-source "gh:main" {starting_file}
+# !input4mips-validation validate-file \
+#     --cv-source "gh:52841b0117474efd2705a083c21b3760531974f3" \
+#     {starting_file}
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Getting more detail
@@ -113,7 +143,9 @@ start_iris
 
 # %% editable=true slideshow={"slide_type": ""}
 # !input4mips-validation --logging-level "DEBUG" \
-#     validate-file --cv-source "gh:main" {starting_file}
+#     validate-file \
+#     --cv-source "gh:52841b0117474efd2705a083c21b3760531974f3" \
+#     {starting_file}
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Understanding the issue

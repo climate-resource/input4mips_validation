@@ -60,25 +60,41 @@ One level higher than
 [LOG_LEVEL_INFO_INDIVIDUAL_CHECK][input4mips_validation.logging.LOG_LEVEL_INFO_INDIVIDUAL_CHECK].
 """
 
-DEFAULT_LOGGING_CONFIG = dict(
-    handlers=[
-        dict(
-            sink=sys.stderr,
-            level=LOG_LEVEL_INFO_INDIVIDUAL_CHECK.name,
-            colorize=True,
-            format=" - ".join(
-                [
-                    "<green>{time:!UTC}</>",
-                    # "{level.icon} <lvl>{level}</>",
-                    "<level>{level}</>",
-                    "<cyan>{name}:{file}:{line}</>",
-                    "<level>{message}</>",
-                ]
-            ),
-        )
-    ],
-)
-"""Default configuration used with :meth:`loguru.logger.configure`"""
+
+def get_default_config(
+    level: str = LOG_LEVEL_INFO_INDIVIDUAL_CHECK.name,
+) -> dict[str, list[dict[str, Any]]]:
+    """
+    Get default logging configuration
+
+    Parameters
+    ----------
+    level
+        Level to apply to the logging
+
+    Returns
+    -------
+    :
+        Default logging configuration
+    """
+    return dict(
+        handlers=[
+            dict(
+                sink=sys.stderr,
+                level=level,
+                colorize=True,
+                format=" - ".join(
+                    [
+                        "<green>{time:!UTC}</>",
+                        # "{level.icon} <lvl>{level}</>",
+                        "<level>{level}</>",
+                        "<cyan>{name}:{file}:{line}</>",
+                        "<level>{message}</>",
+                    ]
+                ),
+            )
+        ],
+    )
 
 
 def setup_logging(
@@ -113,12 +129,13 @@ def setup_logging(
         return
 
     if logging_config is None:
-        logging_config = DEFAULT_LOGGING_CONFIG
         if logging_level is not None:
-            logging_config["handlers"][0]["level"] = logging_level
+            config = get_default_config(level=logging_level)
+        else:
+            config = get_default_config()
 
         # Not sure what is going on with type hints, one for another day
-        logger.configure(**logging_config)  # type: ignore
+        logger.configure(**config)  # type: ignore
 
     elif isinstance(logging_config, dict):
         logger.configure(**logging_config)

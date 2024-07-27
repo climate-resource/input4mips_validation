@@ -25,14 +25,21 @@ def main() -> None:
     for dependency in docs_env_info["packages"]["linux-64"]:
         # for dependency in docs_env_info["packages"]["osx-arm64"]:
         if "conda" in dependency:
-            if not dependency["conda"].endswith(".conda"):
+            if "cfchecker" in dependency["conda"]:
+                base = dependency["conda"].split("/")[-1]
+                toks = base.split(".tar.bz2")[0].split("-")
+                id = f"{'-'.join(toks[:-2])}={toks[-2]}={toks[-1]}"
+
+            elif not dependency["conda"].endswith(".conda"):
                 # files that are bundled (e.g. tar files),
                 # not something conda supports I don't think
                 continue
 
-            base = dependency["conda"].split("/")[-1]
-            toks = base.split(".conda")[0].split("-")
-            id = f"{'-'.join(toks[:-2])}={toks[-2]}={toks[-1]}"
+            else:
+                base = dependency["conda"].split("/")[-1]
+                toks = base.split(".conda")[0].split("-")
+                id = f"{'-'.join(toks[:-2])}={toks[-2]}={toks[-1]}"
+
             conda_dependencies.append(id)
 
         if "pypi" in dependency:

@@ -11,6 +11,7 @@ dependencies:
 - cartopy=0.23.0=py39hfc16268_1
 - certifi=2024.7.4=pyhd8ed1ab_0
 - cf-units=3.2.0=py39hd92a3bb_5
+- cfchecker=4.1.0=pyhd8ed1ab_0
 - cftime=1.6.4=py39hd92a3bb_0
 - cfunits=3.3.7=pyhd8ed1ab_0
 - click=8.1.7=unix_pyh707e725_0

@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Callable, Protocol, TypeVar
 
 import iris
+import tqdm
 import xarray as xr
 from loguru import logger
 from typing_extensions import ParamSpec
@@ -19,6 +20,12 @@ from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.exceptions import NonUniqueError
+from input4mips_validation.logging import (
+    LOG_LEVEL_INFO_FILE,
+    LOG_LEVEL_INFO_FILE_ERROR,
+    LOG_LEVEL_INFO_INDIVIDUAL_CHECK,
+    LOG_LEVEL_INFO_INDIVIDUAL_CHECK_ERROR,
+)
 from input4mips_validation.validation.cf_checker import check_with_cf_checker
 
 P = ParamSpec("P")
@@ -66,7 +73,7 @@ class InvalidFileError(ValueError):
         error_msg = (
             f"Failed to validate {filepath=}\n"
             f"File's `ncdump -h` output:\n\n{file_ncdump_h}\n\n"
-            "Caught error messages (see log messages for full details):\n\n"
+            "Caught error messages:\n\n"
             f"{error_msgs_str}"
         )
 
@@ -106,7 +113,7 @@ class InvalidTreeError(ValueError):
 
         error_msg = (
             f"Failed to validate {root=}\n"
-            "Caught error messages (see log messages for full details):\n\n"
+            "Caught error messages:\n\n"
             f"{error_msgs_str}"
         )
 
@@ -181,12 +188,17 @@ def get_catch_error_decorator(
                 res = func_to_call(*args, **kwargs)
 
             except Exception as exc:
-                # logger.exception(f"{call_purpose} raised an error")
-                logger.error(f"{call_purpose} raised an error ({type(exc)})")
+                logger.log(
+                    LOG_LEVEL_INFO_INDIVIDUAL_CHECK_ERROR.name,
+                    f"{call_purpose} raised an error ({type(exc).__name__})",
+                )
                 error_container.append((call_purpose, exc))
                 return None
 
-            logger.info(f"{call_purpose} ran without error")
+            logger.log(
+                LOG_LEVEL_INFO_INDIVIDUAL_CHECK.name,
+                f"{call_purpose} ran without error",
+            )
 
             return res
 
@@ -263,7 +275,7 @@ def validate_file(
     InvalidFileError
         The file does not pass all of the validation.
     """
-    logger.info(f"Validating {infile}")
+    logger.log(LOG_LEVEL_INFO_FILE.name, f"Validating {infile}")
     caught_errors: list[tuple[str, Exception]] = []
     checks_performed: list[str] = []
     catch_error = get_catch_error_decorator(caught_errors, checks_performed)
@@ -276,11 +288,17 @@ def validate_file(
         )(cv_source)
 
     elif cv_source is not None:
-        logger.info(f"Using provided cvs instead of {cv_source=}")
+        logger.warning(f"Using provided cvs instead of {cv_source=}")
 
     # Basic loading - xarray
-    ds_xr_load = catch_error(
-        xr.load_dataset, call_purpose="Load data with `xr.load_dataset`"
+    # # The below actually loads the data into memory.
+    # # This can be very slow, hence turn off for now.
+    # # TODO: discuss whether we want to have actual data loading checks or not.
+    # ds_xr_load = catch_error(
+    #     xr.load_dataset, call_purpose="Load data with `xr.load_dataset`"
+    # )(infile)
+    ds_xr_open = catch_error(
+        xr.open_dataset, call_purpose="Open data with `xr.open_dataset`"
     )(infile)
 
     # Basic loading - iris
@@ -291,13 +309,17 @@ def validate_file(
             infile
         )
 
-    if ds_xr_load is None:
+    if ds_xr_open is None:
         logger.error("Not running cf-checker, file wouldn't load with xarray")
 
     else:
         # CF-checker
+        logger.log(
+            LOG_LEVEL_INFO_INDIVIDUAL_CHECK.name,
+            f"Using the cf-checker to check {infile}",
+        )
         catch_error(check_with_cf_checker, call_purpose="Check data with cf-checker")(
-            infile, ds=ds_xr_load
+            infile, ds=ds_xr_open
         )
 
     # TODO: Check that the data, metadata and CVs are all consistent
@@ -321,14 +343,14 @@ def validate_file(
 
     if caught_errors:
         n_caught_errors = len(caught_errors)
-        logger.error(
-            f"Validation of {infile} failed. "
+        logger.log(
+            LOG_LEVEL_INFO_FILE_ERROR.name,
             f"{n_caught_errors} {'check' if n_caught_errors == 1 else 'checks'} "
-            f"out of {len(checks_performed)} failed"
+            f"out of {len(checks_performed)} failed for file {infile}",
         )
         raise InvalidFileError(filepath=infile, error_container=caught_errors)
 
-    logger.info("Validation passed")
+    logger.log(LOG_LEVEL_INFO_FILE.name, f"Validation passed for {infile}")
 
 
 def validate_tracking_ids_are_unique(files: Collection[Path]) -> None:
@@ -345,7 +367,7 @@ def validate_tracking_ids_are_unique(files: Collection[Path]) -> None:
     NonUniqueError
         Not all the tracking IDs are unique
     """
-    tracking_ids = [xr.load_dataset(f).attrs["tracking_id"] for f in files]
+    tracking_ids = [xr.open_dataset(f).attrs["tracking_id"] for f in files]
     if len(set(tracking_ids)) != len(files):
         raise NonUniqueError(
             description="Tracking IDs for all files should be unique",
@@ -360,6 +382,7 @@ def validate_tree(  # noqa: PLR0913
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
+    rglob_input: str = "*.nc",
 ) -> None:
     """
     Validate a (directory) tree
@@ -404,12 +427,18 @@ def validate_tree(  # noqa: PLR0913
     time_dimension
         The time dimension of the data
 
+    rglob_input
+        String to use when applying [Path.rglob](https://docs.python.org/3/library/pathlib.html#pathlib.Path.rglob)
+        to find input files.
+
+        This helps us only select relevant files to check.
+
     Raises
     ------
     InvalidTreeError
         The tree does not pass all of the validation.
     """
-    logger.info(f"Validating {root}")
+    logger.info(f"Validating the tree with root {root}")
     caught_errors: list[tuple[str, Exception]] = []
     checks_performed: list[str] = []
     catch_error = get_catch_error_decorator(caught_errors, checks_performed)
@@ -420,7 +449,7 @@ def validate_tree(  # noqa: PLR0913
         call_purpose="Load controlled vocabularies to use during validation",
     )(cv_source)
 
-    all_files = [v for v in root.rglob("*") if v.is_file()]
+    all_files = [v for v in root.rglob(rglob_input) if v.is_file()]
     failed_files_l = []
 
     def validate_file_h(file: Path) -> None:
@@ -431,7 +460,9 @@ def validate_tree(  # noqa: PLR0913
                 bnds_coord_indicator=bnds_coord_indicator,
             )
         except InvalidFileError:
-            failed_files_l.append(file)
+            if file not in failed_files_l:
+                failed_files_l.append(file)
+
             raise
 
     validate_file_with_catch = catch_error(
@@ -442,21 +473,32 @@ def validate_tree(  # noqa: PLR0913
         logger.error("Skipping check of consistency with DRS because CVs did not load")
 
     else:
+
+        def validate_file_written_according_to_drs_h(file: Path) -> None:
+            try:
+                cvs.DRS.validate_file_written_according_to_drs(
+                    file,
+                    frequency_metadata_key=frequency_metadata_key,
+                    no_time_axis_frequency=no_time_axis_frequency,
+                    time_dimension=time_dimension,
+                )
+
+            except Exception:
+                if file not in failed_files_l:
+                    failed_files_l.append(file)
+
+                raise
+
         validate_file_written_according_to_drs = catch_error(
-            cvs.DRS.validate_file_written_according_to_drs,
+            validate_file_written_according_to_drs_h,
             call_purpose="Validate file is correctly written in the DRS",
         )
 
-    for file in all_files:
+    for file in tqdm.tqdm(all_files, desc="Files to validate"):
         validate_file_with_catch(file)
 
         if cvs is not None:
-            validate_file_written_according_to_drs(
-                file,
-                frequency_metadata_key=frequency_metadata_key,
-                no_time_axis_frequency=no_time_axis_frequency,
-                time_dimension=time_dimension,
-            )
+            validate_file_written_according_to_drs(file)
 
         # TODO: check cross references in files to external variables
 
@@ -466,21 +508,38 @@ def validate_tree(  # noqa: PLR0913
     )(all_files)
 
     if caught_errors:
-        n_caught_errors = len(caught_errors)
-        logger.error(
-            "Validation failed. "
-            f"{n_caught_errors} {'check' if n_caught_errors == 1 else 'checks'} "
-            f"out of {len(checks_performed)} failed"
-        )
+        # # TODO: dump this out in html that can be interrogated
+        # failed_files = line_start.join([str(v) for v in failed_files_l])
+        # The following would be fine as a start
+        """
+Failures:
+<ol>
+    <li>
+        <details>
+          <summary>filename</summary>
+          <ol>
+              <li>
+                  <details>
+                      <summary>error headline</summary>
+                      Error full info
+                  </details>
+              </li>
+          </ol>
+        </details>
+    </li>
+</ol>
+Passed:
+<ol>
+    <li>filename</li>
+</ol>
+        """
 
-        line_start = "\n- "
-        failed_files = line_start.join([str(v) for v in failed_files_l])
         logger.error(
             f"{len(failed_files_l)} out of {len(all_files)} "
-            f"{'files' if len(all_files) > 1 else 'file'} "
-            f"failed validation:{line_start}{failed_files}"
+            f"{'files' if len(all_files) > 1 else 'file'} failed validation "
+            "for the tree with root {root}",
         )
 
         raise InvalidTreeError(root=root, error_container=caught_errors)
 
-    logger.info("Validation passed")
+    logger.success(f"Validation passed for the tree with root {root}")

@@ -35,6 +35,17 @@ KNOWN_REGISTRIES: dict[str, pooch.Pooch] = {
     #         "input4MIPs_mip_era.json": "sha256:1upodh2ioduhw9celdjhlfvhksgdwikdgcowjhcwoduchowjg8w",  # noqa: E501
     #     },
     # )
+    "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/52841b0117474efd2705a083c21b3760531974f3/CVs/": pooch.create(  # noqa: E501
+        path=HERE / "input4MIPs_CVs_52841b0117474efd2705a083c21b3760531974f3",
+        base_url="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/52841b0117474efd2705a083c21b3760531974f3/CVs",
+        registry={
+            "input4MIPs_activity_id.json": "sha256:a2fef6e6ea9eb9787288b080d6696d74fd490b7a3c9e0d3d1dd48b9fb5584e6e",  # noqa: E501
+            "input4MIPs_DRS.json": "sha256:e9fa7bd692be6054c405a7381654b84df4565800c0b21e2c5c62e61fb3e8f046",  # noqa: E501
+            "input4MIPs_institution_id.json": "sha256:db2a6364347aa4848a21416a41f4d1ad24d036e80897c80af6d132b274d562d7",  # noqa: E501
+            "input4MIPs_license.json": "sha256:ba771256d7148187675d5f27f17a2b79e5a42db6b620f19120808065c84e5deb",  # noqa: E501
+            "input4MIPs_source_id.json": "sha256:cf0c77aa38c456b86f3f37d81137c2703699abe3355a6577440f63e000feec01",  # noqa: E501
+        },
+    )
 }
 
 

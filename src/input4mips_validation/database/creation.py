@@ -13,12 +13,13 @@ from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database.database import Input4MIPsDatabaseEntryFile
 
 
-def create_db_file_entries(
+def create_db_file_entries(  # noqa: PLR0913
     root: Path,
     cv_source: str | None,
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
+    rglob_input: str = "*.nc",
 ) -> tuple[Input4MIPsDatabaseEntryFile, ...]:
     """
     Create database file entries for all the files in a given path
@@ -46,6 +47,13 @@ def create_db_file_entries(
     time_dimension
         The time dimension of the data
 
+    rglob_input
+        String to use when applying
+        [Path.rglob](https://docs.python.org/3/library/pathlib.html#pathlib.Path.rglob)
+        to find input files.
+
+        This helps us only select relevant files to check.
+
     Returns
     -------
     :
@@ -55,7 +63,7 @@ def create_db_file_entries(
     logger.debug(f"{raw_cvs_loader=}")
     cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
 
-    all_files = [v for v in root.rglob("*") if v.is_file()]
+    all_files = [v for v in root.rglob(rglob_input) if v.is_file()]
 
     db_entries = []
     for file in all_files:

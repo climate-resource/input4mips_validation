@@ -13,10 +13,12 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from attrs import define, fields
+from loguru import logger
 
 from input4mips_validation.database.raw import Input4MIPsDatabaseEntryFileRaw
+from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.inference.from_data import create_time_range
-from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
+from input4mips_validation.logging import LOG_LEVEL_INFO_FILE
 
 if TYPE_CHECKING:
     from input4mips_validation.cvs import Input4MIPsCVs
@@ -62,20 +64,26 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
 
         Returns
         -------
+        :
             Initialised database entry
         """
-        ds = xr.load_dataset(file)
-        # Having to re-infer all of this is silly,
-        # would be much simpler if all data was just in the file.
+        logger.log(
+            LOG_LEVEL_INFO_FILE.name,
+            f"Creating file database entry for {file}",
+        )
+        ds = xr.open_dataset(file)
         metadata_attributes: dict[str, Union[str, None]] = ds.attrs
-
+        # Having to re-infer metadata from the data this is silly,
+        # would be much simpler if all metadata was just in the file's attributes.
         metadata_data: dict[str, Union[str, None]] = {}
 
         frequency = metadata_attributes[frequency_metadata_key]
         if frequency is not None and frequency != no_time_axis_frequency:
             # Technically, this should probably use the bounds...
-            time_start = xr_time_min_max_to_single_value(ds[time_dimension].min())
-            time_end = xr_time_min_max_to_single_value(ds[time_dimension].max())
+            time_axis = ds[time_dimension]
+            # xarray's types not ideal here
+            time_start: Union[np.datetime64, cftime.datetime] = time_axis.min().values  # type: ignore
+            time_end: Union[np.datetime64, cftime.datetime] = time_axis.max().values  # type: ignore
 
             md_datetime_start: Union[str, None] = format_datetime_for_db(time_start)
             md_datetime_end: Union[str, None] = format_datetime_for_db(time_end)
@@ -109,14 +117,35 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
         }
 
         all_metadata: dict[str, Union[str, None]] = {}
-        for md in (metadata_attributes, metadata_data, metadata_directories):
+        used_sources: list[str] = []
+        # TODO: make clearer, order below sets order of sources
+        for source, md in (
+            ("inferred from the file's data", metadata_data),
+            ("inferred from the file path", metadata_directories),
+            ("retrieved from the file's attributes", metadata_attributes),
+        ):
             keys_to_check = md.keys() & all_metadata
             for ktc in keys_to_check:
                 if all_metadata[ktc] != md[ktc]:
-                    msg = f"Value clash for {ktc}. {all_metadata[ktc]=}, {md[ktc]=}"
-                    raise AssertionError(msg)
+                    # Raise a warning, but ultimately give preference
+                    # to earlier sources
+                    msg = (
+                        f"Value clash for {ktc}. "
+                        f"Value from previous sources ({used_sources}): "
+                        f"{all_metadata[ktc]!r}. "
+                        f"Value {source}: {md[ktc]!r}. "
+                        f"{file=}"
+                    )
+                    logger.warning(msg)
 
-            all_metadata = all_metadata | md  # type: ignore # mypy confused by dict types
+            all_metadata = md | all_metadata
+            used_sources.append(source)
+
+        all_metadata["filepath"] = str(file)
+        all_metadata["sha256"] = get_file_hash_sha256(file)
+        all_metadata["esgf_dataset_master_id"] = cvs.DRS.get_esgf_dataset_master_id(
+            file
+        )
 
         # Make sure we only pass metadata that is actully of interest to the database
         cls_fields = [v.name for v in fields(cls)]

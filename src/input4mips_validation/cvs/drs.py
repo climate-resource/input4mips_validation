@@ -340,7 +340,7 @@ class DataReferenceSyntax:
 
     def extract_metadata_from_path(
         self, directory: Path, include_root_data_dir: bool = False
-    ) -> dict[str, str]:
+    ) -> dict[str, str | None]:
         """
         Extract metadata from a path
 
@@ -434,7 +434,7 @@ class DataReferenceSyntax:
 
         return capturing_regexp
 
-    def extract_metadata_from_filename(self, filename: str) -> dict[str, str]:
+    def extract_metadata_from_filename(self, filename: str) -> dict[str, str | None]:
         """
         Extract metadata from a filename
 
@@ -529,10 +529,14 @@ class DataReferenceSyntax:
         # If the file is clearly wrong,
         # just print out the directory and print out the template
         # and say, try again
-        directory_metadata = self.extract_metadata_from_path(file.absolute())
-        file_metadata = self.extract_metadata_from_filename(file.name)
+        directory_metadata: dict[str, str | None] = self.extract_metadata_from_path(
+            file.absolute()
+        )
+        file_metadata: dict[str, str | None] = self.extract_metadata_from_filename(
+            file.name
+        )
 
-        ds = xr.load_dataset(file)
+        ds = xr.open_dataset(file)
         comparison_metadata = {
             k: apply_known_replacements(v) for k, v in ds.attrs.items()
         }
@@ -562,18 +566,26 @@ class DataReferenceSyntax:
 
         mismatches = []
         for k, v in directory_metadata.items():
+            if v is None:
+                # No info in directory, presumably because key was optional
+                continue
+
             if k in unverifiable_keys_directory:
                 continue
 
             if comparison_metadata[k] != v:
                 mismatches.append(
-                    [k, "directory", directory_metadata[v], comparison_metadata[k]]
+                    [k, "directory", directory_metadata[k], comparison_metadata[k]]
                 )
 
         for k, v in file_metadata.items():
+            if v is None:
+                # No info in directory, presumably because key was optional
+                continue
+
             if comparison_metadata[k] != v:
                 mismatches.append(
-                    [k, "filename", file_metadata[v], comparison_metadata[k]]
+                    [k, "filename", file_metadata[k], comparison_metadata[k]]
                 )
 
         if mismatches:
@@ -584,16 +596,55 @@ class DataReferenceSyntax:
                 f"{self.filename_template=}",
             ]
             for mismatch in mismatches:
-                key, location, filename_val, expected_val = mismatch
+                key, location, filepath_val, expected_val = mismatch
 
                 tmp = (
                     f"Mismatch in {location} for {key}. "
-                    f"{filename_val=!r} {expected_val=!r}"
+                    f"{filepath_val=!r} {expected_val=!r}"
                 )
                 msg_l.append(tmp)
 
             msg = "\n".join(msg_l)
             raise ValueError(msg)
+
+    def get_esgf_dataset_master_id(self, file: Path) -> str:
+        """
+        Get the ESGF's master ID for the dataset to which a file belongs
+
+        Parameters
+        ----------
+        file
+            File for which to get the dataset ID
+
+        Returns
+        -------
+        :
+            ESGF master ID for the dataset to which `file` belongs
+
+        Examples
+        --------
+        >>> drs = DataReferenceSyntax(
+        ...     directory_path_template="<model_id>/v<version>",
+        ...     directory_path_example="ACCESS/v20240726",
+        ...     filename_template="<variable_id>_<model_id>.nc",
+        ...     filename_example="tas_ACCESS.nc",
+        ... )
+        >>> file = Path("/path/to/somewhere/CanESM/v20240812/tas_CanESM.nc")
+        >>> drs.get_esgf_dataset_master_id(file)
+        'CanESM.v20240812'
+        """
+        metadata_directories = self.extract_metadata_from_path(
+            file.parent, include_root_data_dir=True
+        )
+
+        if metadata_directories["root_data_dir"] is None:
+            raise AssertionError
+
+        res = str(
+            file.parent.relative_to(metadata_directories["root_data_dir"])
+        ).replace(os.sep, ".")
+
+        return res
 
 
 def get_regexp_from_template_and_substitutions(

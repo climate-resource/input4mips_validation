@@ -25,12 +25,36 @@ Validation of input4MIPs data (checking file formats, metadata etc.).
 [![Last Commit](https://img.shields.io/github/last-commit/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/commits/main)
 [![Contributors](https://img.shields.io/github/contributors/climate-resource/input4mips_validation.svg)](https://github.com/climate-resource/input4mips_validation/graphs/contributors)
 
+## Status
+
+- development: the project is actively being worked on
+
+As a user, please note that input4MIPs validation is undergoing heavy development.
+This means that files which pass validation today may not pass in future.
+While this will initially be frustrating, it will pay off in the long run
+by helping us to create the cleanest, clearest set of data possible.
+We hope that you can appreciate the importance of this too
+(and we hope to get the effort it takes to do this
+recognised at some point in the future too,
+watch this space).
+So, please enjoy the tool, please make use of it,
+please [raise an issue](https://github.com/climate-resource/input4mips_validation/issues/new/choose)
+whenever there is a problem,
+but please also be ready to update your file writing scripts
+when submitting the next round of files in three to six months' time.
+
 <!--- --8<-- [end:description] -->
+
+If you want to prepare your input4MIPs files for publication on ESGF,
+please see
+["How can I prepare my input4MIPs files for publication on ESGF?"](https://input4mips-validation.readthedocs.io/en/latest/how-to-guides/#how-can-i-prepare-my-input4mips-files-for-publication-on-esgf).
 
 Full documentation can be found at:
 [input4mips-validation.readthedocs.io](https://input4mips-validation.readthedocs.io/en/latest/).
 We recommend reading the docs there because the internal documentation links
 don't render correctly on GitHub's viewer.
+
+<!--- TODO: add link to preparing data for input4MIPs here -->
 
 ## Installation
 

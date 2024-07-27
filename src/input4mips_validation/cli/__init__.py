@@ -453,6 +453,15 @@ please use your email address here."""
         int, typer.Option(help="Number of threads to use during upload")
     ] = 4,
     cv_source: CV_SOURCE_TYPE = None,
+    dry_run: Annotated[
+        bool,
+        typer.Option(
+            "--dry-run",
+            help="""Perform a dry run
+
+In other words, don't actually upload the files, but show what would be uploaded.""",
+        ),
+    ] = False,
 ) -> None:
     """
     Upload files to an FTP server
@@ -473,6 +482,7 @@ please use your email address here."""
         ftp_server=ftp_server,
         ftp_dir_root=ftp_dir_root,
         n_threads=n_threads,
+        dry_run=dry_run,
     )
     logger.success(f"Uploaded all files to {ftp_server}")
 

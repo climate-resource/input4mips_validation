@@ -26,7 +26,9 @@ from input4mips_validation.logging import LOG_LEVEL_INFO_FILE
 
 
 @contextmanager
-def login_to_ftp(ftp_server: str, username: str, password: str) -> Iterator[ftplib.FTP]:
+def login_to_ftp(
+    ftp_server: str, username: str, password: str, dry_run: bool
+) -> Iterator[ftplib.FTP]:
     """
     Create a connection to an FTP server
 
@@ -43,18 +45,32 @@ def login_to_ftp(ftp_server: str, username: str, password: str) -> Iterator[ftpl
     password
         Password
 
+    dry_run
+        Is this a dry run?
+
+        If `True`, we won't actually login to the FTP server.
+
     Yields
     ------
     :
         Connection to the FTP server
     """
-    ftp = ftplib.FTP(ftp_server, passwd=password, user=username)  # noqa: S321
-    logger.debug(f"Logged into {ftp_server} using {username=}")
+    if dry_run:
+        logger.debug(f"Dry run. Would log in to {ftp_server} using {username=}")
+        ftp = None
+
+    else:
+        ftp = ftplib.FTP(ftp_server, passwd=password, user=username)  # noqa: S321
+        logger.debug(f"Logged into {ftp_server} using {username=}")
 
     yield ftp
 
-    ftp.quit()
-    logger.debug(f"Closed connection to {ftp_server}")
+    if dry_run:
+        logger.debug(f"Dry run. Would close connection to {ftp_server}")
+
+    else:
+        ftp.quit()
+        logger.debug(f"Closed connection to {ftp_server}")
 
 
 def cd_v(dir_to_move_to: str, ftp: ftplib.FTP) -> ftplib.FTP:
@@ -103,7 +119,11 @@ def mkdir_v(dir_to_make: str, ftp: ftplib.FTP) -> None:
 
 
 def upload_file(
-    file: Path, strip_pre_upload: Path, ftp_dir_upload_in: str, ftp: ftplib.FTP
+    file: Path,
+    strip_pre_upload: Path,
+    ftp_dir_upload_in: str,
+    ftp: ftplib.FTP,
+    dry_run: bool,
 ) -> ftplib.FTP:
     """
     Upload a file to an FTP server
@@ -133,13 +153,23 @@ def upload_file(
     ftp
         FTP connection to use for the upload.
 
+    dry_run
+        Is this a dry run?
+
+        If `True`, we won't actually upload the file,
+        we'll just log the messages.
+
     Returns
     -------
     :
         The FTP connection.
     """
     logger.debug(f"Uploading {file}")
-    cd_v(ftp_dir_upload_in, ftp=ftp)
+    if dry_run:
+        logger.debug(f"Dry run. Would cd on the FTP server to {ftp_dir_upload_in}")
+
+    else:
+        cd_v(ftp_dir_upload_in, ftp=ftp)
 
     filepath_upload = file.relative_to(strip_pre_upload)
     logger.log(
@@ -153,8 +183,22 @@ def upload_file(
             continue
 
         to_make = parent.parts[-1]
-        mkdir_v(to_make, ftp=ftp)
-        cd_v(to_make, ftp=ftp)
+
+        if dry_run:
+            logger.debug(
+                "Dry run. "
+                "Would ensure existence of "
+                f"and cd on the FTP server to {to_make}"
+            )
+
+        else:
+            mkdir_v(to_make, ftp=ftp)
+            cd_v(to_make, ftp=ftp)
+
+    if dry_run:
+        logger.log(LOG_LEVEL_INFO_FILE.name, f"Dry run. Would upload {file}")
+
+        return ftp
 
     with open(file, "rb") as fh:
         upload_command = f"STOR {file.name}"
@@ -206,6 +250,7 @@ def upload_file_p(
     strip_pre_upload: Path,
     ftp_dir_upload_in: str,
     get_ftp_connection: Callable[[], AbstractContextManager[ftplib.FTP]],
+    dry_run: bool,
 ) -> None:
     """
     File for uploading a file to an FTP server as part of a parallel process
@@ -233,6 +278,12 @@ def upload_file_p(
 
         The return type should be a context manager
         that closes the FTP connection when exited.
+
+    dry_run
+        Is this a dry run?
+
+        If `True`, we won't actually upload the file,
+        we'll just log the messages.
     """
     with get_ftp_connection() as ftp:
         upload_file(
@@ -240,6 +291,7 @@ def upload_file_p(
             strip_pre_upload=strip_pre_upload,
             ftp_dir_upload_in=ftp_dir_upload_in,
             ftp=ftp,
+            dry_run=dry_run,
         )
 
 
@@ -250,6 +302,7 @@ def upload_files_p(  # noqa: PLR0913
     ftp_dir_rel_to_root: str,
     cvs: Input4MIPsCVs,
     n_threads: int,
+    dry_run: bool,
 ) -> ftplib.FTP:
     """
     Upload files to the FTP server in parallel
@@ -279,16 +332,30 @@ def upload_files_p(  # noqa: PLR0913
     n_threads
         Number of threads to use for uploading
 
+    dry_run
+        Is this a dry run?
+
+        If `True`, we won't actually upload the file,
+        we'll just log the messages.
+
     Returns
     -------
     :
         The FTP connection
     """
     with get_ftp_connection() as ftp:
-        cd_v(ftp_dir_root, ftp=ftp)
+        if dry_run:
+            logger.debug(
+                "Dry run. "
+                f"Would ensure that {ftp_dir_root}/{ftp_dir_rel_to_root} "
+                "existed on the server"
+            )
 
-        mkdir_v(ftp_dir_rel_to_root, ftp=ftp)
-        cd_v(ftp_dir_rel_to_root, ftp=ftp)
+        else:
+            cd_v(ftp_dir_root, ftp=ftp)
+
+            mkdir_v(ftp_dir_rel_to_root, ftp=ftp)
+            cd_v(ftp_dir_rel_to_root, ftp=ftp)
 
     logger.info(
         "Uploading in parallel using up to "
@@ -329,6 +396,7 @@ def upload_files_p(  # noqa: PLR0913
                     strip_pre_upload=strip_pre_upload,
                     ftp_dir_upload_in=f"{ftp_dir_root}/{ftp_dir_rel_to_root}",
                     get_ftp_connection=get_ftp_connection,
+                    dry_run=dry_run,
                 )
             ]
 
@@ -350,6 +418,7 @@ def upload_ftp(  # noqa: PLR0913
     ftp_dir_root: str = "/incoming",
     rglob_input: str = "*.nc",
     n_threads: int = 4,
+    dry_run: bool = False,
 ) -> None:
     """
     Upload a tree of files to an FTP server
@@ -388,9 +457,19 @@ def upload_ftp(  # noqa: PLR0913
 
     n_threads
         Number of threads to use for uploading
+
+    dry_run
+        Is this a dry run?
+
+        If `True`, we won't actually upload the file,
+        we'll just log the messages.
     """
     get_ftp_connection = partial(
-        login_to_ftp, ftp_server=ftp_server, username=username, password=password
+        login_to_ftp,
+        ftp_server=ftp_server,
+        username=username,
+        password=password,
+        dry_run=dry_run,
     )
 
     upload_files_p(
@@ -400,4 +479,5 @@ def upload_ftp(  # noqa: PLR0913
         ftp_dir_rel_to_root=ftp_dir_rel_to_root,
         cvs=cvs,
         n_threads=n_threads,
+        dry_run=dry_run,
     )

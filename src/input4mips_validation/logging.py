@@ -85,6 +85,8 @@ def get_default_config(
                 colorize=True,
                 format=" - ".join(
                     [
+                        "{process}",
+                        "{thread}",
                         "<green>{time:!UTC}</>",
                         # "{level.icon} <lvl>{level}</>",
                         "<level>{level}</>",

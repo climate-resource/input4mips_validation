@@ -79,6 +79,12 @@ list(tree_root.rglob("*.nc"))
 # ## Upload the files
 #
 # Uploading the files is quite simple.
+# Below, we demonstrate how to do this.
+# Note that we do a dry run here,
+# i.e. we don't actually upload any files.
+# When you are using this command,
+# remove the `--dry-run` flag to actually upload the files.
+#
 # If you find a bug while using this tool,
 # please [raise an issue](https://github.com/climate-resource/input4mips_validation/issues/new?assignees=&labels=bug&projects=&template=bug.md&title=).
 #
@@ -91,10 +97,13 @@ list(tree_root.rglob("*.nc"))
 # to suit your own preferences).
 
 # %% editable=true slideshow={"slide_type": ""}
+# Below we do a dry run, i.e. we don't actually upload the files.
+# Make sure you remove the --dry-run flag for your own uploads.
 # !input4mips-validation \
-#     --logging-level INFO \
+#     --logging-level DEBUG \
 #     upload-ftp . \
 #     --password "your-email-goes-here@invalid.com" \
 #     --cv-source "gh:main" \
 #     --ftp-dir-rel-to-root "cr-testing-14" \
-#     --n-threads 10
+#     --n-threads 10 \
+#     --dry-run

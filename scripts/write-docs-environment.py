@@ -40,13 +40,21 @@ def main() -> None:
                 # Self, can move on
                 continue
 
-            if dependency["pypi"].endswith(".tar.gz"):
+            # Exceptions :)
+            if "loguru" in dependency["pypi"] and "config" in dependency["pypi"]:
+                base = dependency["pypi"].split("/")[-1].split(".tar.gz")[0]
+                toks = base.split("-")
+                id = f"{'-'.join(toks[:-1])}=={toks[-1]}"
+
+            elif dependency["pypi"].endswith(".tar.gz"):
                 # some tar file, ignore
                 continue
 
-            base = dependency["pypi"].split("/")[-1]
-            toks = base.split("-")
-            id = f"{toks[0]}=={toks[1]}"
+            else:
+                base = dependency["pypi"].split("/")[-1]
+                toks = base.split("-")
+                id = f"{toks[0]}=={toks[1]}"
+
             pypi_dependencies.append(id)
 
     out = {}

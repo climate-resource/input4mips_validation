@@ -68,23 +68,10 @@ start.data_vars
 start_iris = iris.load(starting_file)
 start_iris
 
-# %% [markdown] editable=true slideshow={"slide_type": ""}
-# ## Write the file in the DRS
+# %% [markdown]
+# ## The CVs
 #
-# Writing the file in the DRS is very similar to validating a file.
-# We simply add the `--write-in-drs` option to our `validate-file`
-# call, then the file is automatically written in the DRS for us.
-#
-# Below, we use our [command-line interface](https://input4mips-validation.readthedocs.io/en/latest/cli/).
-# There is also a [Python API](https://input4mips-validation.readthedocs.io/en/latest/api/input4mips_validation/Validation/#input4mips_validation.validation.validate_file),
-# in case you want to do this directly from Python
-# (note, the logging is setup slightly differently in the Python API
-# so the default shown messages are different,
-# but the behaviour is the same and you can always adjust the logging
-# to suit your own preferences).
-#
-# ### The CVs
-#
+# A note before we continue.
 # In the below, you will notice that there is an option, `--cv-source`.
 # This points to the source of the controlled vocabularies (CVs).
 # You can pick different sources for the CVs.
@@ -110,6 +97,21 @@ start_iris
 # This is definitely not the best documented feature of the library,
 # so if anything is unclear,
 # please [raise an issue](https://github.com/climate-resource/input4mips_validation/issues/new?assignees=&labels=triage&projects=&template=default.md&title=).
+
+# %% [markdown] editable=true slideshow={"slide_type": ""}
+# ## Write the file in the DRS
+#
+# Writing the file in the DRS is very similar to validating a file.
+# We simply add the `--write-in-drs` option to our `validate-file`
+# call, then the file is automatically written in the DRS for us.
+#
+# Below, we use our [command-line interface](https://input4mips-validation.readthedocs.io/en/latest/cli/).
+# There is also a [Python API](https://input4mips-validation.readthedocs.io/en/latest/api/input4mips_validation/Validation/#input4mips_validation.validation.validate_file),
+# in case you want to do this directly from Python
+# (note, the logging is setup slightly differently in the Python API
+# so the default shown messages are different,
+# but the behaviour is the same and you can always adjust the logging
+# to suit your own preferences).
 
 # %% editable=true slideshow={"slide_type": ""}
 TMP_DIR = Path(tempfile.mkdtemp())

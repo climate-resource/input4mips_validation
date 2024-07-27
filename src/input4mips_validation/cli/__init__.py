@@ -77,7 +77,6 @@ FREQUENCY_METADATA_KEY_TYPE = Annotated[
         help=(
             "The key in the data's metadata "
             "which points to information about the data's frequency. "
-            "Only required if --write-in-drs or --create-db-entry are supplied."
         )
     ),
 ]
@@ -88,19 +87,18 @@ NO_TIME_AXIS_FREQUENCY_TYPE = Annotated[
         help=(
             "The value of `frequency_metadata_key` in the metadata which indicates "
             "that the file has no time axis i.e. is fixed in time."
-            "Only required if --write-in-drs or --create-db-entry are supplied."
         )
     ),
 ]
 
 TIME_DIMENSION_TYPE = Annotated[
     str,
-    typer.Option(
-        help=(
-            "The time dimension of the data. "
-            "Only required if --write-in-drs or --create-db-entry are supplied."
-        )
-    ),
+    typer.Option(help=("The time dimension of the data.")),
+]
+
+RGLOB_INPUT_TYPE = Annotated[
+    str,
+    typer.Option(help=("String to use when applying `rglob` to find input files.")),
 ]
 
 # May be handy, although my current feeling is that logging via loguru
@@ -316,6 +314,7 @@ def validate_tree_command(  # noqa: PLR0913
     frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
     time_dimension: TIME_DIMENSION_TYPE = "time",
+    rglob_input: RGLOB_INPUT_TYPE = "*.nc",
 ) -> None:
     """
     Validate a tree of files
@@ -330,6 +329,7 @@ def validate_tree_command(  # noqa: PLR0913
             frequency_metadata_key=frequency_metadata_key,
             no_time_axis_frequency=no_time_axis_frequency,
             time_dimension=time_dimension,
+            rglob_input=rglob_input,
         )
     except InvalidTreeError as exc:
         logger.debug(f"{type(exc).__name__}: {exc}")
@@ -371,6 +371,7 @@ def create_db_command(  # noqa: PLR0913
     frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
     time_dimension: TIME_DIMENSION_TYPE = "time",
+    rglob_input: RGLOB_INPUT_TYPE = "*.nc",
 ) -> None:
     """
     Create a database from a tree of files
@@ -387,6 +388,7 @@ def create_db_command(  # noqa: PLR0913
                 frequency_metadata_key=frequency_metadata_key,
                 no_time_axis_frequency=no_time_axis_frequency,
                 time_dimension=time_dimension,
+                rglob_input=rglob_input,
             )
         except InvalidFileError as exc:
             logger.debug(f"{type(exc).__name__}: {exc}")
@@ -399,6 +401,7 @@ def create_db_command(  # noqa: PLR0913
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
         time_dimension=time_dimension,
+        rglob_input=rglob_input,
     )
     with open(db_file, "w") as fh:
         fh.write(json_dumps_cv_style(converter_json.unstructure(db_entries)))

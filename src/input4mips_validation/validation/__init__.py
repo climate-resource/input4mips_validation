@@ -424,7 +424,8 @@ def validate_tree(  # noqa: PLR0913
         The time dimension of the data
 
     rglob_input
-        Input to rglob.
+        String to use when applying [Path.rglob][] to find input files.
+
         This helps us only select relevant files to check.
 
     Raises

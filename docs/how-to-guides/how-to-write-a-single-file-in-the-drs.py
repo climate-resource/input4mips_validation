@@ -85,6 +85,16 @@ start_iris
 
 # %% editable=true slideshow={"slide_type": ""}
 TMP_DIR = Path(tempfile.mkdtemp())
+
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
+# Trickery to make RtD behave
+import os
+
+if bool(os.environ.get("READTHEDOCS", False)):
+    TMP_DIR = Path("rtd-created-files")
+    TMP_DIR.mkdir(exist_ok=True, parents=True)
+
+# %% editable=true slideshow={"slide_type": ""}
 tree_to_write_in = TMP_DIR / "how-to-write-a-single-file-in-drs"
 # !input4mips-validation \
 #     validate-file --cv-source "gh:main" {starting_file} \

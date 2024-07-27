@@ -16,11 +16,11 @@ build:
     pre_build:
       - pip install --no-deps .
       - typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
-    post_install:
-      - mamba list
       - ls
       - input4mips-validation --help
       - input4mips-validation validate-file --cv-source "gh:main" docs/how-to-guides/fixed_CH4-em-biomassburning_input4MIPs_emissions_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc --write-in-drs .
+    post_install:
+      - mamba list
 
 conda:
   environment: environment-docs.yml

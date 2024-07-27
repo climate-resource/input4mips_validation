@@ -32,7 +32,7 @@
 # See the [instructions for data producers in the input4MIPs CVS repository](https://github.com/PCMDI/input4MIPs_CVs#as-a-data-producer).
 # Don't forget to do those steps at some point too.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 import tempfile
 from pathlib import Path
 

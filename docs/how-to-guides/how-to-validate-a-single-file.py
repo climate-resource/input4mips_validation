@@ -130,7 +130,8 @@ start_iris
 # %% editable=true slideshow={"slide_type": ""}
 # The full docs of this command can be accessed with
 # # !input4mips-validation validate-file --help
-# !input4mips-validation validate-file \
+# !input4mips-validation \
+#     validate-file \
 #     --cv-source "gh:52841b0117474efd2705a083c21b3760531974f3" \
 #     {starting_file}
 
@@ -251,4 +252,5 @@ print(f"New variable attributes: {fixed['CH4'].attrs!r}")
 #    ["How to write a file in the DRS"](../how-to-write-a-single-file-in-the-drs).
 # 1. If you just want to get your data in the publishing queue,
 #    you can upload it as is to LLNL's FTP server.
-#    If you want to go this path, please see [TODO: cross-ref]
+#    If you want to go this path, please see
+#    ["How to upload to an FTP server"](../how-to-upload-to-ftp).

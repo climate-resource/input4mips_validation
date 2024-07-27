@@ -41,9 +41,23 @@ from pathlib import Path
 # without actually having to do the upload.
 
 # %% editable=true slideshow={"slide_type": ""}
-# Show the files that we would upload
 tree_root = Path(".")
+
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
+# Some trickery to make sure we pick up files in the right path,
+# even when building the docs :)
+if "docs" not in str(tree_root):
+    tree_root = Path("docs") / "how-to-guides"
+
+# %% editable=true slideshow={"slide_type": ""}
+# Show the files that we would upload
 list(tree_root.rglob("*.nc"))
+
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
+# Some trickery to check
+if not list(tree_root.rglob("*.nc")):
+    msg = f"No files in path? {tree_root=}. {tree_root.rglob('*.nc')=}"
+    raise AssertionError(msg)
 
 # %% [markdown]
 # ## The CVs
@@ -103,7 +117,7 @@ list(tree_root.rglob("*.nc"))
 #     --logging-level DEBUG \
 #     upload-ftp . \
 #     --password "your-email-goes-here@invalid.com" \
-#     --cv-source "gh:main" \
-#     --ftp-dir-rel-to-root "cr-testing-14" \
+#     --cv-source "gh:52841b0117474efd2705a083c21b3760531974f3" \
+#     --ftp-dir-rel-to-root "dir-to-upload-in-goes-here-eg-your-institute-name" \
 #     --n-threads 10 \
 #     --dry-run

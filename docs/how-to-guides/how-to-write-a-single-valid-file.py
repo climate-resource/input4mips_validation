@@ -272,4 +272,4 @@ print(f"The file was written in {written_file}")
 #    ["How to write a file in the DRS"](../how-to-write-a-single-file-in-the-drs)
 #    because your file is already written in the DRS.)
 # 1. Upload the file(s) to LLNL's FTP server,
-#    please see [TODO: cross-ref].
+#    please see ["How to upload to an FTP server"](../how-to-upload-to-ftp).

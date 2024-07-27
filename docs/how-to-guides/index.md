@@ -22,7 +22,7 @@ The validation process is described in
 
 The last step is to upload your file(s) to LLNL's FTP server.
 The upload process is described in
-[TODO].
+["How to upload to an FTP server"](how-to-upload-to-ftp).
 
 ### I already have a file(s) that I have written
 
@@ -38,13 +38,13 @@ After you have a file(s) which passes validation, you have two options:
    (see
     ["How to write a file in the DRS"](how-to-write-a-single-file-in-the-drs)).
    Then, upload your file(s) to LLNL's FTP server
-   (see [TODO]).
+   (see ["How to upload to an FTP server"](how-to-upload-to-ftp)).
    The benefit of this approach is that you will have a copy of the exact file(s)
    that ends up on the ESGF.
    The downside is that you have to do an extra step.
 
 1. Simply upload your file(s) to LLNL's FTP server
-   (see [TODO]).
+   (see ["How to upload to an FTP server"](how-to-upload-to-ftp)).
    The benefit of this approach is that you have one less step to do.
    The downside is that your file(s) will be re-written by the publication team,
    so you won't have a copy of the exact file(s) that ends up on the ESGF

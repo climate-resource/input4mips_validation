@@ -32,7 +32,7 @@
 # See the [instructions for data producers in the input4MIPs CVS repository](https://github.com/PCMDI/input4MIPs_CVs#as-a-data-producer).
 # Don't forget to do those steps at some point too.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 import tempfile
 from pathlib import Path
 
@@ -118,7 +118,8 @@ TMP_DIR = Path(tempfile.mkdtemp())
 tree_to_write_in = TMP_DIR / "how-to-write-a-single-file-in-drs"
 # !input4mips-validation \
 #     validate-file \
-#     --cv-source "gh:52841b0117474efd2705a083c21b3760531974f3" {starting_file} \
+#     --cv-source "gh:52841b0117474efd2705a083c21b3760531974f3" \
+#     {starting_file} \
 #     --write-in-drs {tree_to_write_in}
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
@@ -158,4 +159,4 @@ print(f"The written file's creation date is {rewritten.attrs['creation_date']}")
 #
 # Once you have written your files, the next step is to
 # upload the files to LLNL's FTP server,
-# please see [TODO: cross-ref].
+# please see ["How to upload to an FTP server"](../how-to-upload-to-ftp).

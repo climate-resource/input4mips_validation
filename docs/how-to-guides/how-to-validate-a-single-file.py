@@ -101,16 +101,17 @@ start_iris
 # # !input4mips-validation validate-file --help
 # !input4mips-validation validate-file --cv-source "gh:main" {starting_file}
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Getting more detail
 #
 # In this case, our file has failed validation.
 # We can see that the only check which failed was the check with the cf-checker.
 # To find out exactly why this failed,
 # we can re-run the validation with a more detailed log level.
+#
 # **Note:** This produces **a lot** more output.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 # !input4mips-validation --log-level "DEBUG" \
 #     validate-file --cv-source "gh:main" {starting_file}
 
@@ -132,8 +133,9 @@ start_iris
 #
 # In this particular case, the errors are the following:
 #
-# - the supplied value of "external_variables" is "areacello,sources".
-#   This is meant to be a set of whitespace separated values, i.e. "areacello sources".
+# - the supplied value of "external_variables" is "gridcellarea,sources".
+#   This is meant to be a set of whitespace separated values,
+#   i.e. "gridcellarea sources".
 #   The CF-checker error code, 2.6.3, can help us find the
 #   [right part of the CF conventions docs](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#external-variables),
 #   although you would be forgiven for not finding them completely obvious.
@@ -202,7 +204,7 @@ print(f"New variable attributes: {fixed['CH4'].attrs!r}")
 # This procedure can obviously be repeated over a number of files with loops etc.
 # We currently don't have a tool that repeats this procedure over numerous files,
 # but are happy to receive requests for one in
-# [our issues](https://github.com/climate-resource/input4mips_validation).
+# [our issues](https://github.com/climate-resource/input4mips_validation/issues/new?assignees=&labels=feature&projects=&template=feature_request.md&title=).
 # Having said that, if you've got this far,
 # we assume you can write a loop in Python or bash :)
 #

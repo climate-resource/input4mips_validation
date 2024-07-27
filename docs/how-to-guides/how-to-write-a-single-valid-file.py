@@ -29,14 +29,24 @@
 # Don't forget to do those steps at some point too.
 
 # %% editable=true slideshow={"slide_type": ""}
+import tempfile
+from pathlib import Path
+
 import cftime
 import numpy as np
 import xarray as xr
+from loguru import logger
 
+from input4mips_validation.cvs.loading import load_cvs
+from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.dataset.metadata_data_producer_minimum import (
     Input4MIPsDatasetMetadataDataProducerMinimum,
 )
+
+# %% editable=true slideshow={"slide_type": ""}
+# For this demonstration, disable the logger
+logger.disable("input4mips_validation")
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Creating our file
@@ -92,7 +102,7 @@ ds = xr.Dataset(
         time=time,
     ),
 )
-ds
+ds.coords
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # In order to ensure that your data passes validation,
@@ -147,10 +157,45 @@ metadata_minimum
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### The CVs
 #
-# - point to the right version of the CVs
-# - can be local or on GitHub
-# - load here
-# - then use in next step
+# The last thing to set up is the CVs.
+# You can pick different sources for the CVs.
+# For example, you can load the CVs from local files,
+# or from the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs)
+# (or any other web source).
+#
+# In this example, we're going to use a specific commit
+# from the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs)
+# to avoid anything breaking, even if we make
+# further changes to the CVs.
+# For your own work, you will probably want to use either:
+#
+# 1. local files
+# 2. the branch where you have added your information to the CVs
+# 3. a tagged version of the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs)
+# 4. the main branch of the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs)
+
+# %% editable=true slideshow={"slide_type": ""}
+# The object which can load our raw CVs files
+raw_cvs_loader = get_raw_cvs_loader(
+    "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/52841b0117474efd2705a083c21b3760531974f3/CVs/"
+)
+
+# # Other examples
+# Load from local files
+# raw_cvs_loader = get_raw_cvs_loader("/path/to/local/input4MIPs_CVs/CVs")
+# Load from git branch
+# branch_name = ""
+# raw_cvs_loader = get_raw_cvs_loader(f"https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/{branch_name}/CVs/")
+# Load from tagged version
+# version_tag = ""
+# raw_cvs_loader = get_raw_cvs_loader(f"https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/{version_tag}/CVs/")
+# Load from input4MIPs CVs main
+# raw_cvs_loader = get_raw_cvs_loader("https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/main/CVs/")
+raw_cvs_loader
+
+# %% editable=true slideshow={"slide_type": ""}
+cvs = load_cvs(raw_cvs_loader)
+cvs.source_id_entries.source_ids
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Putting it together
@@ -162,10 +207,68 @@ metadata_minimum
 input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
     data=ds,
     metadata_minimum=metadata_minimum,
+    cvs=cvs,
+    # We recommend using the two arguments below as well.
+    # There is some rudimentary support guessing their values
+    # based on the variable, but you are much more likely
+    # to avoid errors if you don't rely on this
+    dataset_category="SSTsAndSeaIce",
+    realm="seaIce",
 )
 
-
 # %% [markdown] editable=true slideshow={"slide_type": ""}
-# - file gets written in DRS, so do validation but you can skip write in DRS and go straight to upload
+# This object holds both the data and metadata.
+# For example, we can look at some of the metadata fields
+# which were auto-generated from the CVs.
 
 # %% editable=true slideshow={"slide_type": ""}
+# Inferred from CVs
+print(f"{input4mips_ds.metadata.contact=}")
+print()
+# Inferred from the data
+print(f"{input4mips_ds.metadata.frequency=}")
+print()
+# Inferred from CVs
+print(f"{input4mips_ds.metadata.source_version=}")
+print()
+# Inferred from the data
+print(f"{input4mips_ds.metadata.variable_id=}")
+print()
+# Inferred from CVs
+print(f"{input4mips_ds.metadata.license=}")
+
+# %% [markdown] editable=true slideshow={"slide_type": ""}
+# ## Writing our file
+#
+# The last thing to do is write the file.
+# This can be done with the `write` method.
+# The key piece of information that you have to supply
+# is the root directory in which to write the file.
+# The rest of the path to the file is then auto-generated
+# based on the data reference syntax (DRS) defined by the CVs.
+# Below, we write the file to a temporary directory.
+# You would obviously pick a more sensible location.
+
+# %% editable=true slideshow={"slide_type": ""}
+print(f"{cvs.DRS.directory_path_template=}")
+print(f"{cvs.DRS.filename_template=}")
+
+# %% editable=true slideshow={"slide_type": ""}
+written_file = input4mips_ds.write(Path(tempfile.mkdtemp()))
+print(f"The file was written in {written_file}")
+
+# %% [markdown] editable=true slideshow={"slide_type": ""}
+# ## Next steps
+#
+# This procedure can obviously be repeated to write multiple files.
+#
+# If you have written your files with input4MIPs validation,
+# we recommend the following next steps:
+#
+# 1. Double check that your file(s) passes validation,
+#    see ["How to validate a single file"](../how-to-validate-a-single-file).
+# 1. (You can skip
+#    ["How to write a file in the DRS"](../how-to-write-a-single-file-in-the-drs)
+#    because your file is already written in the DRS.)
+# 1. Upload the file(s) to LLNL's FTP server,
+#    please see [TODO: cross-ref].

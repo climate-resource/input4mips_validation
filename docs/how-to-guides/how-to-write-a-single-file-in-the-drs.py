@@ -87,7 +87,8 @@ start_iris
 TMP_DIR = Path(tempfile.mkdtemp())
 tree_to_write_in = TMP_DIR / "how-to-write-a-single-file-in-drs"
 # !input4mips-validation \
-#     validate-file --cv-source "gh:main" {starting_file} --write-in-drs {tree_to_write_in}
+#     validate-file --cv-source "gh:main" {starting_file} \
+#     --write-in-drs {tree_to_write_in}
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # As the log output shows,
@@ -119,7 +120,7 @@ print(f"The written file's creation date is {rewritten.attrs['creation_date']}")
 # This procedure can obviously be repeated over a number of files with loops etc.
 # We currently don't have a tool that repeats this procedure over numerous files,
 # but are happy to receive requests for one in
-# [our issues](https://github.com/climate-resource/input4mips_validation).
+# [our issues](https://github.com/climate-resource/input4mips_validation/issues/new?assignees=&labels=feature&projects=&template=feature_request.md&title=).
 # Having said that, if you've got this far,
 # we assume you can write a loop in Python or bash :)
 #

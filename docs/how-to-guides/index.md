@@ -9,29 +9,46 @@ We'll go over how to solve common tasks.
 If you want to prepare your input4MIPs files so they can be published on ESGF,
 you're in the right place.
 
-[TODO: first step, demo how to write a file]
+### I am writing my file(s) from scratch
 
-Once you have a file, or files, the next step is making sure that they pass validation.
+If you are writing your file(s) from scratch,
+the first step is to write your file(s).
+The file writing process using input4MIPs validation is described in
+["How to write a single valid file"](how-to-write-a-single-valid-file).
+
+The next step is to double check that your file(s) passes validation.
 The validation process is described in
 ["How to validate a single file"](how-to-validate-a-single-file).
 
-After you have files which pass validation, you have two options:
+The last step is to upload your file(s) to LLNL's FTP server.
+The upload process is described in
+[TODO].
 
-1. Re-write your file according to the input4MIPs data reference syntax (DRS)
+### I already have a file(s) that I have written
+
+If you have already written a file(s)
+using a tool other than input4MIPs validation,
+the next step is making sure that the file(s) passes validation.
+The validation process is described in
+["How to validate a single file"](how-to-validate-a-single-file).
+
+After you have a file(s) which passes validation, you have two options:
+
+1. Re-write your file(s) according to the input4MIPs data reference syntax (DRS)
    (see
     ["How to write a file in the DRS"](how-to-write-a-single-file-in-the-drs)).
-   Then, upload your file to LLNL's FTP server
+   Then, upload your file(s) to LLNL's FTP server
    (see [TODO]).
-   The benefit of this approach is that you will have a copy of the exact file
+   The benefit of this approach is that you will have a copy of the exact file(s)
    that ends up on the ESGF.
    The downside is that you have to do an extra step.
 
-1. Simply upload your file to LLNL's FTP server
+1. Simply upload your file(s) to LLNL's FTP server
    (see [TODO]).
    The benefit of this approach is that you have one less step to do.
-   The downside is that your file will be re-written by the publication team,
-   so you won't have a copy of the exact file that ends up on the ESGF
-   (unless your file was absolutely perfect, in which case we simply
+   The downside is that your file(s) will be re-written by the publication team,
+   so you won't have a copy of the exact file(s) that ends up on the ESGF
+   (unless your file(s) was absolutely perfect, in which case we simply
     put it in a different directory, we don't re-write it).
 
 ## How to work with a database of files?

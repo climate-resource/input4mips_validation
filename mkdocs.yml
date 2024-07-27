@@ -85,12 +85,15 @@ plugins:
   # https://myst-nb.readthedocs.io/en/v0.12.2/use/execute.html
   # One for another day.
   - mkdocs-jupyter:
-      # execute: true
-      execute: false
+      execute: true
+      # execute: false
       allow_errors: false
       # theme: dark
       include_source: True
       ignore: ["*.ipynb", "docs/gen_doc_stubs.py"]
+      remove_tag_config:
+        remove_input_tags:
+          - remove_input
 
 markdown_extensions:
   - attr_list

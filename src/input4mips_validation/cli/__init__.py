@@ -23,6 +23,7 @@ from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.inference.from_data import infer_time_start_time_end
 from input4mips_validation.logging import setup_logging
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
+from input4mips_validation.upload_ftp import upload_ftp
 from input4mips_validation.validation import (
     InvalidFileError,
     InvalidTreeError,
@@ -405,6 +406,75 @@ def create_db_command(  # noqa: PLR0913
     )
     with open(db_file, "w") as fh:
         fh.write(json_dumps_cv_style(converter_json.unstructure(db_entries)))
+
+
+@app.command(name="upload-ftp")
+def upload_ftp_command(  # noqa: PLR0913
+    tree_root: Annotated[
+        Path,
+        typer.Argument(
+            help="The root of the tree to upload",
+            exists=True,
+            dir_okay=True,
+            file_okay=False,
+        ),
+    ],
+    ftp_dir_rel_to_root: Annotated[
+        str,
+        typer.Option(
+            help="""Directory, relative to `root_dir_ftp_incoming_files`, in which to upload the files on the FTP server.
+
+For example, "my-institute-input4mips"
+"""  # noqa: E501
+        ),
+    ],
+    password: Annotated[
+        str,
+        typer.Option(
+            help="""Password to use when logging in.
+
+If you are uploading to LLNL's FTP server,
+please use your email address here."""
+        ),
+    ],
+    username: Annotated[
+        str,
+        typer.Option(help="Username to use when logging in to the server."),
+    ] = "anonymous",
+    ftp_server: Annotated[
+        str,
+        typer.Option(help="FTP server to upload to."),
+    ] = "ftp.llnl.gov",
+    ftp_dir_root: Annotated[
+        str,
+        typer.Option(help="Root directory on the FTP server for receiving files"),
+    ] = "/incoming",
+    n_threads: Annotated[
+        int, typer.Option(help="Number of threads to use during upload")
+    ] = 4,
+    cv_source: CV_SOURCE_TYPE = None,
+) -> None:
+    """
+    Upload files to an FTP server
+
+    We recommend running this with a log level of INFO to start,
+    then adjusting from there.
+    """
+    raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
+    logger.debug(f"{raw_cvs_loader=}")
+    cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+
+    upload_ftp(
+        tree_root=tree_root,
+        ftp_dir_rel_to_root=ftp_dir_rel_to_root,
+        password=password,
+        cvs=cvs,
+        username=username,
+        ftp_server=ftp_server,
+        ftp_dir_root=ftp_dir_root,
+        n_threads=n_threads,
+    )
+    logger.success(f"Uploaded all files to {ftp_server}")
 
 
 if __name__ == "__main__":

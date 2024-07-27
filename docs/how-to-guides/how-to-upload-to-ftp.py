@@ -45,6 +45,36 @@ from pathlib import Path
 tree_root = Path(".")
 list(tree_root.rglob("*.nc"))
 
+# %% [markdown]
+# ## The CVs
+#
+# A note before we continue.
+# In the below, you will notice that there is an option, `--cv-source`.
+# This points to the source of the controlled vocabularies (CVs).
+# You can pick different sources for the CVs.
+# For example, you can load the CVs from local files,
+# or from the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs)
+# (or any other web source).
+#
+# In this example, we're going to use a specific commit
+# from the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs)
+# to avoid anything breaking, even if we make further changes to the CVs.
+# For your own work, you will probably want to use either:
+#
+# 1. local files, e.g. `--cv-source path/to/local/files`
+# 1. the branch where you have added your information to the CVs,
+#    `--cv-source https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/branch_name/CVs/`
+# 1. a tagged version of the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs)
+#    `--cv-source gh:tag-id`
+# 1. the main branch of the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs)
+#    `--cv-source gh:main`
+# 1. a specific commit in the [input4MIPs CVs GitHub](https://github.com/PCMDI/input4MIPs_CVs),
+#    like we do below, `--cv-source gh:commit-hash`
+#
+# This is definitely not the best documented feature of the library,
+# so if anything is unclear,
+# please [raise an issue](https://github.com/climate-resource/input4mips_validation/issues/new?assignees=&labels=triage&projects=&template=default.md&title=).
+
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Upload the files
 #
@@ -53,7 +83,7 @@ list(tree_root.rglob("*.nc"))
 # please [raise an issue](https://github.com/climate-resource/input4mips_validation/issues/new?assignees=&labels=bug&projects=&template=bug.md&title=).
 #
 # Below, we use our [command-line interface](https://input4mips-validation.readthedocs.io/en/latest/cli/).
-# There is also a [Python API](https://input4mips-validation.readthedocs.io/en/latest/api/input4mips_validation/Validation/#input4mips_validation.upload_ftp.upload_files_p),
+# There is also a [Python API](https://input4mips-validation.readthedocs.io/en/latest/api/input4mips_validation/Validation/#input4mips_validation.upload_ftp.upload_ftp),
 # in case you want to do this directly from Python
 # (note, the logging is setup slightly differently in the Python API
 # so the default shown messages are different,
@@ -62,9 +92,9 @@ list(tree_root.rglob("*.nc"))
 
 # %% editable=true slideshow={"slide_type": ""}
 # !input4mips-validation \
-#     --logging-level DEBUG \
+#     --logging-level INFO \
 #     upload-ftp . \
 #     --password "your-email-goes-here@invalid.com" \
 #     --cv-source "gh:main" \
-#     --ftp-dir-rel-to-root "cr-testing-11" \
+#     --ftp-dir-rel-to-root "cr-testing-14" \
 #     --n-threads 10

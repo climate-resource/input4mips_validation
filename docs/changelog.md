@@ -19,6 +19,106 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.10.0 (2024-07-27)
+
+
+### ⚠️ Breaking Changes
+
+- - Removed `--verbose` option from the `input4mips-validation` command
+  - Moved logging to `input4mips_validation.logging`
+
+  ([#40](https://github.com/climate-resource/input4mips_validation/pulls/40))
+
+### 🆕 Features
+
+- - Added `--version` flag to the `input4mips-validation` command
+
+  - Added `--no-logging` to the `input4mips-validation` command to disable logging
+  - Added `--logging-config` to the `input4mips-validation` command to allow the user to specify the path to the logging configuration file
+  - Added `--logging-level` to the `input4mips-validation` command to allow the user to simply specify the logging level to use. Note that `--logging-config` takes precedence over this flag.
+
+  - Fixed up the logging levels throughout the CLI and associated commands
+
+  - Added the [`Input4MIPsDataset.non_input4mips_metadata`][input4mips_validation.dataset.Input4MIPsDataset.non_input4mips_metadata]
+    attribute to handle metadata that is not part of the known input4MIPs keys
+  - Added [`Input4MIPsDataset.from_ds`][input4mips_validation.dataset.Input4MIPsDataset.from_ds]
+    to allow easy creation from a loaded [xarray.Dataset][]
+
+  - Added the `--rglob-input` option to better control files of interest.
+    This appplies to both `input4mips-validation validate-tree`
+    and `input4mips-validation create-db`
+
+  - Added [`input4mips_validation.hashing`][input4mips_validation.hashing]
+
+  - Added [`DataReferenceSyntax.get_esgf_dataset_master_id`][input4mips_validation.cvs.drs.DataReferenceSyntax.get_esgf_dataset_master_id]
+
+  ([#40](https://github.com/climate-resource/input4mips_validation/pulls/40))
+- - Added the `input4mips-validation upload-ftp` command
+  - Added [`input4mips_validation.upload_ftp`][input4mips_validation.upload_ftp]
+
+  ([#43](https://github.com/climate-resource/input4mips_validation/pulls/43))
+
+### 🎉 Improvements
+
+- - Added support for fields used by input4MIPs database:
+      - comment
+      - comment_post_publication
+      - data_node
+      - esgf_dataset_master_id
+      - filepath
+      - latest
+      - publication_status
+      - replica
+      - sha256
+      - timestamp
+      - validated_input4mips
+      - xlink
+
+  - Made all metadata-related classes frozen so they can be hashed,
+    which makes sorting and comparison easier
+    (and has almost no downsides
+    as these classes do not generally need to be changed once created,
+    and if they do need to be changed, that can be done with [attrs.evolve][]).
+
+  - Made [commit `52841b0117474efd2705a083c21b3760531974f3`](https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/52841b0117474efd2705a083c21b3760531974f3/CVs/)
+    a known registry for the raw CVs.
+
+  ([#40](https://github.com/climate-resource/input4mips_validation/pulls/40))
+
+### 🐛 Bug Fixes
+
+- - Fixed a bug in the behaviour of `input4mips-validation validate-file`'s `--write-in-drs` flag.
+    If this flag is used, this command now fixes file names too
+    and will update the tracking ID and creation ID
+    if anything about the file (including its name) is changed.
+    The command now also raises an error if you try overwrite an existing file.
+  - Removed the product and region properties from the minimum dataset producer metadata related classes
+  - Replaced all uses of [xarray.load_dataset][] with [xarray.open_dataset][].
+    The latter doesn't load the file's data into memory, hence is much faster
+    (especially for large files).
+  - Fixed the behaviour of [`Input4MIPsDatabaseEntryFile.from_file`][input4mips_validation.database.database.Input4MIPsDatabaseEntryFile.from_file].
+    Now, if there is a clash between metadata, a warning is logged
+    but the existing value is used
+    (i.e. the value from higher-priority sources is used)
+    rather than an error being raised.
+
+  ([#40](https://github.com/climate-resource/input4mips_validation/pulls/40))
+
+### 📚 Improved Documentation
+
+- Updated README so that the snippet comments don't show up ([#37](https://github.com/climate-resource/input4mips_validation/pulls/37))
+- - Added docs about project status to the README
+  - Added docs about preparing a file in the how-to guides. How to upload will come in the next MR.
+      - See ["How can I prepare my input4MIPs files for publication on ESGF?"](https://input4mips-validation.readthedocs.io/en/latest/how-to-guides/#how-can-i-prepare-my-input4mips-files-for-publication-on-esgf)
+
+  ([#40](https://github.com/climate-resource/input4mips_validation/pulls/40))
+- Added documentation about how to upload to an FTP server, and cross-linked these with the rest of the docs ([#43](https://github.com/climate-resource/input4mips_validation/pulls/43))
+
+### 🔧 Trivial/Internal Changes
+
+- [#40](https://github.com/climate-resource/input4mips_validation/pulls/40)
+
+
 ## input4mips-validation v0.9.0 (2024-07-24)
 
 

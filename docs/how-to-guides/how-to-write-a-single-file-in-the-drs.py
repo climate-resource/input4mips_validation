@@ -93,6 +93,9 @@ import os
 if bool(os.environ.get("READTHEDOCS", False)):
     TMP_DIR = Path("rtd-created-files")
     TMP_DIR.mkdir(exist_ok=True, parents=True)
+    if not TMP_DIR.exists():
+        msg = "Can't create directory on RtD"
+        raise AssertionError(msg)
 
 # %% editable=true slideshow={"slide_type": ""}
 tree_to_write_in = TMP_DIR / "how-to-write-a-single-file-in-drs"
@@ -109,7 +112,7 @@ tree_to_write_in = TMP_DIR / "how-to-write-a-single-file-in-drs"
 # If it is of interest, we show some of the file's attributes below.
 
 # %% editable=true slideshow={"slide_type": ""}
-written_file = list(Path(tree_to_write_in).rglob("*.nc"))
+written_file = list(tree_to_write_in.rglob("*.nc"))
 if len(written_file) != 1:
     msg = f"Found {written_file=}"
     raise AssertionError(msg)

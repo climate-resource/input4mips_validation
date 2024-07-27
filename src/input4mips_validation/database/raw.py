@@ -180,5 +180,5 @@ class Input4MIPsDatabaseEntryFileRaw:
     validated_input4mips: bool = False
     """Has this file been validated by the input4MIPs team?"""
 
-    xlink: Union[str, None] = None
+    xlink: Union[list[str], None] = None
     """Cross-link to more information about the file (DOI?)"""

@@ -45,6 +45,10 @@ when submitting the next round of files in three to six months' time.
 
 <!--- --8<-- [end:description] -->
 
+If you want to prepare your input4MIPs files for publication on ESGF,
+please see
+["How can I prepare my input4MIPs files for publication on ESGF?"](https://input4mips-validation.readthedocs.io/en/latest/how-to-guides/#how-can-i-prepare-my-input4mips-files-for-publication-on-esgf).
+
 Full documentation can be found at:
 [input4mips-validation.readthedocs.io](https://input4mips-validation.readthedocs.io/en/latest/).
 We recommend reading the docs there because the internal documentation links

@@ -97,7 +97,7 @@ def setup_logging(
         If `False`, we explicitly disable logging,
         ignoring the value of all other arguments.
 
-    config
+    logging_config
         If a `dict`, passed to :meth:`loguru.logger.configure`.
         If not passed, :const:`DEFAULT_LOGGING_CONFIG` is used.
         Otherwise, we try and load this from disk using

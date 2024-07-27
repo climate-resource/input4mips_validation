@@ -48,7 +48,9 @@ def create_db_file_entries(  # noqa: PLR0913
         The time dimension of the data
 
     rglob_input
-        String to use when applying [Path.rglob][] to find input files.
+        String to use when applying
+        [Path.rglob](https://docs.python.org/3/library/pathlib.html#pathlib.Path.rglob)
+        to find input files.
 
         This helps us only select relevant files to check.
 

@@ -50,7 +50,7 @@ list(tree_root.rglob("*.nc"))
 #
 # Uploading the files is quite simple.
 # If you find a bug while using this tool,
-# please [raise an issue]().
+# please [raise an issue](https://github.com/climate-resource/input4mips_validation/issues/new?assignees=&labels=bug&projects=&template=bug.md&title=).
 #
 # Below, we use our [command-line interface](https://input4mips-validation.readthedocs.io/en/latest/cli/).
 # There is also a [Python API](https://input4mips-validation.readthedocs.io/en/latest/api/input4mips_validation/Validation/#input4mips_validation.upload_ftp.upload_files_p),
@@ -59,11 +59,12 @@ list(tree_root.rglob("*.nc"))
 # so the default shown messages are different,
 # but the behaviour is the same and you can always adjust the logging
 # to suit your own preferences).
-#
-#
-# - find a bug, raise an issue
 
 # %% editable=true slideshow={"slide_type": ""}
-# !ls *.nc
-
-# %% editable=true slideshow={"slide_type": ""}
+# !input4mips-validation \
+#     --logging-level DEBUG \
+#     upload-ftp . \
+#     --password "your-email-goes-here@invalid.com" \
+#     --cv-source "gh:main" \
+#     --ftp-dir-rel-to-root "cr-testing-11" \
+#     --n-threads 10

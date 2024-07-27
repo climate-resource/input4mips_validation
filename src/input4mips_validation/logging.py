@@ -17,7 +17,7 @@ from loguru_config import LoguruConfig  # type: ignore
 # Ensure that the logger knows about our levels
 # For emojis: https://www.iemoji.com/view/emoji/766/objects/right-pointing-magnifying-glass
 LOG_LEVEL_INFO_FILE = logger.level(
-    name="INFO_FILE", no=15, color="<blue><bold>", icon="\u2139"
+    name="INFO_FILE", no=15, color="<fg #3c5ffa><bold>", icon="\u2139"
 )
 """
 Logging level that gives information at the file level
@@ -39,7 +39,7 @@ One level higher than
 """
 
 LOG_LEVEL_INFO_INDIVIDUAL_CHECK = logger.level(
-    name="INFO_INDIVIDUAL_CHECK", no=12, color="<light-blue>", icon="\U0001f50e"
+    name="INFO_INDIVIDUAL_CHECK", no=12, color="<fg #5db7de>", icon="\U0001f50e"
 )
 """
 Logging level that gives information at the level of individual checks
@@ -69,9 +69,10 @@ DEFAULT_LOGGING_CONFIG = dict(
             format=" - ".join(
                 [
                     "<green>{time:!UTC}</>",
-                    "{level.icon} <lvl>{level}</>",
+                    # "{level.icon} <lvl>{level}</>",
+                    "<level>{level}</>",
                     "<cyan>{name}:{file}:{line}</>",
-                    "<lvl>{message}</>",
+                    "<level>{message}</>",
                 ]
             ),
         )

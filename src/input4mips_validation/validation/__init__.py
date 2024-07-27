@@ -314,6 +314,10 @@ def validate_file(
 
     else:
         # CF-checker
+        logger.log(
+            LOG_LEVEL_INFO_INDIVIDUAL_CHECK.name,
+            f"Using the cf-checker to check {infile}",
+        )
         catch_error(check_with_cf_checker, call_purpose="Check data with cf-checker")(
             infile, ds=ds_xr_open
         )

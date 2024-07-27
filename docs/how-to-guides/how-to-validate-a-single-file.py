@@ -112,7 +112,7 @@ start_iris
 # **Note:** This produces **a lot** more output.
 
 # %% editable=true slideshow={"slide_type": ""}
-# !input4mips-validation --log-level "DEBUG" \
+# !input4mips-validation --logging-level "DEBUG" \
 #     validate-file --cv-source "gh:main" {starting_file}
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}

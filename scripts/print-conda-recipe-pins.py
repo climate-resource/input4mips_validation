@@ -29,12 +29,15 @@ def main() -> None:
     name_map = {
         "scitools-iris": "iris",
         "cf-xarray": "cf_xarray",
+        "pint": "Pint",
         "pint-xarray": "pint_xarray",
     }
+    name_install_map = {"pint_xarray": "pint-xarray", "Pint": "pint"}
     for dependency in pyproject_toml["project"]["dependencies"]:
         package_name = (
             dependency.split(">")[0].split("<")[0].split(">=")[0].split("<=")[0]
         )
+
         if package_name in name_map:
             package_name = name_map[package_name]
 
@@ -49,16 +52,18 @@ def main() -> None:
 
         if len(packages) != 1:
             print(f"Something wrong for {package_name}")
-            # tmp = [
-            #     v
-            #     for v in pixi_lock_info["environments"]["default"]["packages"][
-            #         "linux-64"
-            #     ]
-            #     if ("conda" in v and package_name in v["conda"])
-            #     or ("pypi" in v and package_name in v["pypi"])
-            # ]
-            # breakpoint()
             continue
+        #
+        # if "pint" in package_name:
+        #     tmp = [
+        #         v
+        #         for v in pixi_lock_info["environments"]["default"]["packages"][
+        #             "linux-64"
+        #         ]
+        #         if ("conda" in v and "pint" in v["conda"])
+        #         or ("pypi" in v and "pint" in v["pypi"])
+        #     ]
+        #     breakpoint()
 
         dependency_desc = packages[0]
         if "conda" in dependency_desc:
@@ -79,6 +84,9 @@ def main() -> None:
 
             version = toks[1]
             name = toks[0]
+
+        if name in name_install_map:
+            name = name_install_map[name]
 
         vv = Version(version)
         max_pin = f"{vv.major}.{vv.minor}.{vv.micro + 1}"

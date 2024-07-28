@@ -59,7 +59,8 @@ jobs:
         echo "INSTALLED_VERSION=$INSTALLED_VERSION" >> $GITHUB_ENV
     - name: Checkout repository
       uses: actions/checkout@v4
-      ref: ${{ env.INSTALLED_VERSION }}
+      with:
+        ref: ${{ env.INSTALLED_VERSION }}
     - name: Test installation
       run: |
         which python

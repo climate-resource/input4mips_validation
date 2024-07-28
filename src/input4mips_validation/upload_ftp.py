@@ -20,9 +20,15 @@ from typing import Callable, Optional, Protocol
 import tqdm
 import tqdm.utils
 from loguru import logger
+from typing_extensions import TypeAlias
 
 from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.logging import LOG_LEVEL_INFO_FILE
+
+GetFTPConnection: TypeAlias = Callable[[], AbstractContextManager[Optional[ftplib.FTP]]]
+"""
+Type hint for callables that we can use for managing FTP connections
+"""
 
 
 @contextmanager
@@ -30,9 +36,13 @@ def login_to_ftp(
     ftp_server: str, username: str, password: str, dry_run: bool
 ) -> Iterator[Optional[ftplib.FTP]]:
     """
-    Create a connection to an FTP server, unless we are doing a dry run.
+    Create a connection to an FTP server.
 
     When the context block is excited, the connection is closed.
+
+    If we are doing a dry run, `None` is returned instead
+    to signal that no connection was actually made.
+    We do, however, log messages to indicate what would have happened.
 
     Parameters
     ----------
@@ -67,13 +77,12 @@ def login_to_ftp(
 
     yield ftp
 
-    if dry_run:
+    if ftp is None:
+        if not dry_run:  # pragma: no cover
+            raise AssertionError
         logger.debug(f"Dry run. Would close connection to {ftp_server}")
 
     else:
-        if ftp is None:  # pragma: no cover
-            raise AssertionError
-
         ftp.quit()
         logger.debug(f"Closed connection to {ftp_server}")
 
@@ -128,7 +137,6 @@ def upload_file(
     strip_pre_upload: Path,
     ftp_dir_upload_in: str,
     ftp: Optional[ftplib.FTP],
-    dry_run: bool,
 ) -> Optional[ftplib.FTP]:
     """
     Upload a file to an FTP server
@@ -158,13 +166,7 @@ def upload_file(
     ftp
         FTP connection to use for the upload.
 
-        If it is a dry run, this can simply be `None`.
-
-    dry_run
-        Is this a dry run?
-
-        If `True`, we won't actually upload the file,
-        we'll just log the messages.
+        If this is `None`, we assume this is a dry run.
 
     Returns
     -------
@@ -174,13 +176,10 @@ def upload_file(
         If it is a dry run, this can simply be `None`.
     """
     logger.debug(f"Uploading {file}")
-    if dry_run:
+    if ftp is None:
         logger.debug(f"Dry run. Would cd on the FTP server to {ftp_dir_upload_in}")
 
     else:
-        if ftp is None:  # pragma: no cover
-            raise AssertionError
-
         cd_v(ftp_dir_upload_in, ftp=ftp)
 
     filepath_upload = file.relative_to(strip_pre_upload)
@@ -196,7 +195,7 @@ def upload_file(
 
         to_make = parent.parts[-1]
 
-        if dry_run:
+        if ftp is None:
             logger.debug(
                 "Dry run. "
                 "Would ensure existence of "
@@ -204,19 +203,13 @@ def upload_file(
             )
 
         else:
-            if ftp is None:  # pragma: no cover
-                raise AssertionError
-
             mkdir_v(to_make, ftp=ftp)
             cd_v(to_make, ftp=ftp)
 
-    if dry_run:
+    if ftp is None:
         logger.log(LOG_LEVEL_INFO_FILE.name, f"Dry run. Would upload {file}")
 
         return ftp
-
-    if ftp is None:  # pragma: no cover
-        raise AssertionError
 
     with open(file, "rb") as fh:
         upload_command = f"STOR {file.name}"
@@ -267,8 +260,7 @@ def upload_file_p(
     file: Path,
     strip_pre_upload: Path,
     ftp_dir_upload_in: str,
-    get_ftp_connection: Callable[[], AbstractContextManager[Optional[ftplib.FTP]]],
-    dry_run: bool,
+    get_ftp_connection: GetFTPConnection,
 ) -> None:
     """
     File for uploading a file to an FTP server as part of a parallel process
@@ -298,12 +290,6 @@ def upload_file_p(
         that closes the FTP connection when exited.
 
         If we are doing a dry run, `get_ftp_connection` can simply return `None`.
-
-    dry_run
-        Is this a dry run?
-
-        If `True`, we won't actually upload the file,
-        we'll just log the messages.
     """
     with get_ftp_connection() as ftp:
         upload_file(
@@ -311,18 +297,16 @@ def upload_file_p(
             strip_pre_upload=strip_pre_upload,
             ftp_dir_upload_in=ftp_dir_upload_in,
             ftp=ftp,
-            dry_run=dry_run,
         )
 
 
 def upload_files_p(  # noqa: PLR0913
     files_to_upload: Iterable[Path],
-    get_ftp_connection: Callable[[], AbstractContextManager[Optional[ftplib.FTP]]],
+    get_ftp_connection: GetFTPConnection,
     ftp_dir_root: str,
     ftp_dir_rel_to_root: str,
     cvs: Input4MIPsCVs,
     n_threads: int,
-    dry_run: bool,
 ) -> Optional[ftplib.FTP]:
     """
     Upload files to the FTP server in parallel
@@ -354,19 +338,13 @@ def upload_files_p(  # noqa: PLR0913
     n_threads
         Number of threads to use for uploading
 
-    dry_run
-        Is this a dry run?
-
-        If `True`, we won't actually upload the file,
-        we'll just log the messages.
-
     Returns
     -------
     :
         The FTP connection
     """
     with get_ftp_connection() as ftp:
-        if dry_run:
+        if ftp is None:
             logger.debug(
                 "Dry run. "
                 f"Would ensure that {ftp_dir_root}/{ftp_dir_rel_to_root} "
@@ -374,9 +352,6 @@ def upload_files_p(  # noqa: PLR0913
             )
 
         else:
-            if ftp is None:  # pragma: no cover
-                raise AssertionError
-
             cd_v(ftp_dir_root, ftp=ftp)
 
             mkdir_v(ftp_dir_rel_to_root, ftp=ftp)
@@ -424,7 +399,6 @@ def upload_files_p(  # noqa: PLR0913
                     strip_pre_upload=strip_pre_upload,
                     ftp_dir_upload_in=f"{ftp_dir_root}/{ftp_dir_rel_to_root}",
                     get_ftp_connection=get_ftp_connection,
-                    dry_run=dry_run,
                 )
             ]
 
@@ -507,5 +481,4 @@ def upload_ftp(  # noqa: PLR0913
         ftp_dir_rel_to_root=ftp_dir_rel_to_root,
         cvs=cvs,
         n_threads=n_threads,
-        dry_run=dry_run,
     )

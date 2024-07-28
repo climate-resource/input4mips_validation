@@ -26,7 +26,7 @@ jobs:
     env:
       CI_COMMIT_EMAIL: "ci-runner@input4mips-validation.invalid"
     steps:
-      - name: Check out repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0

@@ -1,3 +1,10 @@
+# Test installation of the latest version from PyPI works.
+# We make sure that we run the tests that apply to the version we installed,
+# rather than the latest tests in main.
+# The reason we do this, is that we want this workflow to test
+# that installing from PyPI/conda leads to a correct installation.
+# If we tested against main, the tests could fail
+# because the tests from main require the new features in main to pass.
 name: Test installation PyPI
 
 on:
@@ -52,8 +59,15 @@ jobs:
       if: matrix.os != 'windows-latest'
       run: |
         if grep -q "WARN" stderr.txt; then echo "Warnings in pip install output" && cat stderr.txt && exit 1; else exit 0; fi
+    - name: Get version
+      run: |
+        INSTALLED_VERSION=`python -c 'import input4mips_validation; print(f"v{input4mips_validation.__version__}")'`
+        echo $INSTALLED_VERSION
+        echo "INSTALLED_VERSION=$INSTALLED_VERSION" >> $GITHUB_ENV
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        ref: ${{ env.INSTALLED_VERSION }}
     - name: Test installation
       run: |
         which python

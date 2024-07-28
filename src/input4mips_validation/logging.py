@@ -10,10 +10,6 @@ from typing import Any, Optional, Union
 
 from loguru import logger
 
-# Type ignore while we wait for
-# https://github.com/erezinman/loguru-config/pull/2
-from loguru_config import LoguruConfig  # type: ignore
-
 # Ensure that the logger knows about our levels
 # For emojis: https://www.iemoji.com/view/emoji/766/objects/right-pointing-magnifying-glass
 LOG_LEVEL_INFO_FILE = logger.level(
@@ -143,6 +139,22 @@ def setup_logging(
         logger.configure(**logging_config)
 
     else:
+        # Type ignore while we wait for
+        # https://github.com/erezinman/loguru-config/pull/2
+        try:
+            from loguru_config import LoguruConfig  # type: ignore
+        except ImportError:
+            msg = (
+                "[loguru-config](https://github.com/erezinman/loguru-config) "
+                "is required to load config from disk. "
+                "Run `pip install loguru-config`. "
+                "If that doesn't work, see installation instructions here: "
+                "https://github.com/erezinman/loguru-config#installation"
+            )
+            print(msg)
+
+            raise
+
         logging_config = LoguruConfig.load(logging_config, configure=True)
 
     logger.enable("input4mips_validation")

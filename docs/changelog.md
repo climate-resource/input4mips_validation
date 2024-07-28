@@ -19,6 +19,24 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.10.1 (2024-07-28)
+
+
+### 🎉 Improvements
+
+- Clarify handling of dry run in [`upload_ftp`][input4mips_validation.upload_ftp] ([#45](https://github.com/climate-resource/input4mips_validation/pulls/45))
+- [loguru-config](https://github.com/erezinman/loguru-config)
+  is now an optional dependency.
+  This makes it possible to install the package from conda
+  without things exploding, as loguru-config is not available on conda.
+  This may be changed in future, if loguru-config is released on conda
+  (relevant MR here: https://github.com/conda-forge/staged-recipes/pull/27110) ([#48](https://github.com/climate-resource/input4mips_validation/pulls/48))
+
+### 🔧 Trivial/Internal Changes
+
+- [#44](https://github.com/climate-resource/input4mips_validation/pulls/44), [#46](https://github.com/climate-resource/input4mips_validation/pulls/46), [#47](https://github.com/climate-resource/input4mips_validation/pulls/47), [#49](https://github.com/climate-resource/input4mips_validation/pulls/49)
+
+
 ## input4mips-validation v0.10.0 (2024-07-27)
 
 

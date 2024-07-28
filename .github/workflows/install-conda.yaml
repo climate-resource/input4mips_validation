@@ -1,3 +1,10 @@
+# Test installation of the latest version from conda/mamba works.
+# We make sure that we run the tests that apply to the version we installed,
+# rather than the latest tests in main.
+# The reason we do this, is that we want this workflow to test
+# that installing from PyPI/conda leads to a correct installation.
+# If we tested against main, the tests could fail
+# because the tests from main require the new features in main to pass.
 name: Test installation conda
 
 on:
@@ -43,13 +50,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        # Make sure that we run the tests that apply to the version we installed.
-        # If you don't do this, the tests can fail
-        # because tests from main, that rely on new features,
-        # will be used to check an old version, so there will likely be failures.
-        # That isn't what we want this workflow to test.
-        # We want this workflow to test
-        # that installing from PyPI/conda leads to a correct installation.
         ref: ${{ env.INSTALLED_VERSION }}
     - name: Test installation
       shell: bash -leo pipefail {0}

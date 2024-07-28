@@ -32,6 +32,11 @@ jobs:
         run: |
           pixi run -e docs typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
           pixi run -e docs mkdocs build --strict
+          # Check CHANGELOG will build too
+          pixi run -e all-dev towncrier build --yes
+          pixi run -e all-dev mkdocs build --strict
+          # Just in case, undo the staged changes
+          git restore --staged . && git restore .
 
   tests:
     strategy:

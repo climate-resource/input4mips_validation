@@ -19,6 +19,18 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.10.2 (2024-07-28)
+
+
+### 🐛 Bug Fixes
+
+- Make [loguru-config](https://github.com/erezinman/loguru-config) an optional dependency in `pyproject.toml` too ([#50](https://github.com/climate-resource/input4mips_validation/pulls/50))
+
+### 🔧 Trivial/Internal Changes
+
+- [#50](https://github.com/climate-resource/input4mips_validation/pulls/50)
+
+
 ## input4mips-validation v0.10.1 (2024-07-28)
 
 

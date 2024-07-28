@@ -12,7 +12,6 @@ dependencies = [
     "cattrs",
     "cf-xarray",
     "loguru",
-    "loguru-config",
     "ncdata",
     "pandas",
     "pint",
@@ -32,6 +31,9 @@ readme = "README.md"
 text = "BSD-3-Clause"
 
 [project.optional-dependencies]
+loguru-config = [
+    "loguru-config",
+]
 dev = [
     "pre-commit>=3.7.1",
     "mypy>=1.10.1",
@@ -89,6 +91,7 @@ solve-group = "default"
 
 [tool.pixi.environments.all-dev]
 features = [
+    "loguru-config",
     "dev",
     "docs",
     "notebooks",

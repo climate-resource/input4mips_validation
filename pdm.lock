@@ -2,10 +2,10 @@
 # It is not intended for manual editing.
 
 [metadata]
-groups = ["default", "dev", "docs", "notebooks", "tests"]
+groups = ["default", "dev", "docs", "loguru-config", "notebooks", "tests"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:c081a6758e7c64037f611a9f261ca049ac10ee6efd33dca3c0ecbfcd8c5c62f2"
+content_hash = "sha256:9b137fdb84ef5c326fc08e1cf78374bf7697fdab9edb99b6b978781f4266c7a0"
 
 [[metadata.targets]]
 requires_python = ">=3.9"
@@ -561,7 +561,7 @@ name = "colorama"
 version = "0.4.6"
 requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 summary = "Cross-platform colored terminal text."
-groups = ["default", "dev", "docs", "notebooks", "tests"]
+groups = ["default", "dev", "docs", "loguru-config", "notebooks", "tests"]
 files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
@@ -1709,7 +1709,7 @@ name = "loguru"
 version = "0.7.2"
 requires_python = ">=3.5"
 summary = "Python logging made (stupidly) simple"
-groups = ["default"]
+groups = ["default", "loguru-config"]
 dependencies = [
     "aiocontextvars>=0.2.0; python_version < \"3.7\"",
     "colorama>=0.3.4; sys_platform == \"win32\"",
@@ -1725,7 +1725,7 @@ name = "loguru-config"
 version = "0.1.0"
 requires_python = ">=3.7"
 summary = "Loguru configuration from configuration files."
-groups = ["default"]
+groups = ["loguru-config"]
 dependencies = [
     "loguru>=0.7.0",
 ]
@@ -4044,7 +4044,7 @@ name = "win32-setctime"
 version = "1.1.0"
 requires_python = ">=3.5"
 summary = "A small Python utility to set file creation time on Windows"
-groups = ["default"]
+groups = ["default", "loguru-config"]
 marker = "sys_platform == \"win32\""
 files = [
     {file = "win32_setctime-1.1.0-py3-none-any.whl", hash = "sha256:231db239e959c2fe7eb1d7dc129f11172354f98361c4fa2d6d2d7e278baa8aad"},

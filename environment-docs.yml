@@ -165,7 +165,6 @@ dependencies:
   - jupyterlab_server==2.27.3
   - jupytext==1.16.3
   - loguru==0.7.2
-  - loguru-config==0.1.0
   - Markdown==3.6
   - markdown_it_py==3.0.0
   - matplotlib_inline==0.1.7

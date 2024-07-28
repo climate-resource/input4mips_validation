@@ -83,7 +83,7 @@ def main() -> None:
         vv = Version(version)
         max_pin = f"{vv.major}.{vv.minor}.{vv.micro + 1}"
         print(
-            f"- {{ pin_compatible('{name}', min_pin='{version}', max_pin='{max_pin}') }}"  # noqa: E501
+            f"- {{{{ pin_compatible('{name}', min_pin='{version}', max_pin='{max_pin}') }}}}"  # noqa: E501
         )
 
 

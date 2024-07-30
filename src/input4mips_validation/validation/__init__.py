@@ -58,6 +58,10 @@ class InvalidFileError(ValueError):
         """
         # Not clear how input could be further validated hence noqa
         ncdump_loc = shutil.which("ncdump")
+        if ncdump_loc is None:
+            msg = "Could not find ncdump executable"
+            raise AssertionError(msg)
+
         # Not clear how input could be further validated hence noqa
         file_ncdump_h = subprocess.check_output(
             [ncdump_loc, "-h", str(filepath)]  # noqa: S603
@@ -237,6 +241,7 @@ def validate_file(
     cv_source: str | None = None,
     cvs: Input4MIPsCVs | None = None,
     bnds_coord_indicator: str = "bnds",
+    allow_cf_checker_warnings: bool = False,
 ) -> None:
     """
     Validate a file
@@ -270,6 +275,12 @@ def validate_file(
         in the absence of an agreed convention for doing this
         (xarray has a way, but it conflicts with the CF-conventions,
         so here we are).
+
+    allow_cf_checker_warnings
+        Should warnings from the CF-checker be allowed?
+
+        In otherwise, is a file allowed to pass validation,
+        even if there are warnings from the CF-checker?
 
     Raises
     ------
@@ -319,8 +330,9 @@ def validate_file(
             LOG_LEVEL_INFO_INDIVIDUAL_CHECK.name,
             f"Using the cf-checker to check {infile}",
         )
+        logger.debug(f"{allow_cf_checker_warnings=}")
         catch_error(check_with_cf_checker, call_purpose="Check data with cf-checker")(
-            infile, ds=ds_xr_open
+            infile, ds=ds_xr_open, no_raise_if_only_warnings=allow_cf_checker_warnings
         )
 
     # TODO: Check that the data, metadata and CVs are all consistent
@@ -384,6 +396,7 @@ def validate_tree(  # noqa: PLR0913
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
     rglob_input: str = "*.nc",
+    allow_cf_checker_warnings: bool = False,
 ) -> None:
     """
     Validate a (directory) tree
@@ -434,6 +447,12 @@ def validate_tree(  # noqa: PLR0913
 
         This helps us only select relevant files to check.
 
+    allow_cf_checker_warnings
+        Should warnings from the CF-checker be allowed?
+
+        In otherwise, is a file allowed to pass validation,
+        even if there are warnings from the CF-checker?
+
     Raises
     ------
     InvalidTreeError
@@ -459,6 +478,7 @@ def validate_tree(  # noqa: PLR0913
                 file,
                 cvs=cvs,
                 bnds_coord_indicator=bnds_coord_indicator,
+                allow_cf_checker_warnings=allow_cf_checker_warnings,
             )
         except InvalidFileError:
             if file not in failed_files_l:

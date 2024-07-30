@@ -102,6 +102,14 @@ RGLOB_INPUT_TYPE = Annotated[
     typer.Option(help=("String to use when applying `rglob` to find input files.")),
 ]
 
+ALLOW_CF_CHECKER_WARNINGS_TYPE = Annotated[
+    bool,
+    typer.Option(
+        "--allow-cf-checker-warnings",
+        help="Allow validation to pass, even if the CF-checker raises warnings",
+    ),
+]
+
 # May be handy, although my current feeling is that logging via loguru
 # can offer same thing with much better control.
 # VERBOSE_TYPE = Annotated[
@@ -218,6 +226,7 @@ def validate_file_command(  # noqa: PLR0913
     frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
     time_dimension: TIME_DIMENSION_TYPE = "time",
+    allow_cf_checker_warnings: ALLOW_CF_CHECKER_WARNINGS_TYPE = False,
 ) -> None:
     """
     Validate a single file
@@ -227,7 +236,11 @@ def validate_file_command(  # noqa: PLR0913
     See the ``validate-tree`` command for this validation.
     """
     try:
-        validate_file(file, cv_source=cv_source)
+        validate_file(
+            file,
+            cv_source=cv_source,
+            allow_cf_checker_warnings=allow_cf_checker_warnings,
+        )
     except InvalidFileError as exc:
         logger.debug(f"{type(exc).__name__}: {exc}")
 
@@ -316,6 +329,7 @@ def validate_tree_command(  # noqa: PLR0913
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
     time_dimension: TIME_DIMENSION_TYPE = "time",
     rglob_input: RGLOB_INPUT_TYPE = "*.nc",
+    allow_cf_checker_warnings: ALLOW_CF_CHECKER_WARNINGS_TYPE = False,
 ) -> None:
     """
     Validate a tree of files
@@ -331,6 +345,7 @@ def validate_tree_command(  # noqa: PLR0913
             no_time_axis_frequency=no_time_axis_frequency,
             time_dimension=time_dimension,
             rglob_input=rglob_input,
+            allow_cf_checker_warnings=allow_cf_checker_warnings,
         )
     except InvalidTreeError as exc:
         logger.debug(f"{type(exc).__name__}: {exc}")

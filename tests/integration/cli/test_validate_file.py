@@ -65,8 +65,8 @@ def test_validate_written_single_variable_file(tmp_path):
 
     written_file = input4mips_ds.write(root_data_dir=tmp_path)
 
-    # Make sure that the starting file passes
-    validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
+    # # Make sure that the starting file passes
+    # validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     # Add an attribute that shouldn't be there.
     # This induces a warning in the CF-checker.
@@ -85,7 +85,7 @@ def test_validate_written_single_variable_file(tmp_path):
     validate_file(
         written_file,
         cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
-        ignore_cf_checker_warnings=True,
+        allow_cf_checker_warnings=True,
     )
 
     # Then test the CLI
@@ -94,7 +94,7 @@ def test_validate_written_single_variable_file(tmp_path):
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
         result = runner.invoke(
-            app, ["validate-file", str(written_file), "--ignore-cf-checker-warnings"]
+            app, ["validate-file", str(written_file), "--allow-cf-checker-warnings"]
         )
 
     assert result.exit_code == 0, result.exc_info

@@ -4,6 +4,7 @@ Validation module
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 from collections.abc import Collection
 from functools import wraps
@@ -56,7 +57,7 @@ class InvalidFileError(ValueError):
             while validating the file.
         """
         # Not clear how input could be further validated hence noqa
-        ncdump_loc = subprocess.check_output(["/usr/bin/which", "ncdump"]).strip()  # noqa: S603
+        ncdump_loc = shutil.which("ncdump")
         # Not clear how input could be further validated hence noqa
         file_ncdump_h = subprocess.check_output(
             [ncdump_loc, "-h", str(filepath)]  # noqa: S603

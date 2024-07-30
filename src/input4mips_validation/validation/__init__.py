@@ -558,7 +558,7 @@ Passed:
         logger.error(
             f"{len(failed_files_l)} out of {len(all_files)} "
             f"{'files' if len(all_files) > 1 else 'file'} failed validation "
-            "for the tree with root {root}",
+            f"for the tree with root {root}",
         )
 
         raise InvalidTreeError(root=root, error_container=caught_errors)

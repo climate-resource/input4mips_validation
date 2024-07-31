@@ -112,7 +112,13 @@ class Input4MIPsDatabaseEntryFileRaw:
     """The ID of the variable contained in the file"""
 
     version: str
-    """The version of the file, as defined by the ESGF index"""
+    """
+    The version of the file, as defined by the DRS
+
+    The ESGF also has a _version_ attribute for each file entry,
+    which is different again.
+
+    """
 
     comment: Union[str, None] = None
     """
@@ -175,7 +181,11 @@ class Input4MIPsDatabaseEntryFileRaw:
     """Long-form description of the source referred to by `source_id`"""
 
     timestamp: Union[str, None] = None
-    """The file's publication timestamp on the ESGF"""
+    """
+    Timestamp of the last modification to the file's ESGF entry
+
+    This is scraped from the ESGF.
+    """
 
     validated_input4mips: bool = False
     """Has this file been validated by the input4MIPs team?"""

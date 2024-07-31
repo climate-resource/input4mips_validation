@@ -92,7 +92,6 @@ def test_validate_write_in_drs(tmp_path):
                 str(start_file),
                 "--write-in-drs",
                 str(write_root_path),
-                "--create-db-entry",
             ],
         )
 

@@ -10,14 +10,12 @@ from pathlib import Path
 from typing import Annotated, Optional
 
 import iris
-import rich
 import typer
 from loguru import logger
 
 import input4mips_validation
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
-from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.database.creation import create_db_file_entries
 from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.inference.from_data import infer_time_start_time_end
@@ -210,18 +208,6 @@ def validate_file_command(  # noqa: PLR0913
             show_default=False,
         ),
     ] = None,
-    create_db_entry: Annotated[
-        bool,
-        typer.Option(
-            help=(
-                "Should a database entry be created? "
-                "If `True`, we will attempt to create a database entry. "
-                "This database entry will be logged to the screen. "
-                "For creation of a database based on a tree, "
-                "use the `validate-tree` command."
-            ),
-        ),
-    ] = False,
     bnds_coord_indicator: BNDS_COORD_INDICATOR_TYPE = "bnds",
     frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
@@ -288,28 +274,6 @@ def validate_file_command(  # noqa: PLR0913
             shutil.copy(file, full_file_path)
 
         logger.success(f"File written according to the DRS in {full_file_path}")
-
-    if create_db_entry:
-        if write_in_drs:
-            db_entry_creation_file = full_file_path
-        else:
-            db_entry_creation_file = file
-
-            # Also load the CVs, as they won't be loaded yet
-            raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
-            cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
-
-        database_entry = Input4MIPsDatabaseEntryFile.from_file(
-            db_entry_creation_file,
-            cvs=cvs,
-            frequency_metadata_key=frequency_metadata_key,
-            no_time_axis_frequency=no_time_axis_frequency,
-            time_dimension=time_dimension,
-        )
-
-        logger.info(f"{database_entry=}")
-        rich.print("Database entry as JSON:")
-        rich.print(json_dumps_cv_style(converter_json.unstructure(database_entry)))
 
 
 @app.command(name="validate-tree")
@@ -421,6 +385,41 @@ def create_db_command(  # noqa: PLR0913
     )
     with open(db_file, "w") as fh:
         fh.write(json_dumps_cv_style(converter_json.unstructure(db_entries)))
+
+
+# create_db_entry: Annotated[
+#     bool,
+#     typer.Option(
+#         help=(
+#             "Should a database entry be created? "
+#             "If `True`, we will attempt to create a database entry. "
+#             "This database entry will be logged to the screen. "
+#             "For creation of a database based on a tree, "
+#             "use the `validate-tree` command."
+#         ),
+#     ),
+# ] = False,
+# if create_db_entry:
+#     if write_in_drs:
+#         db_entry_creation_file = full_file_path
+#     else:
+#         db_entry_creation_file = file
+#
+#         # Also load the CVs, as they won't be loaded yet
+#         raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
+#         cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+#
+#     database_entry = Input4MIPsDatabaseEntryFile.from_file(
+#         db_entry_creation_file,
+#         cvs=cvs,
+#         frequency_metadata_key=frequency_metadata_key,
+#         no_time_axis_frequency=no_time_axis_frequency,
+#         time_dimension=time_dimension,
+#     )
+#
+#     logger.info(f"{database_entry=}")
+#     rich.print("Database entry as JSON:")
+#     rich.print(json_dumps_cv_style(converter_json.unstructure(database_entry)))
 
 
 @app.command(name="upload-ftp")

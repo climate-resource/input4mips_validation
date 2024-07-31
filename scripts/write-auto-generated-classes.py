@@ -436,8 +436,10 @@ See `comment_post_publication` for an explanation of why.""",
     "timestamp": Attribute(
         name="timestamp",
         type_dec="Union[str, None] = None",
-        docstring="The file's publication timestamp on the ESGF",
-        comments=["TODO: validation (should have certain form?)"],
+        docstring="""Timestamp of the last modification to the file's ESGF entry
+
+This is scraped from the ESGF.""",
+        comments=["No validation, up to ESGF to set values"],
     ),
     "tracking_id": Attribute(
         name="tracking_id",
@@ -476,11 +478,15 @@ tracking_id = f"hdl:21.14100/{uuid.uuid4()}"
     "version": Attribute(
         name="version",
         type_dec="str",
-        docstring="The version of the file, as defined by the ESGF index",
+        docstring="""The version of the file, as defined by the DRS
+
+The ESGF also has a _version_ attribute for each file entry,
+which is different again.
+""",
         comments=[
             "TODO: validation",
-            "Should be 'vYYYYMMDD', ",
-            "where YYYYMMDD is the date that it was put into the DRS",
+            "Should be 'YYYYMMDD' (without the v, that's handled by the DRS), ",
+            "where YYYYMMDD is the date that the file was written in the DRS",
             "(which is unverifiable within this package)",
         ],
     ),

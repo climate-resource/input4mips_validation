@@ -5,6 +5,7 @@ Data model of our input4MIPs database
 from __future__ import annotations
 
 import datetime as dt
+import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
@@ -19,6 +20,7 @@ from input4mips_validation.database.raw import Input4MIPsDatabaseEntryFileRaw
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.inference.from_data import create_time_range
 from input4mips_validation.logging import LOG_LEVEL_INFO_FILE
+from input4mips_validation.serialisation import converter_json
 
 if TYPE_CHECKING:
     from input4mips_validation.cvs import Input4MIPsCVs
@@ -174,3 +176,33 @@ def format_datetime_for_db(time: cftime.datetime | dt.datetime | np.datetime64) 
         ts = time
 
     return f"{ts.isoformat()}Z"  # Z indicates timezone is UTC
+
+
+def load_database_file_entries(
+    db_dir: Path, glob_input: str = "*.json"
+) -> tuple[Input4MIPsDatabaseEntryFile, ...]:
+    """
+    Load a database of file entries from a database directory
+
+    Parameters
+    ----------
+    db_dir
+        Directory in which the file entries are being kept
+
+    glob_input
+        Input to `db_dir.glob` to use when finding files to load.
+        You shouldn't need to change this, but just in case.
+
+    Returns
+    -------
+    :
+        Loaded database of file entries
+    """
+    res_l = []
+    for file in db_dir.glob(glob_input):
+        with open(file) as fh:
+            res_l.append(
+                converter_json.structure(json.load(fh), Input4MIPsDatabaseEntryFile)
+            )
+
+    return tuple(res_l)

@@ -311,7 +311,7 @@ def validate_file(
     # )(infile)
     ds_xr_open = catch_error(
         xr.open_dataset, call_purpose="Open data with `xr.open_dataset`"
-    )(infile)
+    )(infile, use_cftime=True)
 
     # Basic loading - iris
     # cubes = catch_error(iris.load, call_purpose="Load data with `iris.load`")(infile)
@@ -380,7 +380,9 @@ def validate_tracking_ids_are_unique(files: Collection[Path]) -> None:
     NonUniqueError
         Not all the tracking IDs are unique
     """
-    tracking_ids = [xr.open_dataset(f).attrs["tracking_id"] for f in files]
+    tracking_ids = [
+        xr.open_dataset(f, use_cftime=True).attrs["tracking_id"] for f in files
+    ]
     if len(set(tracking_ids)) != len(files):
         raise NonUniqueError(
             description="Tracking IDs for all files should be unique",

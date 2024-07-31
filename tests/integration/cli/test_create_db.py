@@ -87,11 +87,6 @@ def test_basic(tmp_path, include_validation):
             written_file.relative_to(tree_root).parent
         ).replace(os.sep, ".")
 
-    # Test the function directly first (helps with debugging)
-    db_entries = create_db_file_entries(
-        tree_root, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
-    )
-
     # If this gets run just at the turn of midnight, this may fail.
     # That is a risk I am willing to take.
     version_exp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")
@@ -147,6 +142,11 @@ def test_basic(tmp_path, include_validation):
             "mole_fraction_of_carbon_dioxide_in_air",
             "mole_fraction_of_methane_in_air",
         ]
+    )
+
+    # Test the function directly first (helps with debugging)
+    db_entries = create_db_file_entries(
+        tree_root, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
     )
 
     assert set(db_entries) == set(db_entries_exp)

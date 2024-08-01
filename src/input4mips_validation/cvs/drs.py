@@ -530,7 +530,7 @@ class DataReferenceSyntax:
         # just print out the directory and print out the template
         # and say, try again
         directory_metadata: dict[str, str | None] = self.extract_metadata_from_path(
-            file.absolute()
+            file.absolute().parent
         )
         file_metadata: dict[str, str | None] = self.extract_metadata_from_filename(
             file.name

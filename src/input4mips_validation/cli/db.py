@@ -206,7 +206,7 @@ This means that any previous validation of the entries is ignored.""",
 
     logger.info(
         f"Updating {len(validated_entries)} validated entries "
-        "in the database in {db_dir}"
+        f"in the database in {db_dir}"
     )
     update_database_file_entries(entries=validated_entries, db_dir=db_dir)
 

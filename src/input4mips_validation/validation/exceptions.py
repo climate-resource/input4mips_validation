@@ -8,6 +8,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from input4mips_validation.database.database import Input4MIPsDatabaseEntryFile
+
 
 class InvalidFileError(ValueError):
     """
@@ -94,6 +96,46 @@ class InvalidTreeError(ValueError):
 
         error_msg = (
             f"Failed to validate {root=}\n"
+            "Caught error messages:\n\n"
+            f"{error_msgs_str}"
+        )
+
+        super().__init__(error_msg)
+
+
+class FileAssociatedWithDatabaseEntryError(ValueError):
+    """
+    Raised when the file associated with a database entry has a problem
+    """
+
+    def __init__(
+        self,
+        entry: Input4MIPsDatabaseEntryFile,
+        error_container: list[tuple[str, Exception]],
+    ) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        entry
+            The entry we tried to validate
+
+        error_container
+            The thing which was being done
+            and the error which was caught
+            while validating the file.
+        """
+        error_msgs: list[str] = []
+        for error in error_container:
+            process, exc = error
+            formatted_exc = f"{type(exc).__name__}: {exc}"
+            error_msgs.append(f"{process} failed. Exception: {formatted_exc}")
+
+        error_msgs_str = "\n\n".join(error_msgs)
+
+        error_msg = (
+            f"Failed to validate {entry=}\n"
             "Caught error messages:\n\n"
             f"{error_msgs_str}"
         )

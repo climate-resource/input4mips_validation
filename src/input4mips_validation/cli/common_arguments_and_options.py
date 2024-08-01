@@ -9,6 +9,27 @@ from typing import Annotated, Optional
 
 import typer
 
+ALLOW_CF_CHECKER_WARNINGS_TYPE = Annotated[
+    bool,
+    typer.Option(
+        "--allow-cf-checker-warnings",
+        help="Allow validation to pass, even if the CF-checker raises warnings",
+    ),
+]
+
+BNDS_COORD_INDICATOR_TYPE = Annotated[
+    str,
+    typer.Option(
+        help=(
+            "String that indicates that a variable is a bounds co-ordinate. "
+            "This helps us with identifying `infile`'s variables correctly "
+            "in the absence of an agreed convention for doing this "
+            "(xarray has a way, "
+            "but it conflicts with the CF-conventions hence iris, "
+            "so here we are)."
+        )
+    ),
+]
 CV_SOURCE_OPTION = Annotated[
     Optional[str],
     typer.Option(

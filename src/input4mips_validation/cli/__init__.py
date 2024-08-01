@@ -15,6 +15,8 @@ from loguru import logger
 
 import input4mips_validation
 from input4mips_validation.cli.common_arguments_and_options import (
+    ALLOW_CF_CHECKER_WARNINGS_TYPE,
+    BNDS_COORD_INDICATOR_TYPE,
     CV_SOURCE_OPTION,
     FREQUENCY_METADATA_KEY_OPTION,
     NO_TIME_AXIS_FREQUENCY_OPTION,
@@ -37,29 +39,6 @@ from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
 
 app = typer.Typer()
 
-
-BNDS_COORD_INDICATOR_TYPE = Annotated[
-    str,
-    typer.Option(
-        help=(
-            "String that indicates that a variable is a bounds co-ordinate. "
-            "This helps us with identifying `infile`'s variables correctly "
-            "in the absence of an agreed convention for doing this "
-            "(xarray has a way, "
-            "but it conflicts with the CF-conventions hence iris, "
-            "so here we are)."
-        )
-    ),
-]
-
-
-ALLOW_CF_CHECKER_WARNINGS_TYPE = Annotated[
-    bool,
-    typer.Option(
-        "--allow-cf-checker-warnings",
-        help="Allow validation to pass, even if the CF-checker raises warnings",
-    ),
-]
 
 # May be handy, although my current feeling is that logging via loguru
 # can offer same thing with much better control.

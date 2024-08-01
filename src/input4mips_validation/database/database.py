@@ -241,3 +241,38 @@ def dump_database_file_entries(
 
         with open(filepath, "w") as fh:
             fh.write(json_dumps_cv_style(converter_json.unstructure(db_entry)))
+
+
+def update_database_file_entries(
+    entries: Collection[Input4MIPsDatabaseEntryFile],
+    db_dir: Path,
+) -> None:
+    """
+    Update file entries in a database directory
+
+    Parameters
+    ----------
+    entries
+        Entries to update in the database
+
+    db_dir
+        Directory in which the file entries are being kept
+
+    Raises
+    ------
+    FileNotFoundError
+        An entry would be a new entry, not an updated one.
+
+        This has to be resolved before dumping the data to the database.
+    """
+    for db_entry in tqdm.tqdm(entries, desc="Entries to write", total=len(entries)):
+        filename = f"{db_entry.sha256}.json"
+        filepath = db_dir / filename
+        if not filepath.exists():
+            raise FileNotFoundError(filepath)
+
+        with open(filepath, "w") as fh:
+            logger.debug(f"Updating {filepath}")
+            fh.write(json_dumps_cv_style(converter_json.unstructure(db_entry)))
+
+        logger.debug(f"Finished updating {filepath}")

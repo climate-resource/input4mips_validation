@@ -32,7 +32,6 @@ from input4mips_validation.dataset import (
 )
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
-from input4mips_validation.validation.database import validate_database
 
 UR = pint.get_application_registry()
 try:
@@ -44,6 +43,11 @@ runner = CliRunner()
 
 DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
     (Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default").absolute()
+)
+DIFFERENT_DRS_CV_SOURCE = str(
+    (
+        Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "different-drs"
+    ).absolute()
 )
 
 
@@ -270,14 +274,13 @@ def test_validate_flow(tmp_path):
        but this is trickier)
     8. Check the status of all files in the database is as expected
        i.e. `True` for all files except the broken one
-    9. Change the DRS of our CVs
-    10. Validate
-    11. Check that the status of the database is unchanged
+    9. Change the DRS of our CVs and validate again
+    10. Check that the status of the database is unchanged
         because all files have already been validated
         (this is deliberate behaviour, tracking which CVs were used for validation
         is not a problem we tackle yet)
-    12. Validate with the `--force` flag
-    13. Check the status of all files in the database is `False`
+    11. Validate with the `--force` flag
+    12. Check the status of all files in the database is `False`
     """
     cvs = load_cvs(cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
@@ -296,15 +299,16 @@ def test_validate_flow(tmp_path):
     )
 
     # Break one of the files
-    broken_file = info[variable_ids[1]]["filepath"]
+    valid_files = [info[vid]["filepath"] for vid in variable_ids[:-1]]
+    broken_file = info[variable_ids[-1]]["filepath"]
     ncds = netCDF4.Dataset(broken_file, "a")
     # Add units to bounds variable, which isn't allowed
-    ncds["lat_bnds"].setncattr("unit", "degrees_north")
+    ncds["lat_bnds"].setncattr("units", "degrees_north")
     ncds.close()
 
     db_dir = tmp_path / "test-validate-flow"
 
-    # Create the database
+    # 1. Create the database
     with patch.dict(
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
@@ -312,85 +316,111 @@ def test_validate_flow(tmp_path):
         args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
         result = runner.invoke(app, args)
 
-    ## Validate the database
-    # Useful for debugging, do it via the API first
-    db = load_database_file_entries(db_dir=db_dir)
-    db_1 = {v.filepath: v for v in validate_database(db)}
-    assert not db_1[broken_file].validated_input4mips
-    tmp = [v.validated_input4mips for k, v in db_1.items() if k != broken_file]
-    # breakpoint()
-    assert all(v.validated_input4mips for k, v in db_1.items() if k != broken_file)
-    # explode
-    # breakpoint()
-
-    # If this gets run just at the turn of midnight, this may fail.
-    # That is a risk I am willing to take.
-    version_exp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")
-    db_entries_exp = create_db_entries_exp(
-        variable_ids=variable_ids,
-        info=info,
-        version_exp=version_exp,
+    # 2. Check initial status
+    assert all(
+        v.validated_input4mips is None for v in load_database_file_entries(db_dir)
     )
 
-    # Expect file database to be composed of file entries,
-    # each named with their hash.
-    exp_created_files = [f"{v['sha256']}.json" for v in info.values()]
-
-    # Then test the CLI
+    # 3. Validate the database
     with patch.dict(
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
-        args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
+        args = [
+            "db",
+            "validate",
+            "--db-dir",
+            str(db_dir),
+        ]
         result = runner.invoke(app, args)
 
     assert result.exit_code == 0, result.exc_info
 
-    created_files = list(db_dir.glob("*.json"))
-    assert len(created_files) == len(exp_created_files)
-    for exp_created_file in exp_created_files:
-        assert (db_dir / exp_created_file).exists()
+    # 4. Check status of files in the database
+    db_1 = {v.filepath: v for v in load_database_file_entries(db_dir)}
+    assert not db_1[broken_file].validated_input4mips
+    assert all(v.validated_input4mips for k, v in db_1.items() if k in valid_files)
 
-    db_entries_cli = load_database_file_entries(db_dir)
-
-    assert set(db_entries_cli) == set(db_entries_exp)
-
-    # Create two more files
-    variable_ids_new = (
-        "mole_fraction_of_nitrous_oxide_in_air",
-        "mole_fraction_of_pfc7118_in_air",
+    # 5. Add some more files to our tree
+    variable_ids = (
+        "mole_fraction_of_halon1211_in_air",
+        "mole_fraction_of_pfc6116_in_air",
     )
-    info_new = add_files_to_tree(
-        variable_ids=variable_ids_new,
-        units=("ppb", "ppt"),
+    info = add_files_to_tree(
+        variable_ids=variable_ids,
+        units=("ppt", "ppt"),
         tree_root=tree_root,
         cvs=cvs,
     )
 
-    db_entries_exp_new = create_db_entries_exp(
-        variable_ids=variable_ids_new,
-        info=info_new,
-        version_exp=version_exp,
+    # 6. Check status of files in the database
+    db_2 = {v.filepath: v for v in load_database_file_entries(db_dir)}
+    assert not db_2[broken_file].validated_input4mips
+    assert all(v.validated_input4mips for k, v in db_2.items() if k in valid_files)
+    assert all(
+        v.validated_input4mips is None
+        for k, v in db_2.items()
+        if k not in valid_files and k != broken_file
     )
-    db_entries_exp_post_add = tuple([*db_entries_exp, *db_entries_exp_new])
 
-    info_post_add = info | info_new
-    exp_created_files_post_add = [f"{v['sha256']}.json" for v in info_post_add.values()]
-
+    # 7. Validate the database again
     with patch.dict(
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
-        args = ["db", "add-tree", str(tree_root), "--db-dir", str(db_dir)]
+        args = [
+            "db",
+            "validate",
+            "--db-dir",
+            str(db_dir),
+        ]
         result = runner.invoke(app, args)
 
     assert result.exit_code == 0, result.exc_info
 
-    created_files = list(db_dir.glob("*.json"))
-    assert len(created_files) == len(exp_created_files_post_add)
-    for exp_created_file in exp_created_files_post_add:
-        assert (db_dir / exp_created_file).exists()
+    # 8. Check status of files in the database
+    db_3 = {v.filepath: v for v in load_database_file_entries(db_dir)}
+    assert not db_3[broken_file].validated_input4mips
+    assert all(v.validated_input4mips for k, v in db_3.items() if k != broken_file)
 
-    db_entries_cli_post_add = load_database_file_entries(db_dir)
+    # 9. Change the DRS and validate again
+    with patch.dict(
+        os.environ,
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DIFFERENT_DRS_CV_SOURCE},
+    ):
+        args = [
+            "db",
+            "validate",
+            "--db-dir",
+            str(db_dir),
+        ]
+        result = runner.invoke(app, args)
 
-    assert set(db_entries_cli_post_add) == set(db_entries_exp_post_add)
+    assert result.exit_code == 0, result.exc_info
+
+    # 10. Check status of files in the database.
+    #     No change from above because we didn't use `--force`
+    db_4 = {v.filepath: v for v in load_database_file_entries(db_dir)}
+    assert not db_4[broken_file].validated_input4mips
+    assert all(v.validated_input4mips for k, v in db_4.items() if k != broken_file)
+
+    # 11. Change the DRS and validate again with the `--force` flag
+    with patch.dict(
+        os.environ,
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DIFFERENT_DRS_CV_SOURCE},
+    ):
+        args = [
+            "db",
+            "validate",
+            "--db-dir",
+            str(db_dir),
+            "--force",
+        ]
+        result = runner.invoke(app, args)
+
+    assert result.exit_code == 0, result.exc_info
+
+    # 12. Check status of files in the database.
+    #     Should all be `False` now.
+    db_5 = {v.filepath: v for v in load_database_file_entries(db_dir)}
+    assert all(v.validated_input4mips is False for k, v in db_5.items())

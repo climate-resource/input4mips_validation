@@ -24,7 +24,6 @@ from input4mips_validation.database import (
     Input4MIPsDatabaseEntryFile,
     load_database_file_entries,
 )
-from input4mips_validation.database.creation import create_db_file_entries
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
@@ -183,15 +182,7 @@ def test_basic(tmp_path):
         version_exp=version_exp,
     )
 
-    # Test the function directly first (helps with debugging)
-    db_entries = create_db_file_entries(
-        tree_root, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
-    )
-
-    assert set(db_entries) == set(db_entries_exp)
-
     db_dir = tmp_path / "test-create-db-basic"
-
     # Expect file database to be composed of file entries,
     # each named with their hash.
     exp_created_files = [f"{v['sha256']}.json" for v in info.values()]

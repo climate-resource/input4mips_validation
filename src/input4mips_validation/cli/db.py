@@ -19,7 +19,10 @@ from input4mips_validation.cli.common_arguments_and_options import (
     RGLOB_INPUT_OPTION,
     TIME_DIMENSION_OPTION,
 )
-from input4mips_validation.database import dump_database_file_entries
+from input4mips_validation.database import (
+    dump_database_file_entries,
+    load_database_file_entries,
+)
 from input4mips_validation.database.creation import create_db_file_entries
 
 app = typer.Typer()
@@ -39,7 +42,7 @@ def db_create_command(  # noqa: PLR0913
     db_dir: Annotated[
         Path,
         typer.Option(
-            help="The directory in which to write the database entries. ",
+            help="The directory in which to write the database entries.",
             dir_okay=True,
             file_okay=False,
         ),
@@ -71,7 +74,9 @@ def db_create_command(  # noqa: PLR0913
 
     logger.debug(f"Creating {db_dir}")
     db_dir.mkdir(parents=True, exist_ok=False)
+    logger.info(f"Dumping {len(db_entries)} to the new database in {db_dir}")
     dump_database_file_entries(entries=db_entries, db_dir=db_dir)
+    logger.success(f"Created new database in {db_dir}")
 
 
 @app.command(name="add-tree")
@@ -79,7 +84,7 @@ def db_add_tree_command(  # noqa: PLR0913
     tree_root: Annotated[
         Path,
         typer.Argument(
-            help="The root of the tree for which to create the database",
+            help="The root of the tree from which to add entries to the database",
             exists=True,
             dir_okay=True,
             file_okay=False,
@@ -88,7 +93,7 @@ def db_add_tree_command(  # noqa: PLR0913
     db_dir: Annotated[
         Path,
         typer.Option(
-            help="The directory in which to write the database entries. ",
+            help="The database's directory.",
             dir_okay=True,
             file_okay=False,
             exists=True,
@@ -102,23 +107,33 @@ def db_add_tree_command(  # noqa: PLR0913
     n_processes: N_PROCESSES_OPTION = 4,
 ) -> None:
     """
-    Create a database from a tree of files
+    Add files from a tree to the database
     """
-    raise NotImplementedError
+    all_tree_files = set(tree_root.rglob(rglob_input))
+    db_existing_entries = load_database_file_entries(db_dir)
+    known_files = set([Path(v.filepath) for v in db_existing_entries])
+    files_to_add = all_tree_files.difference(known_files)
 
-    db_entries = create_db_file_entries(
-        root=tree_root,
+    if not files_to_add:
+        logger.info(f"All files in {tree_root} are already in the database")
+        return
+
+    db_entries_to_add = create_db_file_entries(
+        files=files_to_add,
         cv_source=cv_source,
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
         time_dimension=time_dimension,
-        rglob_input=rglob_input,
         n_processes=n_processes,
     )
 
-    logger.debug(f"Creating {db_dir}")
-    db_dir.mkdir(parents=True, exist_ok=False)
-    dump_database_file_entries(entries=db_entries, db_dir=db_dir)
+    logger.info(
+        f"Dumping {len(db_entries_to_add)} new entries to the database in {db_dir}"
+    )
+    dump_database_file_entries(entries=db_entries_to_add, db_dir=db_dir)
+    logger.success(
+        f"Added missing entries from {tree_root} to the database in {db_dir}"
+    )
 
 
 # create_db_entry: Annotated[

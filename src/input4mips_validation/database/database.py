@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Union
 import cftime
 import numpy as np
 import pandas as pd
+import tqdm
 import xarray as xr
 from attrs import define, fields
 from loguru import logger
@@ -232,7 +233,7 @@ def dump_database_file_entries(
         This indicates that there is already an entry for that file in the database.
         This has to be resolved before dumping the data to the database.
     """
-    for db_entry in entries:
+    for db_entry in tqdm.tqdm(entries, desc="Entries to write", total=len(entries)):
         filename = f"{db_entry.sha256}.json"
         filepath = db_dir / filename
         if filepath.exists():

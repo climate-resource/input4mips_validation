@@ -82,7 +82,9 @@ def create_db_file_entries(  # noqa: PLR0913
         db_entries = [
             future.result()
             for future in tqdm.tqdm(
-                concurrent.futures.as_completed(futures), desc="Database file entries"
+                concurrent.futures.as_completed(futures),
+                desc="Database file entries",
+                total=len(futures),
             )
         ]
 

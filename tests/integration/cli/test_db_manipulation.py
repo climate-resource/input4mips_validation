@@ -1,5 +1,8 @@
 """
-Tests of our `db add-tree` command
+Tests of our database manipulation commands:
+
+- `db add-tree`
+- `db validate`
 """
 
 from __future__ import annotations

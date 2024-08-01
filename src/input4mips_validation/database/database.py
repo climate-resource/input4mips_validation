@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
-from collections.abc import Iterable
+from collections.abc import Collection
 from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
@@ -211,7 +211,7 @@ def load_database_file_entries(
 
 
 def dump_database_file_entries(
-    entries: Iterable[Input4MIPsDatabaseEntryFile],
+    entries: Collection[Input4MIPsDatabaseEntryFile],
     db_dir: Path,
 ) -> None:
     """

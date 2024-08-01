@@ -187,8 +187,14 @@ class Input4MIPsDatabaseEntryFileRaw:
     This is scraped from the ESGF.
     """
 
-    validated_input4mips: bool = False
-    """Has this file been validated by the input4MIPs team?"""
+    validated_input4mips: Union[bool, None] = None
+    """
+    Has this file been validated by the input4MIPs team?
+
+    A value of `None` indicates that the file has not been validated.
+    A value of `True` indicates that the file has been validated and passed validation.
+    A value of `False` indicates that the file has been validated and failed validation.
+    """
 
     xlink: Union[list[str], None] = None
     """Cross-link to more information about the file (DOI?)"""

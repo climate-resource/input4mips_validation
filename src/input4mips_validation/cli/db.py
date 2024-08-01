@@ -77,12 +77,6 @@ def db_create_command(  # noqa: PLR0913
             file_okay=False,
         ),
     ],
-    validate: Annotated[
-        bool,
-        typer.Option(
-            help="Should the tree be validated before the database is created?"
-        ),
-    ] = True,
     cv_source: CV_SOURCE_OPTION = None,
     frequency_metadata_key: FREQUENCY_METADATA_KEY_OPTION = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
@@ -111,20 +105,21 @@ def db_create_command(  # noqa: PLR0913
     db_dir.mkdir(parents=True, exist_ok=False)
     dump_database_file_entries(entries=db_entries, db_dir=db_dir)
 
-    # if validate:
-    #     try:
-    #         validate_tree(
-    #             root=tree_root,
-    #             cv_source=cv_source,
-    #             frequency_metadata_key=frequency_metadata_key,
-    #             no_time_axis_frequency=no_time_axis_frequency,
-    #             time_dimension=time_dimension,
-    #             rglob_input=rglob_input,
-    #         )
-    #     except InvalidFileError as exc:
-    #         logger.debug(f"{type(exc).__name__}: {exc}")
-    #
-    #         raise typer.Exit(code=1) from exc
+
+# if validate:
+#     try:
+#         validate_tree(
+#             root=tree_root,
+#             cv_source=cv_source,
+#             frequency_metadata_key=frequency_metadata_key,
+#             no_time_axis_frequency=no_time_axis_frequency,
+#             time_dimension=time_dimension,
+#             rglob_input=rglob_input,
+#         )
+#     except InvalidFileError as exc:
+#         logger.debug(f"{type(exc).__name__}: {exc}")
+#
+#         raise typer.Exit(code=1) from exc
 
 
 if __name__ == "__main__":

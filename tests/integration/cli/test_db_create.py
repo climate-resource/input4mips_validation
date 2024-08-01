@@ -1,5 +1,5 @@
 """
-Tests of our create-db command
+Tests of our `db create` command
 """
 
 from __future__ import annotations
@@ -12,7 +12,6 @@ from unittest.mock import patch
 import numpy as np
 import pint
 import pint_xarray  # noqa: F401 # required to activate pint accessor
-import pytest
 import xarray as xr
 from typer.testing import CliRunner
 
@@ -43,8 +42,7 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
 )
 
 
-@pytest.mark.parametrize("include_validation", (True, False))
-def test_basic(tmp_path, include_validation):
+def test_basic(tmp_path):
     """
     Write two files in a tree, then make sure we can create the database
     """
@@ -165,9 +163,6 @@ def test_basic(tmp_path, include_validation):
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
         args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
-        if not include_validation:
-            args.append("--no-validate")
-
         result = runner.invoke(app, args)
 
     assert result.exit_code == 0, result.exc_info

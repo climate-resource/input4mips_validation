@@ -186,9 +186,9 @@ This means that any previous validation of the entries is ignored.""",
 
     else:
         logger.info("Determining entries to validate")
-        entries_to_validate = [
-            e for e in db_existing_entries if e.validated_input4mips is None
-        ]
+        entries_to_validate = tuple(
+            [e for e in db_existing_entries if e.validated_input4mips is None]
+        )
         if not entries_to_validate:
             logger.info(f"All files in {db_dir} have already been validated")
             return

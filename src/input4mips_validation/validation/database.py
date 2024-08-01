@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import concurrent.futures
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import tqdm
 from attrs import define, evolve
@@ -194,7 +194,7 @@ class FileEntryValidationResult:
 
 
 def database_file_entry_is_valid(
-    entry: Input4MIPsDatabaseEntryFile, **kwargs
+    entry: Input4MIPsDatabaseEntryFile, **kwargs: Any
 ) -> FileEntryValidationResult:
     """
     Determine if a database entry for a file is valid

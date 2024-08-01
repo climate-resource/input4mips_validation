@@ -146,7 +146,7 @@ def test_basic(tmp_path):
 
     # Test the function directly first (helps with debugging)
     db_entries = create_db_file_entries(
-        tree_root, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+        tree_root.rglob("*.nc"), cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
     )
 
     assert set(db_entries) == set(db_entries_exp)

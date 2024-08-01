@@ -17,7 +17,6 @@ import netCDF4
 import numpy as np
 import pint
 import pint_xarray  # noqa: F401 # required to activate pint accessor
-import pytest
 import xarray as xr
 from typer.testing import CliRunner
 
@@ -252,7 +251,6 @@ def test_add_flow(tmp_path):
     assert set(db_entries_cli_post_add) == set(db_entries_exp_post_add)
 
 
-@pytest.mark.skip(reason="WIP")
 def test_validate_flow(tmp_path):
     """
     Test the flow of validating data in a database
@@ -298,7 +296,8 @@ def test_validate_flow(tmp_path):
     )
 
     # Break one of the files
-    ncds = netCDF4.Dataset(info[variable_ids[1]]["filepath"], "a")
+    broken_file = info[variable_ids[1]]["filepath"]
+    ncds = netCDF4.Dataset(broken_file, "a")
     # Add units to bounds variable, which isn't allowed
     ncds["lat_bnds"].setncattr("unit", "degrees_north")
     ncds.close()
@@ -316,7 +315,11 @@ def test_validate_flow(tmp_path):
     ## Validate the database
     # Useful for debugging, do it via the API first
     db = load_database_file_entries(db_dir=db_dir)
-    validate_database(db)
+    db_1 = {v.filepath: v for v in validate_database(db)}
+    assert not db_1[broken_file].validated_input4mips
+    tmp = [v.validated_input4mips for k, v in db_1.items() if k != broken_file]
+    # breakpoint()
+    assert all(v.validated_input4mips for k, v in db_1.items() if k != broken_file)
     # explode
     # breakpoint()
 

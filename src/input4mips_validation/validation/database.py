@@ -15,6 +15,30 @@ from input4mips_validation.exceptions import NonUniqueError
 from input4mips_validation.hashing import get_file_hash_sha256
 
 
+def validate_tracking_ids_are_unique(
+    db: tuple[Input4MIPsDatabaseEntryFile, ...],
+) -> None:
+    """
+    Validate that the tracking IDs in the database are unique
+
+    Parameters
+    ----------
+    db
+        Database to validate
+
+    Raises
+    ------
+    NonUniqueError
+        The tracking IDs in the database are not unique
+    """
+    tracking_ids = [e.tracking_id for e in db]
+    if len(set(tracking_ids)) != len(db):
+        raise NonUniqueError(
+            description="Tracking IDs for all entries should be unique",
+            values=tracking_ids,
+        )
+
+
 def validate_database_file_entry(entry: Input4MIPsDatabaseEntryFile) -> None:
     # Check the sha to start
     sha256 = get_file_hash_sha256(entry.filepath)
@@ -28,19 +52,20 @@ def validate_database_file_entry(entry: Input4MIPsDatabaseEntryFile) -> None:
     #     bnds_coord_indicator=bnds_coord_indicator,
     #     allow_cf_checker_warnings=allow_cf_checker_warnings,
     # )
+    # 1. file can be loaded with standard libraries
+    # 1. file passes metadata and data checks
+    # 1. file is correctly written according to the data reference syntax
+    # 1. all references to external variables (like cell areas) can be resolved
+    #    within the tree in which the file exists
 
 
 def validate_database(
     db: tuple[Input4MIPsDatabaseEntryFile, ...],
     n_processes: int = 1,
 ) -> tuple[Input4MIPsDatabaseEntryFile, ...]:
-    # If tracking IDs aren't unique, we can fail immediately
-    tracking_ids = [e.tracking_id for e in db]
-    if len(set(tracking_ids)) != len(db):
-        raise NonUniqueError(
-            description="Tracking IDs for all entries should be unique",
-            values=tracking_ids,
-        )
+    # If tracking IDs aren't unique, we can fail immediately,
+    # no need to catch the errors or anything.
+    validate_tracking_ids_are_unique(db)
 
     entries_to_validate = [e for e in db if e.validated_input4mips is None]
     # Entries that can be passed straight through to the output
@@ -80,5 +105,7 @@ def validate_database(
             except Exception:
                 logger.exception(f"Exception while validating {entry.filepath}")
                 out_l.append(evolve(entry, validated_input4mips=False))
+                # breakpoint()
+                # print("hi")
 
     return tuple(out_l)

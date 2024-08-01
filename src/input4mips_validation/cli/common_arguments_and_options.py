@@ -43,6 +43,10 @@ FREQUENCY_METADATA_KEY_OPTION = Annotated[
     ),
 ]
 
+N_PROCESSES_OPTION = Annotated[
+    int, typer.Option(help="Number of parallel processes to use")
+]
+
 NO_TIME_AXIS_FREQUENCY_OPTION = Annotated[
     str,
     typer.Option(

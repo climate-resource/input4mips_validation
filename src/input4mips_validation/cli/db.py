@@ -14,12 +14,13 @@ from loguru import logger
 from input4mips_validation.cli.common_arguments_and_options import (
     CV_SOURCE_OPTION,
     FREQUENCY_METADATA_KEY_OPTION,
+    N_PROCESSES_OPTION,
     NO_TIME_AXIS_FREQUENCY_OPTION,
     RGLOB_INPUT_OPTION,
     TIME_DIMENSION_OPTION,
 )
+from input4mips_validation.database import dump_database_file_entries
 from input4mips_validation.database.creation import create_db_file_entries
-from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
 
 app = typer.Typer()
 
@@ -87,6 +88,7 @@ def db_create_command(  # noqa: PLR0913
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
     time_dimension: TIME_DIMENSION_OPTION = "time",
     rglob_input: RGLOB_INPUT_OPTION = "*.nc",
+    n_processes: N_PROCESSES_OPTION = 4,
 ) -> None:
     """
     Create a database from a tree of files
@@ -102,14 +104,12 @@ def db_create_command(  # noqa: PLR0913
         no_time_axis_frequency=no_time_axis_frequency,
         time_dimension=time_dimension,
         rglob_input=rglob_input,
+        n_processes=n_processes,
     )
 
     logger.debug(f"Creating {db_dir}")
     db_dir.mkdir(parents=True, exist_ok=False)
-    for db_entry in db_entries:
-        filename = f"{db_entry.sha256}.json"
-        with open(db_dir / filename, "w") as fh:
-            fh.write(json_dumps_cv_style(converter_json.unstructure(db_entry)))
+    dump_database_file_entries(entries=db_entries, db_dir=db_dir)
 
     # if validate:
     #     try:

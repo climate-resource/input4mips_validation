@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
@@ -20,7 +21,7 @@ from input4mips_validation.database.raw import Input4MIPsDatabaseEntryFileRaw
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.inference.from_data import create_time_range
 from input4mips_validation.logging import LOG_LEVEL_INFO_FILE
-from input4mips_validation.serialisation import converter_json
+from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
 from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
 if TYPE_CHECKING:
@@ -206,3 +207,36 @@ def load_database_file_entries(
             )
 
     return tuple(res_l)
+
+
+def dump_database_file_entries(
+    entries: Iterable[Input4MIPsDatabaseEntryFile],
+    db_dir: Path,
+) -> None:
+    """
+    Load a database of file entries from a database directory
+
+    Parameters
+    ----------
+    entries
+        Entries to dump to the database
+
+    db_dir
+        Directory in which the file entries are being kept
+
+    Raises
+    ------
+    FileExistsError
+        An entry would be dumped to a file which already exists.
+
+        This indicates that there is already an entry for that file in the database.
+        This has to be resolved before dumping the data to the database.
+    """
+    for db_entry in entries:
+        filename = f"{db_entry.sha256}.json"
+        filepath = db_dir / filename
+        if filepath.exists():
+            raise FileExistsError(filepath)
+
+        with open(filepath, "w") as fh:
+            fh.write(json_dumps_cv_style(converter_json.unstructure(db_entry)))

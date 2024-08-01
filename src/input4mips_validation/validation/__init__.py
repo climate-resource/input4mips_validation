@@ -393,6 +393,7 @@ def validate_tracking_ids_are_unique(files: Collection[Path]) -> None:
 def validate_tree(  # noqa: PLR0913
     root: Path,
     cv_source: str | None,
+    cvs: Input4MIPsCVs | None = None,
     bnds_coord_indicator: str = "bnds",
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
@@ -420,9 +421,16 @@ def validate_tree(  # noqa: PLR0913
     cv_source
         Source from which to load the CVs
 
+        Only required if `cvs` is `None`.
+
         For full details on options for loading CVs,
         see
         [`get_raw_cvs_loader`][input4mips_validation.cvs.loading_raw.get_raw_cvs_loader].
+
+    cvs
+        CVs to use when validating the file.
+
+        If these are passed, then `cv_source` is ignored.
 
     bnds_coord_indicator
         String that indicates that a variable is a bounds co-ordinate
@@ -465,11 +473,15 @@ def validate_tree(  # noqa: PLR0913
     checks_performed: list[str] = []
     catch_error = get_catch_error_decorator(caught_errors, checks_performed)
 
-    # Check we can load CVs, we need them for the following steps
-    cvs = catch_error(
-        load_cvs_in_validation,
-        call_purpose="Load controlled vocabularies to use during validation",
-    )(cv_source)
+    if cvs is None:
+        # Load CVs, we need them for the following steps
+        cvs = catch_error(
+            load_cvs_in_validation,
+            call_purpose="Load controlled vocabularies to use during validation",
+        )(cv_source)
+
+    elif cv_source is not None:
+        logger.warning(f"Using provided cvs instead of {cv_source=}")
 
     all_files = [v for v in root.rglob(rglob_input) if v.is_file()]
     failed_files_l = []

@@ -13,9 +13,11 @@ from collections.abc import Iterable
 from pathlib import Path
 from unittest.mock import patch
 
+import netCDF4
 import numpy as np
 import pint
 import pint_xarray  # noqa: F401 # required to activate pint accessor
+import pytest
 import xarray as xr
 from typer.testing import CliRunner
 
@@ -32,6 +34,7 @@ from input4mips_validation.dataset import (
 )
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
+from input4mips_validation.validation.database import validate_database
 
 UR = pint.get_application_registry()
 try:
@@ -147,7 +150,7 @@ def create_db_entries_exp(
     return db_entries_exp
 
 
-def test_basic(tmp_path):
+def test_add_flow(tmp_path):
     """
     Test the flow of adding data to a database
 
@@ -186,6 +189,144 @@ def test_basic(tmp_path):
     )
 
     db_dir = tmp_path / "test-create-db-basic"
+    # Expect file database to be composed of file entries,
+    # each named with their hash.
+    exp_created_files = [f"{v['sha256']}.json" for v in info.values()]
+
+    # Then test the CLI
+    with patch.dict(
+        os.environ,
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+    ):
+        args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
+        result = runner.invoke(app, args)
+
+    assert result.exit_code == 0, result.exc_info
+
+    created_files = list(db_dir.glob("*.json"))
+    assert len(created_files) == len(exp_created_files)
+    for exp_created_file in exp_created_files:
+        assert (db_dir / exp_created_file).exists()
+
+    db_entries_cli = load_database_file_entries(db_dir)
+
+    assert set(db_entries_cli) == set(db_entries_exp)
+
+    # Create two more files
+    variable_ids_new = (
+        "mole_fraction_of_nitrous_oxide_in_air",
+        "mole_fraction_of_pfc7118_in_air",
+    )
+    info_new = add_files_to_tree(
+        variable_ids=variable_ids_new,
+        units=("ppb", "ppt"),
+        tree_root=tree_root,
+        cvs=cvs,
+    )
+
+    db_entries_exp_new = create_db_entries_exp(
+        variable_ids=variable_ids_new,
+        info=info_new,
+        version_exp=version_exp,
+    )
+    db_entries_exp_post_add = tuple([*db_entries_exp, *db_entries_exp_new])
+
+    info_post_add = info | info_new
+    exp_created_files_post_add = [f"{v['sha256']}.json" for v in info_post_add.values()]
+
+    with patch.dict(
+        os.environ,
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+    ):
+        args = ["db", "add-tree", str(tree_root), "--db-dir", str(db_dir)]
+        result = runner.invoke(app, args)
+
+    assert result.exit_code == 0, result.exc_info
+
+    created_files = list(db_dir.glob("*.json"))
+    assert len(created_files) == len(exp_created_files_post_add)
+    for exp_created_file in exp_created_files_post_add:
+        assert (db_dir / exp_created_file).exists()
+
+    db_entries_cli_post_add = load_database_file_entries(db_dir)
+
+    assert set(db_entries_cli_post_add) == set(db_entries_exp_post_add)
+
+
+@pytest.mark.skip(reason="WIP")
+def test_validate_flow(tmp_path):
+    """
+    Test the flow of validating data in a database
+
+    We:
+
+    1. Create the database, including one broken file
+    2. Check that the validation status of all files in the database is None
+    3. Validate the database
+    4. Check that the validation status of all files in the database is as expected
+       i.e. `True` for all files except the broken one, which should be `False`
+    5. Add some more files to our database
+    6. Check the validation status of all files in the database.
+       The old files' status should be unchanged, the new files should have a status of `None`
+    7. Validate (would like to check that only new files are validated, but this is trickier)
+    8. Check the status of all files in the database is as expected
+       i.e. `True` for all files except the broken one
+    9. Change the DRS of our CVs
+    10. Validate
+    11. Check that the status of the database is unchanged because all files have already
+        been validated (this is known behaviour, tracking which CVs were used for validation
+        is not a problem we tackle yet)
+    12. Validate with the `--force` flag
+    13. Check the status of all files in the database is `False`
+    """
+    cvs = load_cvs(get_raw_cvs_loader(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE))
+
+    # Create ourselves a tree
+    tree_root = tmp_path / "netcdf-files"
+    tree_root.mkdir(exist_ok=True, parents=True)
+    variable_ids = (
+        "mole_fraction_of_carbon_dioxide_in_air",
+        "mole_fraction_of_methane_in_air",
+    )
+    info = add_files_to_tree(
+        variable_ids=variable_ids,
+        units=("ppm", "ppb"),
+        tree_root=tree_root,
+        cvs=cvs,
+    )
+
+    # Break one of the files
+    ncds = netCDF4.Dataset(info[variable_ids[1]]["filepath"], "a")
+    # Add units to bounds variable, which isn't allowed
+    ncds["lat_bnds"].setncattr("unit", "degrees_north")
+    ncds.close()
+
+    db_dir = tmp_path / "test-validate-flow"
+
+    # Create the database
+    with patch.dict(
+        os.environ,
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+    ):
+        args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
+        result = runner.invoke(app, args)
+
+    ## Validate the database
+    # Useful for debugging, do it via the API first
+    db = load_database_file_entries(db_dir=db_dir)
+    validate_database(db)
+    explode
+    breakpoint()
+
+    # If this gets run just at the turn of midnight, this may fail.
+    # That is a risk I am willing to take.
+    version_exp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")
+    db_entries_exp = create_db_entries_exp(
+        variable_ids=variable_ids,
+        info=info,
+        version_exp=version_exp,
+    )
+
     # Expect file database to be composed of file entries,
     # each named with their hash.
     exp_created_files = [f"{v['sha256']}.json" for v in info.values()]

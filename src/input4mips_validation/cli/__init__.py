@@ -23,7 +23,6 @@ from input4mips_validation.cli.common_arguments_and_options import (
 )
 from input4mips_validation.cli.db import app as app_db
 from input4mips_validation.cvs.loading import load_cvs
-from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.inference.from_data import infer_time_start_time_end
 from input4mips_validation.logging import setup_logging
@@ -187,8 +186,7 @@ def validate_file_command(  # noqa: PLR0913
         raise typer.Exit(code=1) from exc
 
     if write_in_drs:
-        raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
-        cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+        cvs = load_cvs(cv_source=cv_source)
 
         ds = ds_from_iris_cubes(
             iris.load(file), bnds_coord_indicator=bnds_coord_indicator
@@ -332,9 +330,7 @@ In other words, don't actually upload the files, but show what would be uploaded
     We recommend running this with a log level of INFO to start,
     then adjusting from there.
     """
-    raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
-    logger.debug(f"{raw_cvs_loader=}")
-    cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+    cvs = load_cvs(cv_source=cv_source)
 
     upload_ftp(
         tree_root=tree_root,

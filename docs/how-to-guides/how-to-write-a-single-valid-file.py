@@ -37,7 +37,7 @@ import numpy as np
 import xarray as xr
 from loguru import logger
 
-from input4mips_validation.cvs.loading import load_cvs
+from input4mips_validation.cvs.loading import load_cvs_with_loader
 from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.dataset.metadata_data_producer_minimum import (
@@ -194,7 +194,7 @@ raw_cvs_loader = get_raw_cvs_loader(
 raw_cvs_loader
 
 # %% editable=true slideshow={"slide_type": ""}
-cvs = load_cvs(raw_cvs_loader)
+cvs = load_cvs_with_loader(raw_cvs_loader)
 cvs.source_id_entries.source_ids
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}

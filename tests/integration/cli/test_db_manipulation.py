@@ -24,7 +24,6 @@ from typer.testing import CliRunner
 from input4mips_validation.cli import app
 from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.cvs.loading import load_cvs
-from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import (
     Input4MIPsDatabaseEntryFile,
     load_database_file_entries,
@@ -163,7 +162,7 @@ def test_add_flow(tmp_path):
     5. Add them to our database
     6. Ensure that the state of the database is correct
     """
-    cvs = load_cvs(get_raw_cvs_loader(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE))
+    cvs = load_cvs(cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     # Create ourselves a tree
     tree_root = tmp_path / "netcdf-files"
@@ -267,19 +266,22 @@ def test_validate_flow(tmp_path):
        i.e. `True` for all files except the broken one, which should be `False`
     5. Add some more files to our database
     6. Check the validation status of all files in the database.
-       The old files' status should be unchanged, the new files should have a status of `None`
-    7. Validate (would like to check that only new files are validated, but this is trickier)
+       The old files' status should be unchanged,
+       the new files should have a status of `None`
+    7. Validate (would like to check that only new files are validated,
+       but this is trickier)
     8. Check the status of all files in the database is as expected
        i.e. `True` for all files except the broken one
     9. Change the DRS of our CVs
     10. Validate
-    11. Check that the status of the database is unchanged because all files have already
-        been validated (this is known behaviour, tracking which CVs were used for validation
+    11. Check that the status of the database is unchanged
+        because all files have already been validated
+        (this is deliberate behaviour, tracking which CVs were used for validation
         is not a problem we tackle yet)
     12. Validate with the `--force` flag
     13. Check the status of all files in the database is `False`
     """
-    cvs = load_cvs(get_raw_cvs_loader(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE))
+    cvs = load_cvs(cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     # Create ourselves a tree
     tree_root = tmp_path / "netcdf-files"
@@ -315,8 +317,8 @@ def test_validate_flow(tmp_path):
     # Useful for debugging, do it via the API first
     db = load_database_file_entries(db_dir=db_dir)
     validate_database(db)
-    explode
-    breakpoint()
+    # explode
+    # breakpoint()
 
     # If this gets run just at the turn of midnight, this may fail.
     # That is a risk I am willing to take.

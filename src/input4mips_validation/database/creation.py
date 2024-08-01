@@ -12,7 +12,6 @@ import tqdm
 from loguru import logger
 
 from input4mips_validation.cvs.loading import load_cvs
-from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database.database import Input4MIPsDatabaseEntryFile
 
 
@@ -58,9 +57,7 @@ def create_db_file_entries(  # noqa: PLR0913
     :
         Database file entries for the files in `files`
     """
-    raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
-    logger.debug(f"{raw_cvs_loader=}")
-    cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+    cvs = load_cvs(cv_source=cv_source)
 
     logger.info(
         "Creating database entries in parallel using "

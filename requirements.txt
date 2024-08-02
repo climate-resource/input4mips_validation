@@ -70,6 +70,6 @@ tzdata==2024.1
 urllib3==2.2.2
 validators==0.33.0
 win32-setctime==1.1.0; sys_platform == "win32"
-xarray==2024.6.0
+xarray==2024.7.0
 xxhash==3.4.1
 zipp==3.19.2

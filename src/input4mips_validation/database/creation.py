@@ -7,12 +7,54 @@ from __future__ import annotations
 import concurrent.futures
 from collections.abc import Iterable
 from pathlib import Path
+from typing import Any
 
 import tqdm
 from loguru import logger
 
+import input4mips_validation.logging_config
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.database.database import Input4MIPsDatabaseEntryFile
+from input4mips_validation.logging import setup_logging
+from input4mips_validation.logging_config import (
+    LoggingConfigSerialisedType,
+    deserialise_logging_config,
+    serialise_logging_config,
+)
+
+
+def create_db_file_entry_with_logging(
+    logging_config_serialised: LoggingConfigSerialisedType,
+    file: Path,
+    **kwargs: Any,
+) -> Input4MIPsDatabaseEntryFile:
+    """
+    Create database file entries, with the logging setup matching main
+
+    Parameters
+    ----------
+    logging_config_serialised
+        Logging configuration to use (serialised version thereof)
+
+    file
+        File for which to create the entry
+
+    kwargs
+        Passed to
+        [`Input4MIPsDatabaseEntryFile.from_file`][input4mips_validation.database.database.Input4MIPsDatabaseEntryFile.from_file]
+
+    Returns
+    -------
+    :
+        Created database entry for `file`
+    """
+    logging_config = deserialise_logging_config(logging_config_serialised)
+    setup_logging(
+        enable=logging_config is not None,
+        logging_config=logging_config,
+    )
+
+    return Input4MIPsDatabaseEntryFile.from_file(file, **kwargs)
 
 
 def create_db_file_entries(  # noqa: PLR0913
@@ -59,6 +101,9 @@ def create_db_file_entries(  # noqa: PLR0913
     """
     cvs = load_cvs(cv_source=cv_source)
 
+    logging_config_serialised = serialise_logging_config(
+        input4mips_validation.logging_config.LOGGING_CONFIG
+    )
     logger.info(
         "Creating database entries in parallel using "
         f"{n_processes} {'processes' if n_processes > 1 else 'process'}"
@@ -66,7 +111,8 @@ def create_db_file_entries(  # noqa: PLR0913
     with concurrent.futures.ProcessPoolExecutor(max_workers=n_processes) as executor:
         futures = [
             executor.submit(
-                Input4MIPsDatabaseEntryFile.from_file,
+                create_db_file_entry_with_logging,
+                logging_config_serialised,
                 file,
                 cvs=cvs,
                 frequency_metadata_key=frequency_metadata_key,

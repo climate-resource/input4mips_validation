@@ -21,7 +21,7 @@ from loguru import logger
 from input4mips_validation.database.raw import Input4MIPsDatabaseEntryFileRaw
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.inference.from_data import create_time_range
-from input4mips_validation.logging import LOG_LEVEL_INFO_FILE
+from input4mips_validation.logging import LOG_LEVEL_INFO_DB_ENTRY
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
 from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
@@ -73,7 +73,7 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
             Initialised database entry
         """
         logger.log(
-            LOG_LEVEL_INFO_FILE.name,
+            LOG_LEVEL_INFO_DB_ENTRY.name,
             f"Creating file database entry for {file}",
         )
         ds = xr.open_dataset(file, use_cftime=True)

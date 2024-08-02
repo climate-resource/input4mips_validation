@@ -15,6 +15,7 @@ nav:
     - How validate a single file: how-to-guides/how-to-validate-a-single-file.py
     - How to write a single file in the DRS: how-to-guides/how-to-write-a-single-file-in-the-drs.py
     - How to upload to an FTP server: how-to-guides/how-to-upload-to-ftp.py
+    - How to manage a database of file entries: how-to-guides/how-to-manage-a-database.py
   - Tutorials: tutorials.md
   - Further background:
     - Explanation: explanation.md

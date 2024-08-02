@@ -12,11 +12,21 @@ import tqdm
 from attrs import define, evolve
 from loguru import logger
 
+import input4mips_validation.logging_config
 from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
 from input4mips_validation.database.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.exceptions import NonUniqueError
 from input4mips_validation.hashing import get_file_hash_sha256
-from input4mips_validation.logging import LOG_LEVEL_INFO_FILE, LOG_LEVEL_INFO_FILE_ERROR
+from input4mips_validation.logging import (
+    LOG_LEVEL_INFO_DB_ENTRY,
+    LOG_LEVEL_INFO_DB_ENTRY_ERROR,
+    setup_logging,
+)
+from input4mips_validation.logging_config import (
+    LoggingConfigSerialisedType,
+    deserialise_logging_config,
+    serialise_logging_config,
+)
 from input4mips_validation.validation.error_catching import get_catch_error_decorator
 from input4mips_validation.validation.exceptions import (
     FileAssociatedWithDatabaseEntryError,
@@ -126,7 +136,7 @@ def validate_database_file_entry(  # noqa: PLR0913
         raise ValueError(msg)
 
     logger.log(
-        LOG_LEVEL_INFO_FILE.name, f"Validating the entry for file: {entry.filepath}"
+        LOG_LEVEL_INFO_DB_ENTRY.name, f"Validating the entry for file: {entry.filepath}"
     )
     caught_errors: list[tuple[str, Exception]] = []
     checks_performed: list[str] = []
@@ -161,15 +171,17 @@ def validate_database_file_entry(  # noqa: PLR0913
     #       within the tree in which the file exists
 
     if caught_errors:
-        logger.log(
-            LOG_LEVEL_INFO_FILE_ERROR.name, f"Validation failed for: {entry.filepath}"
+        logger.debug(
+            f"Validation failed for: {entry.filepath}",
         )
 
         raise FileAssociatedWithDatabaseEntryError(
             entry=entry, error_container=caught_errors
         )
 
-    logger.log(LOG_LEVEL_INFO_FILE.name, f"Validation passed for: {entry.filepath}")
+    logger.debug(
+        f"Validation passed for database entry associated with: {entry.filepath}",
+    )
 
 
 @define
@@ -194,7 +206,9 @@ class FileEntryValidationResult:
 
 
 def database_file_entry_is_valid(
-    entry: Input4MIPsDatabaseEntryFile, **kwargs: Any
+    logging_config_serialised: LoggingConfigSerialisedType,
+    entry: Input4MIPsDatabaseEntryFile,
+    **kwargs: Any,
 ) -> FileEntryValidationResult:
     """
     Determine if a database entry for a file is valid
@@ -206,6 +220,9 @@ def database_file_entry_is_valid(
 
     Parameters
     ----------
+    logging_config_serialised
+        Logging configuration to use (serialised version thereof)
+
     entry
         Entry to validate
 
@@ -218,6 +235,12 @@ def database_file_entry_is_valid(
     :
         Result of the validation of `entry`
     """
+    logging_config = deserialise_logging_config(logging_config_serialised)
+    setup_logging(
+        enable=logging_config is not None,
+        logging_config=logging_config,
+    )
+
     try:
         validate_database_file_entry(entry=entry, **kwargs)
         res = FileEntryValidationResult(entry=entry, passed_validation=True)
@@ -305,6 +328,9 @@ def validate_database_entries(  # noqa: PLR0913
     elif cv_source is not None:
         logger.warning(f"Using provided cvs instead of {cv_source=}")
 
+    logging_config_serialised = serialise_logging_config(
+        input4mips_validation.logging_config.LOGGING_CONFIG
+    )
     logger.info(
         f"Validating {len(entries_to_validate)} database "
         f"{'entries' if len(entries_to_validate) > 1 else 'entry'} in parallel using "
@@ -314,6 +340,7 @@ def validate_database_entries(  # noqa: PLR0913
         futures = [
             executor.submit(
                 database_file_entry_is_valid,
+                logging_config_serialised,
                 entry,
                 cvs=cvs,
                 bnds_coord_indicator=bnds_coord_indicator,
@@ -340,11 +367,19 @@ def validate_database_entries(  # noqa: PLR0913
                     validated_input4mips=file_validation_result.passed_validation,
                 )
             )
-            if not file_validation_result.passed_validation:
+            if file_validation_result.passed_validation:
                 logger.log(
-                    LOG_LEVEL_INFO_FILE_ERROR.name,
+                    LOG_LEVEL_INFO_DB_ENTRY.name,
+                    "Validation passed for the entry pointing to "
+                    f"{file_validation_result.entry.filepath}",
+                )
+
+            else:
+                logger.log(
+                    LOG_LEVEL_INFO_DB_ENTRY_ERROR.name,
                     f"Validation failed with {file_validation_result.exception_type=} "
-                    f"for {file_validation_result.entry.filepath}",
+                    "for the entry pointing to "
+                    f"{file_validation_result.entry.filepath}",
                 )
                 logger.debug(
                     f"Validation failed with {file_validation_result.exception_type=} "

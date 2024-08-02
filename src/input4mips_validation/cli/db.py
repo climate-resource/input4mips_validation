@@ -81,7 +81,11 @@ def db_create_command(  # noqa: PLR0913
 
     logger.debug(f"Creating {db_dir}")
     db_dir.mkdir(parents=True, exist_ok=False)
-    logger.info(f"Dumping {len(db_entries)} to the new database in {db_dir}")
+    logger.info(
+        f"Dumping the {len(db_entries)} created "
+        f"{'entry' if len(db_entries) == 1 else 'entries'} "
+        f"to the new database in {db_dir}"
+    )
     dump_database_file_entries(entries=db_entries, db_dir=db_dir)
     logger.success(f"Created new database in {db_dir}")
 
@@ -125,6 +129,11 @@ def db_add_tree_command(  # noqa: PLR0913
         logger.info(f"All files in {tree_root} are already in the database")
         return
 
+    logger.info(
+        f"Found {len(files_to_add)} "
+        f"new {'files' if len(files_to_add) > 1 else 'file'} "
+        "to add to the database"
+    )
     db_entries_to_add = create_db_file_entries(
         files=files_to_add,
         cv_source=cv_source,

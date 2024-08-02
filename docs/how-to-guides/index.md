@@ -53,36 +53,5 @@ After you have a file(s) which passes validation, you have two options:
 
 ## How to work with a database of files?
 
-[Relevant issue: #39](https://github.com/climate-resource/input4mips_validation/issues/39)
-
-### Creating the database in the first place
-
-Coming soon :)
-
-- recommend using the validation flag, but don't have to
-- rolls over the files, creates database entry for each
-    - only works if the files follow the DRS
-- writes out the database
-  (currently as JSON, whether that's smart or not is a different question)
-
-### Adding new entries to the database
-
-Coming soon :)
-
-- use the command
-
-### Removing entries from the database
-
-Coming soon :)
-
-- not implemented because use case unclear
-
-### Validating entries in the database
-
-Coming soon :)
-
-- use the command
-- `--check-sha` flag to force checking of sha
-  (slower, because you have to re-hash everything,
-  but maybe worth doing sometimes)
-- `--force` flag to force re-validation of everything
+If you are planning on managing a database of files,
+please take a look at ["How to manage a database"](how-to-manage-a-database).

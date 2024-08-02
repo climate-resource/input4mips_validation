@@ -19,6 +19,69 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.11.0 (2024-08-02)
+
+
+### ⚠️ Breaking Changes
+
+- - Removed the `--create-db-entry` flag from the `validate-file` command.
+    Use the newly added `input4mips-validation db` commands to control the database instead.
+  - Our databases our now multi-file, one file per file entry. This makes it much easier to track changes to the database.
+    To load a database from a directory of files, use [`load_database_file_entries`][input4mips_validation.database.database.load_database_file_entries]
+  - Changed the function signature of [`input4mips_validation.cvs.loading.load_cvs`][input4mips_validation.cvs.loading.load_cvs].
+    Now it simply expects the `cv_source` rather than requiring a [`RawCVLoader`][input4mips_validation.cvs.loading_raw.RawCVLoader] as input.
+
+  ([#55](https://github.com/climate-resource/input4mips_validation/pulls/55))
+
+### 🆕 Features
+
+- Added the ` --allow-cf-checker-warnings` flag to the `validate-file` and `validate-tree` commands.
+  This allows the validation to pass, even if the CF-checker raises a warning.
+  This was added because the CF-checker's warnings are sometimes overly strict. ([#52](https://github.com/climate-resource/input4mips_validation/pulls/52))
+- - Added `input4mips-validation db` command group for handling database creation and manipulation.
+    This includes:
+
+    - `input4mips-validation db create` for creating new databases
+    - `input4mips-validation db add-tree` for adding files from a tree to an existing databases
+    - `input4mips-validation db validate` for updating the validation status of the entries in a database
+
+  - Added [`input4mips_validation.validation.database`][input4mips_validation.validation.database] for database validation
+
+  - Added [`input4mips_validation.logging_config`][input4mips_validation.logging_config]
+    to support passing of logging configuration between parallel processes.
+    We're not sure if this is a great solution.
+    If you have another solution, PRs welcome!
+
+  ([#55](https://github.com/climate-resource/input4mips_validation/pulls/55))
+
+### 🎉 Improvements
+
+- - Updated the type and default value of
+    [`Input4MIPsDatabaseEntryFile.validated_input4mips`][input4mips_validation.database.Input4MIPsDatabaseEntryFile.validated_input4mips]
+    to clarify the different states of validation.
+  - Parallelised [`create_db_file_entries`][input4mips_validation.database.creation.create_db_file_entries]
+
+  ([#55](https://github.com/climate-resource/input4mips_validation/pulls/55))
+
+### 🐛 Bug Fixes
+
+- Fixed a missing f-string marker in `validate-tree`'s logging. ([#52](https://github.com/climate-resource/input4mips_validation/pulls/52))
+- - Set `use_cftime=True` whenever we call `xr.open_dataset` to avoid spurious warnings
+  - Only pass the directory to `extract_metadata_from_path` in [`DRS.validate_file_written_according_to_drs`][input4mips_validation.cvs.drs.DataReferenceSyntax.validate_file_written_according_to_drs].
+    This helps reduce the chance of incorrecetly parsing the metadata.
+
+  ([#55](https://github.com/climate-resource/input4mips_validation/pulls/55))
+
+### 📚 Improved Documentation
+
+- Clarified the meaning of the `timestamp` and `version` fields in our database entries ([#54](https://github.com/climate-resource/input4mips_validation/pulls/54))
+- Added documentation for how to manage a database ([#55](https://github.com/climate-resource/input4mips_validation/pulls/55))
+
+### 🔧 Trivial/Internal Changes
+
+- [#55](https://github.com/climate-resource/input4mips_validation/pulls/55)
+
+
 ## input4mips-validation v0.10.2 (2024-07-28)
 
 

@@ -4,6 +4,10 @@ Loading of CVs from a given source
 
 from __future__ import annotations
 
+from typing import Any
+
+from loguru import logger
+
 from input4mips_validation.cvs.activity_id import load_activity_id_entries
 from input4mips_validation.cvs.cvs import Input4MIPsCVs
 from input4mips_validation.cvs.drs import load_drs
@@ -14,25 +18,30 @@ from input4mips_validation.cvs.source_id import load_source_id_entries
 
 
 def load_cvs(
-    raw_cvs_loader: RawCVLoader | None = None,
+    cv_source: None | str = None,
+    **kwargs: Any,
 ) -> Input4MIPsCVs:
     """
     Load CVs
 
     Parameters
     ----------
-    raw_cvs_loader
-        Loader of the raw CVs data
+    cv_source
+        String identifying the source of the CVs.
 
-        If not supplied, this will be retrieved with
+        For full details of possible options, see
+        [`get_raw_cvs_loader`][input4mips_validation.cvs.loading_raw.get_raw_cvs_loader].
+
+    kwargs
+        Passed through to
         [`get_raw_cvs_loader`][input4mips_validation.cvs.loading_raw.get_raw_cvs_loader].
 
     Returns
     -------
         Loaded CVs
     """
-    if raw_cvs_loader is None:
-        raw_cvs_loader = get_raw_cvs_loader()
+    raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
+    logger.debug(f"{raw_cvs_loader=}")
 
     return load_cvs_known_loader(raw_cvs_loader=raw_cvs_loader)
 

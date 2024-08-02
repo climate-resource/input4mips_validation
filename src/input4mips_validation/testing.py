@@ -7,6 +7,8 @@ and generation of test/example instances.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+from pathlib import Path
 from typing import Union
 
 import cftime
@@ -14,7 +16,9 @@ import numpy as np
 import pint
 import xarray as xr
 
+from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.dataset import (
+    Input4MIPsDataset,
     Input4MIPsDatasetMetadataDataProducerMinimum,
 )
 
@@ -86,3 +90,56 @@ def get_valid_ds_min_metadata_example(
     )
 
     return ds, metadata_minimum
+
+
+def create_files_in_tree(
+    variable_ids: Iterable[str],
+    units: Iterable[str],
+    tree_root: Path,
+    cvs: Input4MIPsCVs,
+) -> list[Path]:
+    """
+    Create test files in a tree
+
+    Parameters
+    ----------
+    variable_ids
+        Variable IDs to write in the created files
+
+    units
+        Units to use in/assign to the created files
+
+    tree_root
+        Root of the tree in which to write the files
+
+    cvs
+        CVs to use when writing the files
+
+    Returns
+    -------
+    :
+        List of created files
+    """
+    written_files = []
+    for variable_id, units in zip(variable_ids, units):
+        ds, metadata_minimum = get_valid_ds_min_metadata_example(
+            variable_id=variable_id, units=units
+        )
+        ds["time"].encoding = {
+            "calendar": "proleptic_gregorian",
+            "units": "days since 1850-01-01 00:00:00",
+            "dtype": np.dtypes.Float32DType,
+        }
+
+        input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
+            data=ds,
+            metadata_minimum=metadata_minimum,
+            standard_and_or_long_names={variable_id: {"standard_name": variable_id}},
+            cvs=cvs,
+        )
+
+        written_file = input4mips_ds.write(root_data_dir=tree_root)
+
+        written_files.append(written_file)
+
+    return written_files

@@ -22,9 +22,7 @@ from input4mips_validation.cvs.license import (
     LicenseEntry,
     LicenseValues,
 )
-from input4mips_validation.cvs.loading import (
-    load_cvs,
-)
+from input4mips_validation.cvs.loading import load_cvs, load_cvs_known_loader
 from input4mips_validation.cvs.loading_raw import (
     RawCVLoaderLocal,
     get_raw_cvs_loader,
@@ -44,7 +42,7 @@ def test_load_cvs():
     )
 
     raw_cvs_loader = get_raw_cvs_loader(cv_source=input4mips_cv_source)
-    res = load_cvs(raw_cvs_loader=raw_cvs_loader)
+    res = load_cvs_known_loader(raw_cvs_loader=raw_cvs_loader)
 
     exp = Input4MIPsCVs(
         raw_loader=RawCVLoaderLocal(root_dir=Path(input4mips_cv_source)),

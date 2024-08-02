@@ -10,7 +10,17 @@ from __future__ import annotations
 import tomli
 import typer
 import yaml
+from attrs import define
 from packaging.version import Version
+
+
+@define
+class VersionInfoHere:
+    """Version info class for use in this script"""
+
+    name: str
+    min_pin: str
+    max_pin: str
 
 
 def main() -> None:
@@ -33,6 +43,7 @@ def main() -> None:
         "pint-xarray": "pint_xarray",
     }
     name_install_map = {"pint_xarray": "pint-xarray", "Pint": "pint"}
+    version_info_l = []
     for dependency in pyproject_toml["project"]["dependencies"]:
         package_name = (
             dependency.split(">")[0].split("<")[0].split(">=")[0].split("<=")[0]
@@ -90,8 +101,19 @@ def main() -> None:
 
         vv = Version(version)
         max_pin = f"{vv.major}.{vv.minor}.{vv.micro + 1}"
+        version_info_l.append(
+            VersionInfoHere(name=name, min_pin=version, max_pin=max_pin)
+        )
+
+    print("Pins for library")
+    for vi in version_info_l:
+        print(f"- {vi.name}")
+
+    print("")
+    print("Pins for application")
+    for vi in version_info_l:
         print(
-            f"- {{{{ pin_compatible('{name}', min_pin='{version}', max_pin='{max_pin}') }}}}"  # noqa: E501
+            f"- {{{{ pin_compatible('{vi.name}', min_pin='{vi.min_pin}', max_pin='{vi.max_pin}') }}}}"  # noqa: E501
         )
 
 

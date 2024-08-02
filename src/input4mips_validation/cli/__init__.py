@@ -10,19 +10,24 @@ from pathlib import Path
 from typing import Annotated, Optional
 
 import iris
-import rich
 import typer
 from loguru import logger
 
 import input4mips_validation
+from input4mips_validation.cli.common_arguments_and_options import (
+    ALLOW_CF_CHECKER_WARNINGS_TYPE,
+    BNDS_COORD_INDICATOR_TYPE,
+    CV_SOURCE_OPTION,
+    FREQUENCY_METADATA_KEY_OPTION,
+    NO_TIME_AXIS_FREQUENCY_OPTION,
+    RGLOB_INPUT_OPTION,
+    TIME_DIMENSION_OPTION,
+)
+from input4mips_validation.cli.db import app as app_db
 from input4mips_validation.cvs.loading import load_cvs
-from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
-from input4mips_validation.database import Input4MIPsDatabaseEntryFile
-from input4mips_validation.database.creation import create_db_file_entries
 from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.inference.from_data import infer_time_start_time_end
 from input4mips_validation.logging import setup_logging
-from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
 from input4mips_validation.upload_ftp import upload_ftp
 from input4mips_validation.validation import (
     InvalidFileError,
@@ -34,81 +39,6 @@ from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
 
 app = typer.Typer()
 
-CV_SOURCE_TYPE = Annotated[
-    Optional[str],
-    typer.Option(
-        help=(
-            "String identifying the source of the CVs. "
-            "If not supplied, this is retrieved from the environment variable "
-            "``INPUT4MIPS_VALIDATION_CV_SOURCE``. "
-            ""
-            "If this environment variable is also not set, "
-            "we raise a ``NotImplementedError``. "
-            ""
-            "If this starts with 'gh:', we retrieve the data from PCMD's GitHub, "
-            "using everything after the colon as the ID for the Git object to use "
-            "(where the ID can be a branch name, a tag or a commit ID). "
-            ""
-            "Otherwise we simply return the path as provided and use the "
-            "[validators][https://validators.readthedocs.io/en/stable] "
-            "package to decide if the source points to a URL or not "
-            "(i.e. whether we should look for the CVs locally "
-            "or retrieve them from a URL)."
-        ),
-    ),
-]
-
-BNDS_COORD_INDICATOR_TYPE = Annotated[
-    str,
-    typer.Option(
-        help=(
-            "String that indicates that a variable is a bounds co-ordinate. "
-            "This helps us with identifying `infile`'s variables correctly "
-            "in the absence of an agreed convention for doing this "
-            "(xarray has a way, "
-            "but it conflicts with the CF-conventions hence iris, "
-            "so here we are)."
-        )
-    ),
-]
-
-FREQUENCY_METADATA_KEY_TYPE = Annotated[
-    str,
-    typer.Option(
-        help=(
-            "The key in the data's metadata "
-            "which points to information about the data's frequency. "
-        )
-    ),
-]
-
-NO_TIME_AXIS_FREQUENCY_TYPE = Annotated[
-    str,
-    typer.Option(
-        help=(
-            "The value of `frequency_metadata_key` in the metadata which indicates "
-            "that the file has no time axis i.e. is fixed in time."
-        )
-    ),
-]
-
-TIME_DIMENSION_TYPE = Annotated[
-    str,
-    typer.Option(help=("The time dimension of the data.")),
-]
-
-RGLOB_INPUT_TYPE = Annotated[
-    str,
-    typer.Option(help=("String to use when applying `rglob` to find input files.")),
-]
-
-ALLOW_CF_CHECKER_WARNINGS_TYPE = Annotated[
-    bool,
-    typer.Option(
-        "--allow-cf-checker-warnings",
-        help="Allow validation to pass, even if the CF-checker raises warnings",
-    ),
-]
 
 # May be handy, although my current feeling is that logging via loguru
 # can offer same thing with much better control.
@@ -197,7 +127,7 @@ def validate_file_command(  # noqa: PLR0913
             help="The file to validate", exists=True, dir_okay=False, file_okay=True
         ),
     ],
-    cv_source: CV_SOURCE_TYPE = None,
+    cv_source: CV_SOURCE_OPTION = None,
     write_in_drs: Annotated[
         Optional[Path],
         typer.Option(
@@ -210,22 +140,10 @@ def validate_file_command(  # noqa: PLR0913
             show_default=False,
         ),
     ] = None,
-    create_db_entry: Annotated[
-        bool,
-        typer.Option(
-            help=(
-                "Should a database entry be created? "
-                "If `True`, we will attempt to create a database entry. "
-                "This database entry will be logged to the screen. "
-                "For creation of a database based on a tree, "
-                "use the `validate-tree` command."
-            ),
-        ),
-    ] = False,
     bnds_coord_indicator: BNDS_COORD_INDICATOR_TYPE = "bnds",
-    frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
-    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
-    time_dimension: TIME_DIMENSION_TYPE = "time",
+    frequency_metadata_key: FREQUENCY_METADATA_KEY_OPTION = "frequency",
+    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
+    time_dimension: TIME_DIMENSION_OPTION = "time",
     allow_cf_checker_warnings: ALLOW_CF_CHECKER_WARNINGS_TYPE = False,
 ) -> None:
     """
@@ -247,8 +165,7 @@ def validate_file_command(  # noqa: PLR0913
         raise typer.Exit(code=1) from exc
 
     if write_in_drs:
-        raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
-        cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+        cvs = load_cvs(cv_source=cv_source)
 
         ds = ds_from_iris_cubes(
             iris.load(file), bnds_coord_indicator=bnds_coord_indicator
@@ -289,28 +206,6 @@ def validate_file_command(  # noqa: PLR0913
 
         logger.success(f"File written according to the DRS in {full_file_path}")
 
-    if create_db_entry:
-        if write_in_drs:
-            db_entry_creation_file = full_file_path
-        else:
-            db_entry_creation_file = file
-
-            # Also load the CVs, as they won't be loaded yet
-            raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
-            cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
-
-        database_entry = Input4MIPsDatabaseEntryFile.from_file(
-            db_entry_creation_file,
-            cvs=cvs,
-            frequency_metadata_key=frequency_metadata_key,
-            no_time_axis_frequency=no_time_axis_frequency,
-            time_dimension=time_dimension,
-        )
-
-        logger.info(f"{database_entry=}")
-        rich.print("Database entry as JSON:")
-        rich.print(json_dumps_cv_style(converter_json.unstructure(database_entry)))
-
 
 @app.command(name="validate-tree")
 def validate_tree_command(  # noqa: PLR0913
@@ -323,12 +218,12 @@ def validate_tree_command(  # noqa: PLR0913
             file_okay=False,
         ),
     ],
-    cv_source: CV_SOURCE_TYPE = None,
+    cv_source: CV_SOURCE_OPTION = None,
     bnds_coord_indicator: BNDS_COORD_INDICATOR_TYPE = "bnds",
-    frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
-    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
-    time_dimension: TIME_DIMENSION_TYPE = "time",
-    rglob_input: RGLOB_INPUT_TYPE = "*.nc",
+    frequency_metadata_key: FREQUENCY_METADATA_KEY_OPTION = "frequency",
+    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
+    time_dimension: TIME_DIMENSION_OPTION = "time",
+    rglob_input: RGLOB_INPUT_OPTION = "*.nc",
     allow_cf_checker_warnings: ALLOW_CF_CHECKER_WARNINGS_TYPE = False,
 ) -> None:
     """
@@ -351,76 +246,6 @@ def validate_tree_command(  # noqa: PLR0913
         logger.debug(f"{type(exc).__name__}: {exc}")
 
         raise typer.Exit(code=1) from exc
-
-
-@app.command(name="create-db")
-def create_db_command(  # noqa: PLR0913
-    tree_root: Annotated[
-        Path,
-        typer.Argument(
-            help="The root of the tree for which to create the database",
-            exists=True,
-            dir_okay=True,
-            file_okay=False,
-        ),
-    ],
-    db_file: Annotated[
-        Path,
-        typer.Option(
-            help=(
-                "The file in which to write the database entries. "
-                "At the moment, the file must not already exist. "
-                "In future, we will add functionality "
-                "to merge entries into an existing database."
-            ),
-            dir_okay=False,
-            file_okay=True,
-        ),
-    ],
-    validate: Annotated[
-        bool,
-        typer.Option(
-            help="Should the tree be validated before the database is created?"
-        ),
-    ] = True,
-    cv_source: CV_SOURCE_TYPE = None,
-    frequency_metadata_key: FREQUENCY_METADATA_KEY_TYPE = "frequency",
-    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_TYPE = "fx",
-    time_dimension: TIME_DIMENSION_TYPE = "time",
-    rglob_input: RGLOB_INPUT_TYPE = "*.nc",
-) -> None:
-    """
-    Create a database from a tree of files
-    """
-    if db_file.exists():
-        msg = "We haven't implemented functionality for merging databases yet"
-        raise NotImplementedError(msg)
-
-    if validate:
-        try:
-            validate_tree(
-                root=tree_root,
-                cv_source=cv_source,
-                frequency_metadata_key=frequency_metadata_key,
-                no_time_axis_frequency=no_time_axis_frequency,
-                time_dimension=time_dimension,
-                rglob_input=rglob_input,
-            )
-        except InvalidFileError as exc:
-            logger.debug(f"{type(exc).__name__}: {exc}")
-
-            raise typer.Exit(code=1) from exc
-
-    db_entries = create_db_file_entries(
-        root=tree_root,
-        cv_source=cv_source,
-        frequency_metadata_key=frequency_metadata_key,
-        no_time_axis_frequency=no_time_axis_frequency,
-        time_dimension=time_dimension,
-        rglob_input=rglob_input,
-    )
-    with open(db_file, "w") as fh:
-        fh.write(json_dumps_cv_style(converter_json.unstructure(db_entries)))
 
 
 @app.command(name="upload-ftp")
@@ -467,7 +292,7 @@ please use your email address here."""
     n_threads: Annotated[
         int, typer.Option(help="Number of threads to use during upload")
     ] = 4,
-    cv_source: CV_SOURCE_TYPE = None,
+    cv_source: CV_SOURCE_OPTION = None,
     dry_run: Annotated[
         bool,
         typer.Option(
@@ -484,9 +309,7 @@ In other words, don't actually upload the files, but show what would be uploaded
     We recommend running this with a log level of INFO to start,
     then adjusting from there.
     """
-    raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)
-    logger.debug(f"{raw_cvs_loader=}")
-    cvs = load_cvs(raw_cvs_loader=raw_cvs_loader)
+    cvs = load_cvs(cv_source=cv_source)
 
     upload_ftp(
         tree_root=tree_root,
@@ -501,6 +324,8 @@ In other words, don't actually upload the files, but show what would be uploaded
     )
     logger.success(f"Uploaded all files to {ftp_server}")
 
+
+app.add_typer(app_db, name="db")
 
 if __name__ == "__main__":
     app()

@@ -15,7 +15,6 @@ from typer.testing import CliRunner
 
 from input4mips_validation.cli import app
 from input4mips_validation.cvs.loading import load_cvs
-from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
@@ -39,7 +38,7 @@ def test_basic(tmp_path):
     """
     Write two files in a tree, then make sure we can validate the tree
     """
-    cvs = load_cvs(get_raw_cvs_loader(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE))
+    cvs = load_cvs(cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     # Create ourselves a tree
     written_files = []

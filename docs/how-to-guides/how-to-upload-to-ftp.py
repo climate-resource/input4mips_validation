@@ -121,3 +121,11 @@ if not list(tree_root.rglob("*.nc")):
 #     --ftp-dir-rel-to-root "dir-to-upload-in-goes-here-eg-your-institute-name" \
 #     --n-threads 10 \
 #     --dry-run
+
+# %% [markdown]
+# ## Next steps
+#
+# Once you have your files, now you are ready to upload them.
+# Before/during/just after you have upload the files,
+# please make an issue at [PCMDI/input4MIPs_CVs](https://github.com/PCMDI/input4MIPs_CVs/issues/new)
+# so we can ensure that your files are published as quickly as possible.

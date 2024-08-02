@@ -530,13 +530,13 @@ class DataReferenceSyntax:
         # just print out the directory and print out the template
         # and say, try again
         directory_metadata: dict[str, str | None] = self.extract_metadata_from_path(
-            file.absolute()
+            file.absolute().parent
         )
         file_metadata: dict[str, str | None] = self.extract_metadata_from_filename(
             file.name
         )
 
-        ds = xr.open_dataset(file)
+        ds = xr.open_dataset(file, use_cftime=True)
         comparison_metadata = {
             k: apply_known_replacements(v) for k, v in ds.attrs.items()
         }

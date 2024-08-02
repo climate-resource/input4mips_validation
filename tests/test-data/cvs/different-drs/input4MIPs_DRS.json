@@ -1,0 +1,6 @@
+{
+    "directory_path_example":"PCMDI-AMIP-1-1-9/gn",
+    "directory_path_template":"<source_id>/<grid_label>",
+    "filename_example":"tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-9_gn_187001-202212.nc",
+    "filename_template":"<variable_id>_<activity_id>_<dataset_category>_<target_mip>_<source_id>_<grid_label>[_<time_range>].nc"
+}

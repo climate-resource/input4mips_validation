@@ -1,5 +1,5 @@
 """
-Tests of our create-db command
+Tests of our `db create` command
 """
 
 from __future__ import annotations
@@ -12,20 +12,20 @@ from unittest.mock import patch
 import numpy as np
 import pint
 import pint_xarray  # noqa: F401 # required to activate pint accessor
-import pytest
 import xarray as xr
 from typer.testing import CliRunner
 
 from input4mips_validation.cli import app
 from input4mips_validation.cvs.loading import load_cvs
-from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
-from input4mips_validation.database import Input4MIPsDatabaseEntryFile
+from input4mips_validation.database import (
+    Input4MIPsDatabaseEntryFile,
+    load_database_file_entries,
+)
 from input4mips_validation.database.creation import create_db_file_entries
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
 from input4mips_validation.hashing import get_file_hash_sha256
-from input4mips_validation.serialisation import converter_json
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
 
 UR = pint.get_application_registry()
@@ -41,12 +41,11 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
 )
 
 
-@pytest.mark.parametrize("include_validation", (True, False))
-def test_basic(tmp_path, include_validation):
+def test_basic(tmp_path):
     """
     Write two files in a tree, then make sure we can create the database
     """
-    cvs = load_cvs(get_raw_cvs_loader(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE))
+    cvs = load_cvs(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     # Create ourselves a tree
     tree_root = tmp_path / "netcdf-files"
@@ -86,11 +85,6 @@ def test_basic(tmp_path, include_validation):
         info[variable_id]["esgf_dataset_master_id"] = str(
             written_file.relative_to(tree_root).parent
         ).replace(os.sep, ".")
-
-    # Test the function directly first (helps with debugging)
-    db_entries = create_db_file_entries(
-        tree_root, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
-    )
 
     # If this gets run just at the turn of midnight, this may fail.
     # That is a risk I am willing to take.
@@ -149,25 +143,34 @@ def test_basic(tmp_path, include_validation):
         ]
     )
 
+    # Test the function directly first (helps with debugging)
+    db_entries = create_db_file_entries(
+        tree_root.rglob("*.nc"), cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+    )
+
     assert set(db_entries) == set(db_entries_exp)
 
-    db_file = tmp_path / "test_create_db_basic.json"
+    db_dir = tmp_path / "test-create-db-basic"
+
+    # Expect file database to be composed of file entries,
+    # each named with their hash.
+    exp_created_files = [f"{v['sha256']}.json" for v in info.values()]
+
     # Then test the CLI
     with patch.dict(
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
-        args = ["create-db", str(tree_root), "--db-file", str(db_file)]
-        if not include_validation:
-            args.append("--no-validate")
-
+        args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
         result = runner.invoke(app, args)
 
     assert result.exit_code == 0, result.exc_info
 
-    with open(db_file) as fh:
-        db_entries_cli = converter_json.loads(
-            fh.read(), tuple[Input4MIPsDatabaseEntryFile, ...]
-        )
+    created_files = list(db_dir.glob("*.json"))
+    assert len(created_files) == len(exp_created_files)
+    for exp_created_file in exp_created_files:
+        assert (db_dir / exp_created_file).exists()
+
+    db_entries_cli = load_database_file_entries(db_dir)
 
     assert set(db_entries_cli) == set(db_entries_exp)

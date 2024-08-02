@@ -20,7 +20,6 @@ from typer.testing import CliRunner
 
 from input4mips_validation.cli import app
 from input4mips_validation.cvs.loading import load_cvs
-from input4mips_validation.cvs.loading_raw import get_raw_cvs_loader
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
@@ -60,7 +59,7 @@ def test_validate_write_in_drs(tmp_path):
     }
 
     # Create our full, input4MIPs dataset
-    cvs = load_cvs(get_raw_cvs_loader(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE))
+    cvs = load_cvs(cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
         data=ds,
@@ -92,7 +91,6 @@ def test_validate_write_in_drs(tmp_path):
                 str(start_file),
                 "--write-in-drs",
                 str(write_root_path),
-                "--create-db-entry",
             ],
         )
 

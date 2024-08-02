@@ -462,8 +462,13 @@ tracking_id = f"hdl:21.14100/{uuid.uuid4()}"
     ),
     "validated_input4mips": Attribute(
         name="validated_input4mips",
-        type_dec="bool = False",
-        docstring="Has this file been validated by the input4MIPs team?",
+        type_dec="Union[bool, None] = None",
+        docstring="""Has this file been validated by the input4MIPs team?
+
+If `None`, the file has not been validated yet.
+If `True`, the file passed valdiation.
+If `False`, the file failed validation.
+""",
         comments=[],
     ),
     "variable_id": Attribute(

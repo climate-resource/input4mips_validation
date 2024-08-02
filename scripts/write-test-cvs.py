@@ -7,6 +7,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import typer
+from attrs import evolve
 
 from input4mips_validation.cvs.activity_id import (
     ACTIVITY_ID_FILENAME,
@@ -43,19 +44,72 @@ from input4mips_validation.serialisation import json_dumps_cv_style
 HERE = Path(__file__).parent
 
 
+def dump_cvs(  # noqa: PLR0913
+    dir: Path,
+    source_id_entries: SourceIDEntries,
+    license_entries: LicenseEntries,
+    institution_ids: tuple[str, ...],
+    drs: DataReferenceSyntax,
+    activity_id_entries: ActivityIDEntries,
+) -> None:
+    """
+    Dump CVs to a given directory
+    """
+    with open(dir / "README.md", "w") as fh:
+        fh.write(
+            "The files in this directory are auto-generated with "
+            f"`{Path(__file__).parent}/{Path(__file__).name}`.\n\n"
+            "Do not edit them by hand.\n"
+        )
+
+    with open(dir / SOURCE_ID_FILENAME, "w") as fh:
+        fh.write(
+            json_dumps_cv_style(
+                convert_source_id_entries_to_unstructured_cv(source_id_entries)
+            )
+        )
+        fh.write("\n")
+
+    with open(dir / LICENSE_FILENAME, "w") as fh:
+        fh.write(
+            json_dumps_cv_style(
+                convert_license_entries_to_unstructured_cv(license_entries)
+            )
+        )
+        fh.write("\n")
+
+    with open(dir / INSTITUTION_ID_FILENAME, "w") as fh:
+        fh.write(
+            json_dumps_cv_style(
+                convert_institution_ids_to_unstructured_cv(institution_ids)
+            )
+        )
+        fh.write("\n")
+
+    with open(dir / DATA_REFERENCE_SYNTAX_FILENAME, "w") as fh:
+        fh.write(json_dumps_cv_style(convert_drs_to_unstructured_cv(drs)))
+        fh.write("\n")
+
+    with open(dir / ACTIVITY_ID_FILENAME, "w") as fh:
+        fh.write(
+            json_dumps_cv_style(
+                convert_activity_id_entries_to_unstructured_cv(activity_id_entries)
+            )
+        )
+        fh.write("\n")
+
+
 def main() -> None:
     """
     Write the test CVs files
     """
-    TEST_CVS_PATH = HERE / ".." / "tests" / "test-data" / "cvs" / "default"
-    TEST_CVS_PATH.mkdir(exist_ok=True, parents=True)
+    TEST_CVS_PATH = HERE / ".." / "tests" / "test-data" / "cvs"
 
-    with open(TEST_CVS_PATH / "README.md", "w") as fh:
-        fh.write(
-            "The files in this directory are auto-generated with "
-            "`scripts/create-test-cvs.py`.\n\n"
-            "Do not edit them by hand.\n"
-        )
+    TEST_CVS_DEFAULT_PATH = TEST_CVS_PATH / "default"
+    TEST_CVS_DEFAULT_PATH.mkdir(exist_ok=True, parents=True)
+
+    TEST_CVS_DIFFERENT_DRS_PATH = TEST_CVS_PATH / "different-drs"
+    TEST_CVS_DIFFERENT_DRS_PATH.mkdir(exist_ok=True, parents=True)
 
     activity_id_entries = ActivityIDEntries(
         (
@@ -70,13 +124,6 @@ def main() -> None:
             ),
         )
     )
-    with open(TEST_CVS_PATH / ACTIVITY_ID_FILENAME, "w") as fh:
-        fh.write(
-            json_dumps_cv_style(
-                convert_activity_id_entries_to_unstructured_cv(activity_id_entries)
-            )
-        )
-        fh.write("\n")
 
     drs = DataReferenceSyntax(
         directory_path_example="input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-1-9/ocean/mon/tos/gn/v20230512/",
@@ -84,18 +131,8 @@ def main() -> None:
         filename_example="tos_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-9_gn_187001-202212.nc",
         filename_template="<variable_id>_<activity_id>_<dataset_category>_<target_mip>_<source_id>_<grid_label>[_<time_range>].nc",
     )
-    with open(TEST_CVS_PATH / DATA_REFERENCE_SYNTAX_FILENAME, "w") as fh:
-        fh.write(json_dumps_cv_style(convert_drs_to_unstructured_cv(drs)))
-        fh.write("\n")
 
     institution_ids = ("CR",)
-    with open(TEST_CVS_PATH / INSTITUTION_ID_FILENAME, "w") as fh:
-        fh.write(
-            json_dumps_cv_style(
-                convert_institution_ids_to_unstructured_cv(institution_ids)
-            )
-        )
-        fh.write("\n")
 
     license_entries = LicenseEntries(
         (
@@ -123,13 +160,6 @@ def main() -> None:
             ),
         )
     )
-    with open(TEST_CVS_PATH / LICENSE_FILENAME, "w") as fh:
-        fh.write(
-            json_dumps_cv_style(
-                convert_license_entries_to_unstructured_cv(license_entries)
-            )
-        )
-        fh.write("\n")
 
     source_id_entries = SourceIDEntries(
         (
@@ -146,13 +176,30 @@ def main() -> None:
             ),
         )
     )
-    with open(TEST_CVS_PATH / SOURCE_ID_FILENAME, "w") as fh:
-        fh.write(
-            json_dumps_cv_style(
-                convert_source_id_entries_to_unstructured_cv(source_id_entries)
-            )
-        )
-        fh.write("\n")
+
+    dump_cvs(
+        TEST_CVS_DEFAULT_PATH,
+        source_id_entries=source_id_entries,
+        license_entries=license_entries,
+        institution_ids=institution_ids,
+        drs=drs,
+        activity_id_entries=activity_id_entries,
+    )
+
+    drs_different = evolve(
+        drs,
+        directory_path_example="PCMDI-AMIP-1-1-9/gn",
+        directory_path_template="<source_id>/<grid_label>",
+    )
+
+    dump_cvs(
+        TEST_CVS_DIFFERENT_DRS_PATH,
+        source_id_entries=source_id_entries,
+        license_entries=license_entries,
+        institution_ids=institution_ids,
+        drs=drs_different,
+        activity_id_entries=activity_id_entries,
+    )
 
 
 if __name__ == "__main__":

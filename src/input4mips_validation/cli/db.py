@@ -1,5 +1,5 @@
 """
-Database handling from the CLI
+CLI for database handling
 """
 
 # # Do not use this here, it breaks typer's annotations

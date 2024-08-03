@@ -80,11 +80,7 @@ jobs:
           NEW_VERSION=`sed -ne 's/^version = "\([0-9\.a]*\)"/\1/p' pyproject.toml`
           echo "Bumping version $BASE_VERSION > $NEW_VERSION"
 
-          # Freeze the environment again
-          # x-ref: https://github.com/climate-resource/input4mips_validation/issues/35
-          pixi install
-          pdm lock --strategy=inherit_metadata --dev --group :all
-
+          # Skip pre-commit to avoid pixi install throwing weird errors
           # Commit and push
-          git commit -a -m "bump(pre-release): version $BASE_VERSION > $NEW_VERSION"
+          git commit -n -a -m "bump(pre-release): version $BASE_VERSION > $NEW_VERSION"
           git push

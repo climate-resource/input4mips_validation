@@ -18,6 +18,8 @@ runs:
         # pre-commit ensures that pixi.lock is up to date with pyproject.toml,
         # hence here we can just follow the lock file exactly
         frozen: true
-        # Pixi breaks our CI if we use `locked: true` here
+        # Pixi breaks our entire CI if we use `locked: true` here
         # because it thinks we need to update our lock file
         # when we update our version number in `pyproject.toml`.
+        # We check the locked status using the `check-lock-file` job
+        # in the CI workflow instead.

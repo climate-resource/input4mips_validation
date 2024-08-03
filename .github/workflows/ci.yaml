@@ -97,6 +97,14 @@ jobs:
           tar -tvf dist/input4mips_validation-*.tar.gz --wildcards '*input4mips_validation/py.typed'
           tar -tvf dist/input4mips_validation-*.tar.gz --wildcards 'input4mips_validation-*/LICENCE'
 
+  check-lock-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Check locked install
+        uses: prefix-dev/setup-pixi@v0.8.1
+        locked: true
 
   # # Not sure how to do this with conda in the mix yet,
   # # hence leave out for now

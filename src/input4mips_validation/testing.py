@@ -8,7 +8,7 @@ and generation of test/example instances.
 from __future__ import annotations
 
 import os
-from collections.abc import Iterable
+from collections.abc import Collection
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -113,9 +113,9 @@ def get_valid_ds_min_metadata_example(
 
 
 def create_files_in_tree(  # noqa: PLR0913
-    variable_ids: Iterable[str],
-    units: Iterable[str],
-    fixed_fields: Iterable[bool],
+    variable_ids: Collection[str],
+    units: Collection[str],
+    fixed_fields: Collection[bool],
     tree_root: Path,
     cvs: Input4MIPsCVs,
     dataset_category: Optional[str] = None,

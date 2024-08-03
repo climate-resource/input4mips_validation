@@ -325,8 +325,11 @@ class Input4MIPsDataset:
             variable_id=variable_id,
         )
 
-        # Make sure time appears first as this is what CF conventions expect
-        return cls(data=data.transpose(time_dimension, ...), metadata=metadata, cvs=cvs)
+        if time_dimension in data:
+            # Make sure time appears first as this is what CF conventions expect
+            data = data.transpose(time_dimension, ...)
+
+        return cls(data=data, metadata=metadata, cvs=cvs)
 
     @classmethod
     def from_data_producer_minimum_information_multiple_variable(  # noqa: PLR0913
@@ -483,8 +486,11 @@ class Input4MIPsDataset:
             variable_id=variable_id,
         )
 
-        # Make sure time appears first as this is what CF conventions expect
-        return cls(data=data.transpose(time_dimension, ...), metadata=metadata, cvs=cvs)
+        if time_dimension in data:
+            # Make sure time appears first as this is what CF conventions expect
+            data = data.transpose(time_dimension, ...)
+
+        return cls(data=data, metadata=metadata, cvs=cvs)
 
     def write(  # noqa: PLR0913
         self,

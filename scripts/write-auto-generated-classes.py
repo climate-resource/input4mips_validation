@@ -218,8 +218,10 @@ For the comments that were made at the time of writing the file, see `comment`.
     ),
     "datetime_end": Attribute(
         name="datetime_end",
-        type_dec="str",
-        docstring="The file's end time",
+        type_dec="Union[str, None]",
+        docstring="""The file's end time
+
+If the file has no time axis or is a fixed file, this should be `None`""",
         comments=[
             "TODO: validation",
             "Should have specific form, based on file's frequency or standard",
@@ -228,8 +230,10 @@ For the comments that were made at the time of writing the file, see `comment`.
     ),
     "datetime_start": Attribute(
         name="datetime_start",
-        type_dec="str",
-        docstring="The file's start time",
+        type_dec="Union[str, None]",
+        docstring="""The file's start time
+
+If the file has no time axis or is a fixed file, this should be `None`""",
         comments=[
             "TODO: validation",
             "Should have specific form, based on file's frequency or standard",
@@ -425,8 +429,10 @@ See `comment_post_publication` for an explanation of why.""",
     ),
     "time_range": Attribute(
         name="time_range",
-        type_dec="str",
-        docstring="The file's time range",
+        type_dec="Union[str, None]",
+        docstring="""The file's time range
+
+If the file has no time axis or is a fixed file, this should be `None`""",
         comments=[
             "TODO: validation",
             "Should have specific form, based on file's frequency.",

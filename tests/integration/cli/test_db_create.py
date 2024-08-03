@@ -26,7 +26,9 @@ from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
 from input4mips_validation.hashing import get_file_hash_sha256
-from input4mips_validation.testing import get_valid_ds_min_metadata_example
+from input4mips_validation.testing import (
+    get_valid_ds_min_metadata_example,
+)
 
 UR = pint.get_application_registry()
 try:

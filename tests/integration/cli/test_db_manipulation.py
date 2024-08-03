@@ -14,24 +14,19 @@ from pathlib import Path
 from unittest.mock import patch
 
 import netCDF4
-import numpy as np
 import pint
 import pint_xarray  # noqa: F401 # required to activate pint accessor
-import xarray as xr
 from typer.testing import CliRunner
 
 from input4mips_validation.cli import app
-from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.database import (
     Input4MIPsDatabaseEntryFile,
     load_database_file_entries,
 )
-from input4mips_validation.dataset import (
-    Input4MIPsDataset,
+from input4mips_validation.testing import (
+    create_files_in_tree_return_info,
 )
-from input4mips_validation.hashing import get_file_hash_sha256
-from input4mips_validation.testing import get_valid_ds_min_metadata_example
 
 UR = pint.get_application_registry()
 try:
@@ -51,52 +46,11 @@ DIFFERENT_DRS_CV_SOURCE = str(
 )
 
 
-def add_files_to_tree(
-    variable_ids: Iterable[str],
-    units: Iterable[str],
-    tree_root: Path,
-    cvs: Input4MIPsCVs,
-) -> dict[str, dict[str, str]]:
-    written_files = []
-    info = {}
-    for variable_id, units in zip(variable_ids, units):
-        ds, metadata_minimum = get_valid_ds_min_metadata_example(
-            variable_id=variable_id, units=units
-        )
-        ds["time"].encoding = {
-            "calendar": "proleptic_gregorian",
-            "units": "days since 1850-01-01 00:00:00",
-            # Time has to be encoded as float
-            # to ensure that half-days etc. are handled.
-            "dtype": np.dtypes.Float32DType,
-        }
-
-        input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
-            data=ds,
-            metadata_minimum=metadata_minimum,
-            standard_and_or_long_names={variable_id: {"standard_name": variable_id}},
-            cvs=cvs,
-        )
-
-        written_file = input4mips_ds.write(root_data_dir=tree_root)
-
-        written_files.append(written_file)
-
-        ds = xr.open_dataset(written_file)
-        info[variable_id] = {k: ds.attrs[k] for k in ["creation_date", "tracking_id"]}
-        info[variable_id]["sha256"] = get_file_hash_sha256(written_file)
-        info[variable_id]["filepath"] = str(written_file)
-        info[variable_id]["esgf_dataset_master_id"] = str(
-            written_file.relative_to(tree_root).parent
-        ).replace(os.sep, ".")
-
-    return info
-
-
 def create_db_entries_exp(
     variable_ids: Iterable[str],
     info: dict[str, dict[str, str]],
     version_exp: str,
+    fixed_variable_ids: tuple[str, ...] = (),
 ) -> tuple[Input4MIPsDatabaseEntryFile, ...]:
     db_entries_exp = tuple(
         Input4MIPsDatabaseEntryFile(
@@ -105,11 +59,15 @@ def create_db_entries_exp(
             contact="zebedee.nicholls@climate-resource.com;malte.meinshausen@climate-resource.com",
             creation_date=info[variable_id]["creation_date"],
             dataset_category="GHGConcentrations",
-            datetime_end="2010-12-01T00:00:00Z",
-            datetime_start="2000-01-01T00:00:00Z",
+            datetime_end="2010-12-01T00:00:00Z"
+            if variable_id not in fixed_variable_ids
+            else None,
+            datetime_start="2000-01-01T00:00:00Z"
+            if variable_id not in fixed_variable_ids
+            else None,
             esgf_dataset_master_id=info[variable_id]["esgf_dataset_master_id"],
             filepath=info[variable_id]["filepath"],
-            frequency="mon",
+            frequency="mon" if variable_id not in fixed_variable_ids else "fx",
             further_info_url="http://www.tbd.invalid",
             grid_label="gn",
             institution_id="CR",
@@ -137,7 +95,9 @@ def create_db_entries_exp(
             source_id="CR-CMIP-0-2-0",
             source_version="0.2.0",
             target_mip="CMIP",
-            time_range="200001-201012",
+            time_range="200001-201012"
+            if variable_id not in fixed_variable_ids
+            else None,
             tracking_id=info[variable_id]["tracking_id"],
             variable_id=variable_id,
             version=version_exp,
@@ -173,12 +133,15 @@ def test_add_flow(tmp_path):
     variable_ids = (
         "mole_fraction_of_carbon_dioxide_in_air",
         "mole_fraction_of_methane_in_air",
+        "areacella",
     )
-    info = add_files_to_tree(
+    info = create_files_in_tree_return_info(
         variable_ids=variable_ids,
-        units=("ppm", "ppb"),
+        units=("ppm", "ppb", "%"),
+        fixed_fields=(False, False, True),
         tree_root=tree_root,
         cvs=cvs,
+        dataset_category="GHGConcentrations",
     )
 
     # If this gets run just at the turn of midnight, this may fail.
@@ -188,6 +151,7 @@ def test_add_flow(tmp_path):
         variable_ids=variable_ids,
         info=info,
         version_exp=version_exp,
+        fixed_variable_ids=("areacella",),
     )
 
     db_dir = tmp_path / "test-create-db-basic"
@@ -219,9 +183,10 @@ def test_add_flow(tmp_path):
         "mole_fraction_of_nitrous_oxide_in_air",
         "mole_fraction_of_pfc7118_in_air",
     )
-    info_new = add_files_to_tree(
+    info_new = create_files_in_tree_return_info(
         variable_ids=variable_ids_new,
         units=("ppb", "ppt"),
+        fixed_fields=(False, False),
         tree_root=tree_root,
         cvs=cvs,
     )
@@ -290,12 +255,15 @@ def test_validate_flow(tmp_path):
     variable_ids = (
         "mole_fraction_of_carbon_dioxide_in_air",
         "mole_fraction_of_methane_in_air",
+        "areacella",
     )
-    info = add_files_to_tree(
+    info = create_files_in_tree_return_info(
         variable_ids=variable_ids,
-        units=("ppm", "ppb"),
+        units=("ppm", "ppb", "%"),
+        fixed_fields=(False, False, True),
         tree_root=tree_root,
         cvs=cvs,
+        dataset_category="GHGConcentrations",
     )
 
     # Break one of the files
@@ -346,9 +314,10 @@ def test_validate_flow(tmp_path):
         "mole_fraction_of_halon1211_in_air",
         "mole_fraction_of_pfc6116_in_air",
     )
-    info = add_files_to_tree(
+    info = create_files_in_tree_return_info(
         variable_ids=variable_ids,
         units=("ppt", "ppt"),
+        fixed_fields=(False, False),
         tree_root=tree_root,
         cvs=cvs,
     )

@@ -33,11 +33,19 @@ class Input4MIPsDatabaseEntryFileRaw:
     dataset_category: str
     """The file's category"""
 
-    datetime_end: str
-    """The file's end time"""
+    datetime_end: Union[str, None]
+    """
+    The file's end time
 
-    datetime_start: str
-    """The file's start time"""
+    If the file has no time axis or is a fixed file, this should be `None`
+    """
+
+    datetime_start: Union[str, None]
+    """
+    The file's start time
+
+    If the file has no time axis or is a fixed file, this should be `None`
+    """
 
     esgf_dataset_master_id: str
     """
@@ -90,8 +98,12 @@ class Input4MIPsDatabaseEntryFileRaw:
     target_mip: str
     """The MIP that this file targets"""
 
-    time_range: str
-    """The file's time range"""
+    time_range: Union[str, None]
+    """
+    The file's time range
+
+    If the file has no time axis or is a fixed file, this should be `None`
+    """
 
     tracking_id: str
     """

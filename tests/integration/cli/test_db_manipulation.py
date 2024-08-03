@@ -14,24 +14,19 @@ from pathlib import Path
 from unittest.mock import patch
 
 import netCDF4
-import numpy as np
 import pint
 import pint_xarray  # noqa: F401 # required to activate pint accessor
-import xarray as xr
 from typer.testing import CliRunner
 
 from input4mips_validation.cli import app
-from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.database import (
     Input4MIPsDatabaseEntryFile,
     load_database_file_entries,
 )
-from input4mips_validation.dataset import (
-    Input4MIPsDataset,
+from input4mips_validation.testing import (
+    create_files_in_tree_return_info,
 )
-from input4mips_validation.hashing import get_file_hash_sha256
-from input4mips_validation.testing import get_valid_ds_min_metadata_example
 
 UR = pint.get_application_registry()
 try:
@@ -51,46 +46,47 @@ DIFFERENT_DRS_CV_SOURCE = str(
 )
 
 
-def add_files_to_tree(
-    variable_ids: Iterable[str],
-    units: Iterable[str],
-    tree_root: Path,
-    cvs: Input4MIPsCVs,
-) -> dict[str, dict[str, str]]:
-    written_files = []
-    info = {}
-    for variable_id, units in zip(variable_ids, units):
-        ds, metadata_minimum = get_valid_ds_min_metadata_example(
-            variable_id=variable_id, units=units
-        )
-        ds["time"].encoding = {
-            "calendar": "proleptic_gregorian",
-            "units": "days since 1850-01-01 00:00:00",
-            # Time has to be encoded as float
-            # to ensure that half-days etc. are handled.
-            "dtype": np.dtypes.Float32DType,
-        }
-
-        input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
-            data=ds,
-            metadata_minimum=metadata_minimum,
-            standard_and_or_long_names={variable_id: {"standard_name": variable_id}},
-            cvs=cvs,
-        )
-
-        written_file = input4mips_ds.write(root_data_dir=tree_root)
-
-        written_files.append(written_file)
-
-        ds = xr.open_dataset(written_file)
-        info[variable_id] = {k: ds.attrs[k] for k in ["creation_date", "tracking_id"]}
-        info[variable_id]["sha256"] = get_file_hash_sha256(written_file)
-        info[variable_id]["filepath"] = str(written_file)
-        info[variable_id]["esgf_dataset_master_id"] = str(
-            written_file.relative_to(tree_root).parent
-        ).replace(os.sep, ".")
-
-    return info
+# def add_files_to_tree(
+#     variable_ids: Iterable[str],
+#     units: Iterable[str],
+#     tree_root: Path,
+#     cvs: Input4MIPsCVs,
+# ) -> dict[str, dict[str, str]]:
+#     written_files = []
+#     info = {}
+#     for variable_id, units in zip(variable_ids, units):
+#         ds, metadata_minimum = get_valid_ds_min_metadata_example(
+#             variable_id=variable_id, units=units
+#         )
+#         ds["time"].encoding = {
+#             "calendar": "proleptic_gregorian",
+#             "units": "days since 1850-01-01 00:00:00",
+#             # Time has to be encoded as float
+#             # to ensure that half-days etc. are handled.
+#             "dtype": np.dtypes.Float32DType,
+#         }
+#
+#         input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
+#             data=ds,
+#             metadata_minimum=metadata_minimum,
+#             standard_and_or_long_names={variable_id: {"standard_name": variable_id}},
+#             cvs=cvs,
+#         )
+#
+#         written_file = input4mips_ds.write(root_data_dir=tree_root)
+#
+#         written_files.append(written_file)
+#
+#         ds = xr.open_dataset(written_file)
+#         info[variable_id] = {k: ds.attrs[k] for k in ["creation_date", "tracking_id"]}
+#         info[variable_id]["sha256"] = get_file_hash_sha256(written_file)
+#         info[variable_id]["filepath"] = str(written_file)
+#         info[variable_id]["esgf_dataset_master_id"] = str(
+#             written_file.relative_to(tree_root).parent
+#         ).replace(os.sep, ".")
+#
+#     return info
+#
 
 
 def create_db_entries_exp(
@@ -174,7 +170,7 @@ def test_add_flow(tmp_path):
         "mole_fraction_of_carbon_dioxide_in_air",
         "mole_fraction_of_methane_in_air",
     )
-    info = add_files_to_tree(
+    info = create_files_in_tree_return_info(
         variable_ids=variable_ids,
         units=("ppm", "ppb"),
         tree_root=tree_root,
@@ -219,7 +215,7 @@ def test_add_flow(tmp_path):
         "mole_fraction_of_nitrous_oxide_in_air",
         "mole_fraction_of_pfc7118_in_air",
     )
-    info_new = add_files_to_tree(
+    info_new = create_files_in_tree_return_info(
         variable_ids=variable_ids_new,
         units=("ppb", "ppt"),
         tree_root=tree_root,
@@ -291,7 +287,7 @@ def test_validate_flow(tmp_path):
         "mole_fraction_of_carbon_dioxide_in_air",
         "mole_fraction_of_methane_in_air",
     )
-    info = add_files_to_tree(
+    info = create_files_in_tree_return_info(
         variable_ids=variable_ids,
         units=("ppm", "ppb"),
         tree_root=tree_root,
@@ -346,7 +342,7 @@ def test_validate_flow(tmp_path):
         "mole_fraction_of_halon1211_in_air",
         "mole_fraction_of_pfc6116_in_air",
     )
-    info = add_files_to_tree(
+    info = create_files_in_tree_return_info(
         variable_ids=variable_ids,
         units=("ppt", "ppt"),
         tree_root=tree_root,

@@ -7,9 +7,10 @@ and generation of test/example instances.
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 
 import cftime
 import numpy as np
@@ -21,6 +22,7 @@ from input4mips_validation.dataset import (
     Input4MIPsDataset,
     Input4MIPsDatasetMetadataDataProducerMinimum,
 )
+from input4mips_validation.hashing import get_file_hash_sha256
 
 
 def get_valid_ds_min_metadata_example(
@@ -143,3 +145,37 @@ def create_files_in_tree(
         written_files.append(written_file)
 
     return written_files
+
+
+def create_files_in_tree_return_info(tree_root: Path, **kwargs: Any) -> dict[str, str]:
+    """
+    Create files in tree, returning information about them useful for testing
+
+    Parameters
+    ----------
+    tree_root
+        Root of the tree in which to write the files
+
+    **kwargs
+        Passed to
+        [`create_files_in_tree`][input4mips_validation.testing.create_files_in_tree]
+
+    Returns
+    -------
+    :
+        Information about the files useful for testing
+    """
+    written_files = create_files_in_tree(tree_root=tree_root, **kwargs)
+    info = {}
+    for written_file in written_files:
+        ds = xr.open_dataset(written_file)
+
+        variable_id = ds.attrs["variable_id"]
+        info[variable_id] = {k: ds.attrs[k] for k in ["creation_date", "tracking_id"]}
+        info[variable_id]["sha256"] = get_file_hash_sha256(written_file)
+        info[variable_id]["filepath"] = str(written_file)
+        info[variable_id]["esgf_dataset_master_id"] = str(
+            written_file.relative_to(tree_root).parent
+        ).replace(os.sep, ".")
+
+    return info

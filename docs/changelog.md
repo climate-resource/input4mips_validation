@@ -19,7 +19,7 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
-# ## input4mips-validation v0.11.1 (2024-08-03)
+## input4mips-validation v0.11.1 (2024-08-03)
 
 ### 🎉 Improvements
 

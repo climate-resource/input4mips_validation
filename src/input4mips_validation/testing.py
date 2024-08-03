@@ -10,7 +10,7 @@ from __future__ import annotations
 import os
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 import cftime
 import numpy as np
@@ -29,6 +29,7 @@ def get_valid_ds_min_metadata_example(
     variable_id: str = "siconc",
     units: str = "%",
     unit_registry: Union[pint.registry.UnitRegistry, None] = None,
+    fixed_field: bool = False,
 ) -> tuple[xr.Dataset, Input4MIPsDatasetMetadataDataProducerMinimum]:
     """
     Get an example of a valid dataset and associated minimum metadata
@@ -69,36 +70,55 @@ def get_valid_ds_min_metadata_example(
 
     lon = np.arange(-165.0, 180.0, 30.0, dtype=np.float64)
     lat = np.arange(-82.5, 90.0, 15.0, dtype=np.float64)
-    time = [
-        cftime.datetime(y, m, 1) for y in range(2000, 2010 + 1) for m in range(1, 13)
-    ]
 
     rng = np.random.default_rng()
-    ds_data = ur.Quantity(
-        rng.random((lon.size, lat.size, len(time))),
-        units,
-    )
+    if fixed_field:
+        ds_data = ur.Quantity(
+            rng.random((lon.size, lat.size)),
+            units,
+        )
+        dimensions = ["lat", "lon"]
+        coords = dict(
+            lon=("lon", lon),
+            lat=("lat", lat),
+        )
 
-    ds = xr.Dataset(
-        data_vars={
-            variable_id: (["lat", "lon", "time"], ds_data),
-        },
-        coords=dict(
+    else:
+        time = [
+            cftime.datetime(y, m, 1)
+            for y in range(2000, 2010 + 1)
+            for m in range(1, 13)
+        ]
+
+        ds_data = ur.Quantity(
+            rng.random((lon.size, lat.size, len(time))),
+            units,
+        )
+        dimensions = ["lat", "lon", "time"]
+        coords = dict(
             lon=("lon", lon),
             lat=("lat", lat),
             time=time,
-        ),
+        )
+
+    ds = xr.Dataset(
+        data_vars={
+            variable_id: (dimensions, ds_data),
+        },
+        coords=coords,
         attrs={},
     )
 
     return ds, metadata_minimum
 
 
-def create_files_in_tree(
+def create_files_in_tree(  # noqa: PLR0913
     variable_ids: Iterable[str],
     units: Iterable[str],
+    fixed_fields: Iterable[bool],
     tree_root: Path,
     cvs: Input4MIPsCVs,
+    dataset_category: Optional[str] = None,
 ) -> list[Path]:
     """
     Create test files in a tree
@@ -111,11 +131,19 @@ def create_files_in_tree(
     units
         Units to use in/assign to the created files
 
+    fixed_fields
+        Should the created files be fixed field files?
+
+        For example, cell area files.
+
     tree_root
         Root of the tree in which to write the files
 
     cvs
         CVs to use when writing the files
+
+    dataset_category
+        Dataset category to apply to the created files
 
     Returns
     -------
@@ -123,21 +151,24 @@ def create_files_in_tree(
         List of created files
     """
     written_files = []
-    for variable_id, units in zip(variable_ids, units):
+    for variable_id, units, fixed_field in zip(variable_ids, units, fixed_fields):
         ds, metadata_minimum = get_valid_ds_min_metadata_example(
-            variable_id=variable_id, units=units
+            variable_id=variable_id, units=units, fixed_field=fixed_field
         )
-        ds["time"].encoding = {
-            "calendar": "proleptic_gregorian",
-            "units": "days since 1850-01-01 00:00:00",
-            "dtype": np.dtypes.Float32DType,
-        }
+        if "time" in ds:
+            ds["time"].encoding = {
+                "calendar": "proleptic_gregorian",
+                "units": "days since 1850-01-01 00:00:00",
+                # Ensure half-days are encoded correctly
+                "dtype": np.dtypes.Float32DType,
+            }
 
         input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
             data=ds,
             metadata_minimum=metadata_minimum,
             standard_and_or_long_names={variable_id: {"standard_name": variable_id}},
             cvs=cvs,
+            dataset_category=dataset_category,
         )
 
         written_file = input4mips_ds.write(root_data_dir=tree_root)

@@ -34,6 +34,10 @@ def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
     -------
         Inferred frequency
     """
+    if time_bounds not in ds:
+        # Fixed field
+        return "fx"
+
     # # Urgh this doesn't work because October 5 to October 15 1582
     # # don't exist in the mixed Julian/Gregorian calendar,
     # # so you don't get the right number of days for October 1582
@@ -52,10 +56,10 @@ def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
     # ```
     # # Hence have to use the hack below instead.
 
-    start_years = ds["time_bounds"].sel(bounds=0).dt.year
-    start_months = ds["time_bounds"].sel(bounds=0).dt.month
-    end_years = ds["time_bounds"].sel(bounds=1).dt.year
-    end_months = ds["time_bounds"].sel(bounds=1).dt.month
+    start_years = ds[time_bounds].sel(bounds=0).dt.year
+    start_months = ds[time_bounds].sel(bounds=0).dt.month
+    end_years = ds[time_bounds].sel(bounds=1).dt.year
+    end_months = ds[time_bounds].sel(bounds=1).dt.month
 
     month_diff = end_months - start_months
     year_diff = end_years - start_years
@@ -161,7 +165,6 @@ VARIABLE_DATASET_CATEGORY_MAP = {
     "tos": "SSTsAndSeaIce",
     "siconc": "SSTsAndSeaIce",
     "sftof": "SSTsAndSeaIce",
-    "areacello": "SSTsAndSeaIce",
     "mole_fraction_of_carbon_dioxide_in_air": "GHGConcentrations",
     "mole_fraction_of_methane_in_air": "GHGConcentrations",
     "mole_fraction_of_nitrous_oxide_in_air": "GHGConcentrations",
@@ -275,6 +278,7 @@ VARIABLE_REALM_MAP = {
     "mole_fraction_of_hfc134a_eq_in_air": "atmos",
     "solar_irradiance_per_unit_wavelength": "atmos",
     "solar_irradiance": "atmos",
+    "areacella": "atmos",
 }
 """
 Mapping from variable names to realm

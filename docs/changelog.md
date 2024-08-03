@@ -19,6 +19,25 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+# ## input4mips-validation v0.11.1 (2024-08-03)
+
+### 🎉 Improvements
+
+- Added support for data without a time axis to
+  [`from_data_producer_minimum_information`][input4mips_validation.dataset.Input4MIPsDataset.from_data_producer_minimum_information]
+  and [`from_data_producer_minimum_information_multiple_variable`][input4mips_validation.dataset.Input4MIPsDataset.from_data_producer_minimum_information_multiple_variable]. ([#56](https://github.com/climate-resource/input4mips_validation/pulls/56))
+
+### 🐛 Bug Fixes
+
+- Fixed the type hint for `datetime_end`, `datetime_start` and `time_range`.
+  These fields will now serialise and de-serialise correctly.
+  Previously, if these fields were `None`, they were serialised and de-serialised as strings. ([#56](https://github.com/climate-resource/input4mips_validation/pulls/56))
+
+### 🔧 Trivial/Internal Changes
+
+- [#56](https://github.com/climate-resource/input4mips_validation/pulls/56)
+
+
 ## input4mips-validation v0.11.0 (2024-08-02)
 
 

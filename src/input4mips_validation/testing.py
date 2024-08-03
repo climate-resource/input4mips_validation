@@ -150,6 +150,12 @@ def create_files_in_tree(  # noqa: PLR0913
     :
         List of created files
     """
+    if len(variable_ids) != len(units):
+        raise AssertionError
+
+    if len(variable_ids) != len(fixed_fields):
+        raise AssertionError
+
     written_files = []
     for variable_id, units, fixed_field in zip(variable_ids, units, fixed_fields):
         ds, metadata_minimum = get_valid_ds_min_metadata_example(

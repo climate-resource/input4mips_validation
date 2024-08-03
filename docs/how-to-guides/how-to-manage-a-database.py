@@ -69,10 +69,13 @@ starting_files = create_files_in_tree(
     (
         "mole_fraction_of_carbon_dioxide_in_air",
         "mole_fraction_of_methane_in_air",
+        "areacella",
     ),
-    ("ppm", "ppb"),
+    ("ppm", "ppb", "%"),
+    fixed_fields=(False, False, True),
     tree_root=FILE_TREE_ROOT,
     cvs=cvs,
+    dataset_category="GHGConcentrations",
 )
 print("To start with, these are the files in our tree: ")
 for file in starting_files:
@@ -178,6 +181,7 @@ added_files = create_files_in_tree(
         "mole_fraction_of_pfc6116_in_air",
     ),
     ("ppt", "ppt"),
+    fixed_fields=(False, False),
     tree_root=FILE_TREE_ROOT,
     cvs=cvs,
 )

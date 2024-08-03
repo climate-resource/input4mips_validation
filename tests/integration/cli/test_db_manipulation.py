@@ -46,49 +46,6 @@ DIFFERENT_DRS_CV_SOURCE = str(
 )
 
 
-# def add_files_to_tree(
-#     variable_ids: Iterable[str],
-#     units: Iterable[str],
-#     tree_root: Path,
-#     cvs: Input4MIPsCVs,
-# ) -> dict[str, dict[str, str]]:
-#     written_files = []
-#     info = {}
-#     for variable_id, units in zip(variable_ids, units):
-#         ds, metadata_minimum = get_valid_ds_min_metadata_example(
-#             variable_id=variable_id, units=units
-#         )
-#         ds["time"].encoding = {
-#             "calendar": "proleptic_gregorian",
-#             "units": "days since 1850-01-01 00:00:00",
-#             # Time has to be encoded as float
-#             # to ensure that half-days etc. are handled.
-#             "dtype": np.dtypes.Float32DType,
-#         }
-#
-#         input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
-#             data=ds,
-#             metadata_minimum=metadata_minimum,
-#             standard_and_or_long_names={variable_id: {"standard_name": variable_id}},
-#             cvs=cvs,
-#         )
-#
-#         written_file = input4mips_ds.write(root_data_dir=tree_root)
-#
-#         written_files.append(written_file)
-#
-#         ds = xr.open_dataset(written_file)
-#         info[variable_id] = {k: ds.attrs[k] for k in ["creation_date", "tracking_id"]}
-#         info[variable_id]["sha256"] = get_file_hash_sha256(written_file)
-#         info[variable_id]["filepath"] = str(written_file)
-#         info[variable_id]["esgf_dataset_master_id"] = str(
-#             written_file.relative_to(tree_root).parent
-#         ).replace(os.sep, ".")
-#
-#     return info
-#
-
-
 def create_db_entries_exp(
     variable_ids: Iterable[str],
     info: dict[str, dict[str, str]],
@@ -286,12 +243,15 @@ def test_validate_flow(tmp_path):
     variable_ids = (
         "mole_fraction_of_carbon_dioxide_in_air",
         "mole_fraction_of_methane_in_air",
+        "areacella",
     )
     info = create_files_in_tree_return_info(
         variable_ids=variable_ids,
-        units=("ppm", "ppb"),
+        units=("ppm", "ppb", "%"),
+        fixed_fields=(False, False, True),
         tree_root=tree_root,
         cvs=cvs,
+        dataset_category="GHGConcentrations",
     )
 
     # Break one of the files
@@ -345,6 +305,7 @@ def test_validate_flow(tmp_path):
     info = create_files_in_tree_return_info(
         variable_ids=variable_ids,
         units=("ppt", "ppt"),
+        fixed_fields=(False, False),
         tree_root=tree_root,
         cvs=cvs,
     )

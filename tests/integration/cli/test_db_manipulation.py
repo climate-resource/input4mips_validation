@@ -50,6 +50,7 @@ def create_db_entries_exp(
     variable_ids: Iterable[str],
     info: dict[str, dict[str, str]],
     version_exp: str,
+    fixed_variable_ids: tuple[str, ...] = (),
 ) -> tuple[Input4MIPsDatabaseEntryFile, ...]:
     db_entries_exp = tuple(
         Input4MIPsDatabaseEntryFile(
@@ -58,11 +59,15 @@ def create_db_entries_exp(
             contact="zebedee.nicholls@climate-resource.com;malte.meinshausen@climate-resource.com",
             creation_date=info[variable_id]["creation_date"],
             dataset_category="GHGConcentrations",
-            datetime_end="2010-12-01T00:00:00Z",
-            datetime_start="2000-01-01T00:00:00Z",
+            datetime_end="2010-12-01T00:00:00Z"
+            if variable_id not in fixed_variable_ids
+            else None,
+            datetime_start="2000-01-01T00:00:00Z"
+            if variable_id not in fixed_variable_ids
+            else None,
             esgf_dataset_master_id=info[variable_id]["esgf_dataset_master_id"],
             filepath=info[variable_id]["filepath"],
-            frequency="mon",
+            frequency="mon" if variable_id not in fixed_variable_ids else "fx",
             further_info_url="http://www.tbd.invalid",
             grid_label="gn",
             institution_id="CR",
@@ -90,7 +95,9 @@ def create_db_entries_exp(
             source_id="CR-CMIP-0-2-0",
             source_version="0.2.0",
             target_mip="CMIP",
-            time_range="200001-201012",
+            time_range="200001-201012"
+            if variable_id not in fixed_variable_ids
+            else None,
             tracking_id=info[variable_id]["tracking_id"],
             variable_id=variable_id,
             version=version_exp,
@@ -126,12 +133,15 @@ def test_add_flow(tmp_path):
     variable_ids = (
         "mole_fraction_of_carbon_dioxide_in_air",
         "mole_fraction_of_methane_in_air",
+        "areacella",
     )
     info = create_files_in_tree_return_info(
         variable_ids=variable_ids,
-        units=("ppm", "ppb"),
+        units=("ppm", "ppb", "%"),
+        fixed_fields=(False, False, True),
         tree_root=tree_root,
         cvs=cvs,
+        dataset_category="GHGConcentrations",
     )
 
     # If this gets run just at the turn of midnight, this may fail.
@@ -141,6 +151,7 @@ def test_add_flow(tmp_path):
         variable_ids=variable_ids,
         info=info,
         version_exp=version_exp,
+        fixed_variable_ids=("areacella",),
     )
 
     db_dir = tmp_path / "test-create-db-basic"
@@ -175,6 +186,7 @@ def test_add_flow(tmp_path):
     info_new = create_files_in_tree_return_info(
         variable_ids=variable_ids_new,
         units=("ppb", "ppt"),
+        fixed_fields=(False, False),
         tree_root=tree_root,
         cvs=cvs,
     )

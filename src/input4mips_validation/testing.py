@@ -72,18 +72,7 @@ def get_valid_ds_min_metadata_example(
     lat = np.arange(-82.5, 90.0, 15.0, dtype=np.float64)
 
     rng = np.random.default_rng()
-    if fixed_field:
-        ds_data = ur.Quantity(
-            rng.random((lon.size, lat.size)),
-            units,
-        )
-        dimensions = ["lat", "lon"]
-        coords = dict(
-            lon=("lon", lon),
-            lat=("lat", lat),
-        )
-
-    else:
+    if not fixed_field:
         time = [
             cftime.datetime(y, m, 1)
             for y in range(2000, 2010 + 1)
@@ -99,6 +88,17 @@ def get_valid_ds_min_metadata_example(
             lon=("lon", lon),
             lat=("lat", lat),
             time=time,
+        )
+
+    else:
+        ds_data = ur.Quantity(
+            rng.random((lon.size, lat.size)),
+            units,
+        )
+        dimensions = ["lat", "lon"]
+        coords = dict(
+            lon=("lon", lon),
+            lat=("lat", lat),
         )
 
     ds = xr.Dataset(
@@ -178,7 +178,9 @@ def create_files_in_tree(  # noqa: PLR0913
     return written_files
 
 
-def create_files_in_tree_return_info(tree_root: Path, **kwargs: Any) -> dict[str, str]:
+def create_files_in_tree_return_info(
+    tree_root: Path, **kwargs: Any
+) -> dict[str, dict[str, str]]:
     """
     Create files in tree, returning information about them useful for testing
 

@@ -17,7 +17,7 @@ jobs:
         with:
           pixi-environments: "all-dev"
       - name: mypy
-        run: MYPYPATH=stubs pixi run -e all-dev mypy src
+        run: MYPYPATH=stubs pixi run --frozen -e all-dev mypy src
 
   docs:
     if: ${{ !github.event.pull_request.draft }}
@@ -30,11 +30,11 @@ jobs:
           pixi-environments: "docs"
       - name: docs
         run: |
-          pixi run -e docs typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
-          pixi run -e docs mkdocs build --strict
+          pixi run --frozen -e docs typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
+          pixi run --frozen -e docs mkdocs build --strict
           # Check CHANGELOG will build too
-          pixi run -e all-dev towncrier build --yes
-          pixi run -e all-dev mkdocs build --strict
+          pixi run --frozen -e all-dev towncrier build --yes
+          pixi run --frozen -e all-dev mkdocs build --strict
           # Just in case, undo the staged changes
           git restore --staged . && git restore .
 
@@ -59,8 +59,8 @@ jobs:
           pixi-environments: "test-${{ matrix.test-python-id }}"
       - name: Run tests
         run: |
-          pixi run -e "test-${{ matrix.test-python-id }}" pytest -r a -v src tests --doctest-modules --cov=src --cov-report=term-missing --cov-report=xml
-          pixi run -e "test-${{ matrix.test-python-id }}"  coverage report
+          pixi run --frozen -e "test-${{ matrix.test-python-id }}" pytest -r a -v src tests --doctest-modules --cov=src --cov-report=term-missing --cov-report=xml
+          pixi run --frozen -e "test-${{ matrix.test-python-id }}"  coverage report
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
 
@@ -78,7 +78,7 @@ jobs:
         with:
           pixi-environments: "${{ matrix.python-id }}"
       - name: Check importable without extras
-        run: pixi run -e "${{ matrix.python-id }}" python scripts/test-install.py
+        run: pixi run --frozen -e "${{ matrix.python-id }}" python scripts/test-install.py
 
   check-build:
     runs-on: ubuntu-latest
@@ -97,6 +97,15 @@ jobs:
           tar -tvf dist/input4mips_validation-*.tar.gz --wildcards '*input4mips_validation/py.typed'
           tar -tvf dist/input4mips_validation-*.tar.gz --wildcards 'input4mips_validation-*/LICENCE'
 
+  check-lock-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Check locked install
+        uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          locked: true
 
   # # Not sure how to do this with conda in the mix yet,
   # # hence leave out for now

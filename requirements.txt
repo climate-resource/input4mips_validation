@@ -3,7 +3,7 @@
 
 antlr4-python3-runtime==4.7.2
 appdirs==1.4.4
-attrs==23.2.0
+attrs==24.1.0
 cartopy==0.23.0
 cattrs==23.2.3
 certifi==2024.7.4
@@ -35,7 +35,7 @@ locket==1.0.0
 loguru==0.7.2
 markdown-it-py==3.0.0
 markupsafe==2.1.5
-matplotlib==3.9.1
+matplotlib==3.9.0
 mdurl==0.1.2
 ncdata==0.1.1
 netcdf4==1.7.1.post1
@@ -63,7 +63,7 @@ shapely==2.0.5
 shellingham==1.5.4
 six==1.16.0
 toolz==0.12.1
-tqdm==4.66.4
+tqdm==4.66.5
 typer==0.12.3
 typing-extensions==4.12.2
 tzdata==2024.1

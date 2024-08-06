@@ -283,28 +283,16 @@ def test_validate_flow(tmp_path):
     ):
         import subprocess
 
-        subprocess.check_call(
-            [
-                "input4mips-validation",
-                "--logging-level",
-                "DEBUG",
-                "db",
-                "create",
-                str(tree_root),
-                "--db-dir",
-                str(db_dir),
-            ]
-        )
-        # args = [
-        #     "db",
-        #     "create",
-        #     str(tree_root),
-        #     "--db-dir",
-        #     str(db_dir),
-        # ]
-        # result = runner.invoke(app, args)
-    #
-    # assert result.exit_code == 0, result.exc_info
+        args = [
+            "db",
+            "create",
+            str(tree_root),
+            "--db-dir",
+            str(db_dir),
+        ]
+        result = runner.invoke(app, args)
+
+    assert result.exit_code == 0, result.exc_info
 
     # 2. Check initial status
     assert all(

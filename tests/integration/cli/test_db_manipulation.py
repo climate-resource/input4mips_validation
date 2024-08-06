@@ -305,6 +305,7 @@ def test_validate_flow(tmp_path):
     assert result.exit_code == 0, result.exc_info
 
     # 4. Check status of files in the database
+    explode
     db_1 = {v.filepath: v for v in load_database_file_entries(db_dir)}
     assert not db_1[broken_file].validated_input4mips
     assert all(v.validated_input4mips for k, v in db_1.items() if k in valid_files)
@@ -393,4 +394,3 @@ def test_validate_flow(tmp_path):
     #     Should all be `False` now.
     db_5 = {v.filepath: v for v in load_database_file_entries(db_dir)}
     assert all(v.validated_input4mips is False for k, v in db_5.items())
-    explode

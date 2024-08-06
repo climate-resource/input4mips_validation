@@ -337,27 +337,6 @@ def validate_database_entries(  # noqa: PLR0913
         f"{n_processes} {'processes' if n_processes > 1 else 'process'}"
     )
 
-    # out_l = []
-    # for entry in tqdm.tqdm(
-    # entries_to_validate, desc="Submitting entries to the queue"):
-    #     file_validation_result = database_file_entry_is_valid(
-    #         logging_config_serialised,
-    #         entry,
-    #         cvs=cvs,
-    #         bnds_coord_indicator=bnds_coord_indicator,
-    #         frequency_metadata_key=frequency_metadata_key,
-    #         no_time_axis_frequency=no_time_axis_frequency,
-    #         time_dimension=time_dimension,
-    #         allow_cf_checker_warnings=allow_cf_checker_warnings,
-    #     )
-    #     out_l.append(
-    #         evolve(
-    #             file_validation_result.entry,
-    #             validated_input4mips=file_validation_result.passed_validation,
-    #         )
-    #     )
-    #
-    # return tuple(out_l)
     with concurrent.futures.ProcessPoolExecutor(max_workers=n_processes) as executor:
         futures = [
             executor.submit(

@@ -1,5 +1,5 @@
 """
-Exceptions related to validation
+Exceptions related to validation that don't obviously fit elsewhere
 """
 
 from __future__ import annotations

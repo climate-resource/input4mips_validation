@@ -137,16 +137,16 @@ def validate_file(
         # Check that the filename and metadata are consistent
         # Checking of the directory and metadata is only done in validate_tree
         print(f"{bnds_coord_indicator=}")
-        #     ds_careful_load = ds_from_iris_cubes(
-        #         cubes, bnds_coord_indicator=bnds_coord_indicator
-        #     )
-        catch_error(
-            validate_ds_to_write_to_disk,
-            call_purpose=(
-                "Check that the dataset is formatted correctly "
-                "for being written to disk"
-            ),
-        )(ds_careful_load, out_path=Path(infile), cvs=cvs)
+        ds_careful_load = ds_from_iris_cubes(
+            cubes, bnds_coord_indicator=bnds_coord_indicator
+        )
+        # catch_error(
+        #     validate_ds_to_write_to_disk,
+        #     call_purpose=(
+        #         "Check that the dataset is formatted correctly "
+        #         "for being written to disk"
+        #     ),
+        # )(ds_careful_load, out_path=Path(infile), cvs=cvs)
 
     if caught_errors:
         n_caught_errors = len(caught_errors)

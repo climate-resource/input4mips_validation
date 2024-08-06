@@ -9,9 +9,11 @@ from __future__ import annotations
 
 import datetime as dt
 import os
+import shutil
+import subprocess
 from collections.abc import Iterable
+from functools import partial
 from pathlib import Path
-from unittest.mock import patch
 
 import netCDF4
 import pint
@@ -160,12 +162,12 @@ def test_add_flow(tmp_path):
     exp_created_files = [f"{v['sha256']}.json" for v in info.values()]
 
     # Then test the CLI
-    with patch.dict(
-        os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
-    ):
-        args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
-        result = runner.invoke(app, args)
+    args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
+    result = runner.invoke(
+        app,
+        args,
+        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+    )
 
     assert result.exit_code == 0, result.exc_info
 
@@ -201,12 +203,12 @@ def test_add_flow(tmp_path):
     info_post_add = info | info_new
     exp_created_files_post_add = [f"{v['sha256']}.json" for v in info_post_add.values()]
 
-    with patch.dict(
-        os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
-    ):
-        args = ["db", "add-tree", str(tree_root), "--db-dir", str(db_dir)]
-        result = runner.invoke(app, args)
+    args = ["db", "add-tree", str(tree_root), "--db-dir", str(db_dir)]
+    result = runner.invoke(
+        app,
+        args,
+        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+    )
 
     assert result.exit_code == 0, result.exc_info
 
@@ -247,6 +249,17 @@ def test_validate_flow(tmp_path):
     11. Validate with the `--force` flag
     12. Check the status of all files in the database is `False`
     """
+    # Note: using the runner to invoke the commands causes things to break.
+    # I have no idea why, but this is the reason we use subprocess throughout here.
+    input4mips_validation_cli = shutil.which("input4mips-validation")
+    subprocess_check_output = partial(
+        subprocess.check_output,
+        env={
+            "INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+            **os.environ,
+        },
+    )
+
     cvs = load_cvs(cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     # Create ourselves a tree
@@ -267,8 +280,12 @@ def test_validate_flow(tmp_path):
     )
 
     # Break one of the files
-    valid_files = [info[vid]["filepath"] for vid in variable_ids[:-1]]
-    broken_file = info[variable_ids[-1]]["filepath"]
+    broken_file = info[variable_ids[1]]["filepath"]
+    valid_files = [
+        info[vid]["filepath"]
+        for vid in variable_ids
+        if info[vid]["filepath"] != broken_file
+    ]
     ncds = netCDF4.Dataset(broken_file, "a")
     # Add units to bounds variable, which isn't allowed
     ncds["lat_bnds"].setncattr("units", "degrees_north")
@@ -277,22 +294,16 @@ def test_validate_flow(tmp_path):
     db_dir = tmp_path / "test-validate-flow"
 
     # 1. Create the database
-    with patch.dict(
-        os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
-    ):
-        import subprocess
-
-        args = [
+    subprocess_check_output(
+        [
+            input4mips_validation_cli,
             "db",
             "create",
             str(tree_root),
             "--db-dir",
             str(db_dir),
-        ]
-        result = runner.invoke(app, args)
-
-    assert result.exit_code == 0, result.exc_info
+        ],
+    )
 
     # 2. Check initial status
     assert all(
@@ -300,25 +311,17 @@ def test_validate_flow(tmp_path):
     )
 
     # 3. Validate the database
-    # with patch.dict(
-    #     os.environ,
-    #     {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
-    # ):
-    args = [
-        "db",
-        "validate",
-        "--db-dir",
-        str(db_dir),
-    ]
-    result = runner.invoke(
-        app,
-        args,
-        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
-        catch_exceptions=False,
-        standalone_mode=False,
+    subprocess_check_output(
+        [
+            input4mips_validation_cli,
+            "--logging-level",
+            "DEBUG",
+            "db",
+            "validate",
+            "--db-dir",
+            str(db_dir),
+        ],
     )
-
-    assert result.exit_code == 0, result.exc_info
 
     # 4. Check status of files in the database
     db_1 = {v.filepath: v for v in load_database_file_entries(db_dir)}
@@ -349,30 +352,15 @@ def test_validate_flow(tmp_path):
     )
 
     # 7. Validate the database again
-    with patch.dict(
-        os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
-    ):
-        subprocess.check_call(
-            [
-                "input4mips-validation",
-                "--logging-level",
-                "DEBUG",
-                "db",
-                "validate",
-                "--db-dir",
-                str(db_dir),
-            ]
-        )
-    #     args = [
-    #         "db",
-    #         "validate",
-    #         "--db-dir",
-    #         str(db_dir),
-    #     ]
-    #     result = runner.invoke(app, args)
-    #
-    # assert result.exit_code == 0, result.exc_info
+    subprocess_check_output(
+        [
+            input4mips_validation_cli,
+            "db",
+            "validate",
+            "--db-dir",
+            str(db_dir),
+        ],
+    )
 
     # 8. Check status of files in the database
     db_3 = {v.filepath: v for v in load_database_file_entries(db_dir)}
@@ -380,31 +368,15 @@ def test_validate_flow(tmp_path):
     assert all(v.validated_input4mips for k, v in db_3.items() if k != broken_file)
 
     # 9. Change the DRS and validate again
-    with patch.dict(
-        os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DIFFERENT_DRS_CV_SOURCE},
-    ):
-        subprocess.check_call(
-            [
-                "input4mips-validation",
-                "--logging-level",
-                "DEBUG",
-                "db",
-                "validate",
-                "--db-dir",
-                str(db_dir),
-            ]
-        )
-
-    #     args = [
-    #         "db",
-    #         "validate",
-    #         "--db-dir",
-    #         str(db_dir),
-    #     ]
-    #     result = runner.invoke(app, args)
-    #
-    # assert result.exit_code == 0, result.exc_info
+    subprocess_check_output(
+        [
+            input4mips_validation_cli,
+            "db",
+            "validate",
+            "--db-dir",
+            str(db_dir),
+        ],
+    )
 
     # 10. Check status of files in the database.
     #     No change from above because we didn't use `--force`
@@ -413,33 +385,20 @@ def test_validate_flow(tmp_path):
     assert all(v.validated_input4mips for k, v in db_4.items() if k != broken_file)
 
     # 11. Change the DRS and validate again with the `--force` flag
-    with patch.dict(
-        os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DIFFERENT_DRS_CV_SOURCE},
-    ):
-        subprocess.check_call(
-            [
-                "input4mips-validation",
-                "--logging-level",
-                "DEBUG",
-                "db",
-                "validate",
-                "--db-dir",
-                str(db_dir),
-                "--force",
-            ]
-        )
-
-    #     args = [
-    #         "db",
-    #         "validate",
-    #         "--db-dir",
-    #         str(db_dir),
-    #         "--force",
-    #     ]
-    #     result = runner.invoke(app, args)
-    #
-    # assert result.exit_code == 0, result.exc_info
+    subprocess.check_output(
+        [  # noqa: S603
+            input4mips_validation_cli,
+            "db",
+            "validate",
+            "--db-dir",
+            str(db_dir),
+            "--force",
+        ],
+        env={
+            "INPUT4MIPS_VALIDATION_CV_SOURCE": DIFFERENT_DRS_CV_SOURCE,
+            **os.environ,
+        },
+    )
 
     # 12. Check status of files in the database.
     #     Should all be `False` now.

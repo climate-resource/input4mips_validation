@@ -290,6 +290,7 @@ def test_validate_flow(tmp_path):
     )
 
     # 3. Validate the database
+    explode
     with patch.dict(
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
@@ -305,7 +306,6 @@ def test_validate_flow(tmp_path):
     assert result.exit_code == 0, result.exc_info
 
     # 4. Check status of files in the database
-    explode
     db_1 = {v.filepath: v for v in load_database_file_entries(db_dir)}
     assert not db_1[broken_file].validated_input4mips
     assert all(v.validated_input4mips for k, v in db_1.items() if k in valid_files)

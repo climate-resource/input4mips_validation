@@ -129,6 +129,9 @@ def validate_file(
     if cvs is None:
         logger.error("Skipping checks of CV consistency because cvs loading failed")
 
+    elif cubes is None:
+        logger.error("Skipping checks of CV consistency because cubes loading failed")
+
     else:
         # TODO: check consistency with CVs
         # TODO: Check that the data, metadata and CVs are all consistent
@@ -144,7 +147,7 @@ def validate_file(
                 "Check that the dataset is formatted correctly "
                 "for being written to disk"
             ),
-        )(ds_careful_load, out_path=infile, cvs=cvs)
+        )(ds_careful_load, out_path=Path(infile), cvs=cvs)
 
     if caught_errors:
         n_caught_errors = len(caught_errors)

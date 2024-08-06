@@ -177,7 +177,10 @@ def format_datetime_for_db(time: cftime.datetime | dt.datetime | np.datetime64) 
     else:
         ts = time
 
-    return f"{ts.isoformat()}Z"  # Z indicates timezone is UTC
+    # Z indicates timezone is UTC,
+    # which doesn't make much sense given we're in model land,
+    # but ok.
+    return ts.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def load_database_file_entries(

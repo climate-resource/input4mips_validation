@@ -290,7 +290,6 @@ def test_validate_flow(tmp_path):
     )
 
     # 3. Validate the database
-    explode
     with patch.dict(
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
@@ -303,6 +302,7 @@ def test_validate_flow(tmp_path):
         ]
         result = runner.invoke(app, args)
 
+    explode
     assert result.exit_code == 0, result.exc_info
 
     # 4. Check status of files in the database

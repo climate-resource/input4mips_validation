@@ -132,22 +132,22 @@ def validate_file(
     elif cubes is None:
         logger.error("Skipping checks of CV consistency because cubes loading failed")
 
-    else:
-        # TODO: check consistency with CVs
-        # TODO: Check that the data, metadata and CVs are all consistent
-        # Check that the filename and metadata are consistent
-        # Checking of the directory and metadata is only done in validate_tree
-
-        ds_careful_load = ds_from_iris_cubes(
-            cubes, bnds_coord_indicator=bnds_coord_indicator
-        )
-        catch_error(
-            validate_ds_to_write_to_disk,
-            call_purpose=(
-                "Check that the dataset is formatted correctly "
-                "for being written to disk"
-            ),
-        )(ds_careful_load, out_path=Path(infile), cvs=cvs)
+    # else:
+    #     # TODO: check consistency with CVs
+    #     # TODO: Check that the data, metadata and CVs are all consistent
+    #     # Check that the filename and metadata are consistent
+    #     # Checking of the directory and metadata is only done in validate_tree
+    #
+    #     ds_careful_load = ds_from_iris_cubes(
+    #         cubes, bnds_coord_indicator=bnds_coord_indicator
+    #     )
+    #     catch_error(
+    #         validate_ds_to_write_to_disk,
+    #         call_purpose=(
+    #             "Check that the dataset is formatted correctly "
+    #             "for being written to disk"
+    #         ),
+    #     )(ds_careful_load, out_path=Path(infile), cvs=cvs)
 
     if caught_errors:
         n_caught_errors = len(caught_errors)

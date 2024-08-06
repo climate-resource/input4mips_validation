@@ -247,7 +247,6 @@ def test_validate_flow(tmp_path):
     11. Validate with the `--force` flag
     12. Check the status of all files in the database is `False`
     """
-    explode
     cvs = load_cvs(cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     # Create ourselves a tree
@@ -285,6 +284,7 @@ def test_validate_flow(tmp_path):
         args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
         result = runner.invoke(app, args)
 
+    explode
     # 2. Check initial status
     assert all(
         v.validated_input4mips is None for v in load_database_file_entries(db_dir)

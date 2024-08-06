@@ -295,6 +295,8 @@ def test_validate_flow(tmp_path):
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
         args = [
+            "--logging-level",
+            "INFO",
             "db",
             "validate",
             "--db-dir",

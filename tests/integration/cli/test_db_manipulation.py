@@ -304,26 +304,15 @@ def test_validate_flow(tmp_path):
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
-        subprocess.check_call(
-            [
-                "input4mips-validation",
-                "--logging-level",
-                "DEBUG",
-                "db",
-                "validate",
-                "--db-dir",
-                str(db_dir),
-            ]
-        )
-    #     args = [
-    #         "db",
-    #         "validate",
-    #         "--db-dir",
-    #         str(db_dir),
-    #     ]
-    #     result = runner.invoke(app, args)
-    #
-    # assert result.exit_code == 0, result.exc_info
+        args = [
+            "db",
+            "validate",
+            "--db-dir",
+            str(db_dir),
+        ]
+        result = runner.invoke(app, args)
+
+    assert result.exit_code == 0, result.exc_info
 
     # 4. Check status of files in the database
     db_1 = {v.filepath: v for v in load_database_file_entries(db_dir)}

@@ -19,6 +19,22 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.11.3 (2024-08-06)
+
+
+### 🎉 Improvements
+
+- Made it explicit that [cftime](https://unidata.github.io/cftime/) and [typing-extensions](https://typing-extensions.readthedocs.io/en/latest/#) are required ([#59](https://github.com/climate-resource/input4mips_validation/pulls/59))
+
+### 🐛 Bug Fixes
+
+- Fixed up the writing of the `creation_time` attribute and datetime metadata inference to use the expected time format ([#60](https://github.com/climate-resource/input4mips_validation/pulls/60))
+
+### 🔧 Trivial/Internal Changes
+
+- [#60](https://github.com/climate-resource/input4mips_validation/pulls/60)
+
+
 ## input4mips-validation v0.11.2 (2024-08-05)
 
 

@@ -138,6 +138,7 @@ def validate_file(
         # Check that the filename and metadata are consistent
         # Checking of the directory and metadata is only done in validate_tree
 
+        print(f"{bnds_coord_indicator=}")
         ds_careful_load = ds_from_iris_cubes(
             cubes, bnds_coord_indicator=bnds_coord_indicator
         )

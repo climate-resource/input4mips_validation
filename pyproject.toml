@@ -8,6 +8,7 @@ dependencies = [
     "netcdf4>=1.0",
     "numpy<2.0",
     "cfchecker>=4.1.0",
+    "cftime",
     "attrs",
     "cattrs",
     "cf-xarray",
@@ -19,6 +20,7 @@ dependencies = [
     "pooch",
     "tqdm",
     "typer",
+    "typing-extensions",
     "validators",
     "xarray",
 ]
@@ -153,6 +155,7 @@ editable = true
 
 [tool.pixi.dependencies]
 cfchecker = ">=4.1.0"
+cftime = ">=1.0"
 iris = ">=3.0"
 netcdf4 = ">=1.0"
 numpy = "<2.0"

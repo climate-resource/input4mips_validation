@@ -21,7 +21,7 @@ def ds_from_iris_cubes(
     This is a thin wrapper around [ncdata.iris_xarray.cubes_to_xarray][]
     that also handles setting bounds as co-ordinates.
 
-    TODO:
+    TODO: raise issue in https://github.com/pp-mo/ncdata
 
     Parameters
     ----------

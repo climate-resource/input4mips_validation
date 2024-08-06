@@ -14,6 +14,7 @@ import ncdata.iris_xarray
 import xarray as xr
 
 from input4mips_validation.cvs import Input4MIPsCVs
+from input4mips_validation.validation.creation_date import CREATION_DATE_FORMAT
 from input4mips_validation.validation.datasets_to_write_to_disk import (
     validate_ds_to_write_to_disk,
 )
@@ -98,4 +99,4 @@ def generate_creation_timestamp() -> str:
         microsecond=0  # remove microseconds from creation_timestamp
     )
 
-    return f"{ts.isoformat()}Z"  # Z indicates timezone is UTC
+    return ts.strftime(CREATION_DATE_FORMAT)

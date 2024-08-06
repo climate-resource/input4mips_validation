@@ -315,6 +315,7 @@ def test_validate_flow(tmp_path):
         args,
         env={"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
         catch_exceptions=False,
+        standalone_mode=False,
     )
 
     assert result.exit_code == 0, result.exc_info

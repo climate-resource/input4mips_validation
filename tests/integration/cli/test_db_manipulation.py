@@ -281,8 +281,30 @@ def test_validate_flow(tmp_path):
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
-        args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
-        result = runner.invoke(app, args)
+        import subprocess
+
+        subprocess.check_call(
+            [
+                "input4mips-validation",
+                "--logging-level",
+                "DEBUG",
+                "db",
+                "create",
+                str(tree_root),
+                "--db-dir",
+                str(db_dir),
+            ]
+        )
+        # args = [
+        #     "db",
+        #     "create",
+        #     str(tree_root),
+        #     "--db-dir",
+        #     str(db_dir),
+        # ]
+        # result = runner.invoke(app, args)
+    #
+    # assert result.exit_code == 0, result.exc_info
 
     # 2. Check initial status
     assert all(
@@ -294,15 +316,26 @@ def test_validate_flow(tmp_path):
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
-        args = [
-            "db",
-            "validate",
-            "--db-dir",
-            str(db_dir),
-        ]
-        result = runner.invoke(app, args)
-
-    assert result.exit_code == 0, result.exc_info
+        subprocess.check_call(
+            [
+                "input4mips-validation",
+                "--logging-level",
+                "DEBUG",
+                "db",
+                "validate",
+                "--db-dir",
+                str(db_dir),
+            ]
+        )
+    #     args = [
+    #         "db",
+    #         "validate",
+    #         "--db-dir",
+    #         str(db_dir),
+    #     ]
+    #     result = runner.invoke(app, args)
+    #
+    # assert result.exit_code == 0, result.exc_info
 
     # 4. Check status of files in the database
     db_1 = {v.filepath: v for v in load_database_file_entries(db_dir)}
@@ -337,15 +370,26 @@ def test_validate_flow(tmp_path):
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
     ):
-        args = [
-            "db",
-            "validate",
-            "--db-dir",
-            str(db_dir),
-        ]
-        result = runner.invoke(app, args)
-
-    assert result.exit_code == 0, result.exc_info
+        subprocess.check_call(
+            [
+                "input4mips-validation",
+                "--logging-level",
+                "DEBUG",
+                "db",
+                "validate",
+                "--db-dir",
+                str(db_dir),
+            ]
+        )
+    #     args = [
+    #         "db",
+    #         "validate",
+    #         "--db-dir",
+    #         str(db_dir),
+    #     ]
+    #     result = runner.invoke(app, args)
+    #
+    # assert result.exit_code == 0, result.exc_info
 
     # 8. Check status of files in the database
     db_3 = {v.filepath: v for v in load_database_file_entries(db_dir)}
@@ -357,15 +401,27 @@ def test_validate_flow(tmp_path):
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DIFFERENT_DRS_CV_SOURCE},
     ):
-        args = [
-            "db",
-            "validate",
-            "--db-dir",
-            str(db_dir),
-        ]
-        result = runner.invoke(app, args)
+        subprocess.check_call(
+            [
+                "input4mips-validation",
+                "--logging-level",
+                "DEBUG",
+                "db",
+                "validate",
+                "--db-dir",
+                str(db_dir),
+            ]
+        )
 
-    assert result.exit_code == 0, result.exc_info
+    #     args = [
+    #         "db",
+    #         "validate",
+    #         "--db-dir",
+    #         str(db_dir),
+    #     ]
+    #     result = runner.invoke(app, args)
+    #
+    # assert result.exit_code == 0, result.exc_info
 
     # 10. Check status of files in the database.
     #     No change from above because we didn't use `--force`
@@ -378,16 +434,29 @@ def test_validate_flow(tmp_path):
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DIFFERENT_DRS_CV_SOURCE},
     ):
-        args = [
-            "db",
-            "validate",
-            "--db-dir",
-            str(db_dir),
-            "--force",
-        ]
-        result = runner.invoke(app, args)
+        subprocess.check_call(
+            [
+                "input4mips-validation",
+                "--logging-level",
+                "DEBUG",
+                "db",
+                "validate",
+                "--db-dir",
+                str(db_dir),
+                "--force",
+            ]
+        )
 
-    assert result.exit_code == 0, result.exc_info
+    #     args = [
+    #         "db",
+    #         "validate",
+    #         "--db-dir",
+    #         str(db_dir),
+    #         "--force",
+    #     ]
+    #     result = runner.invoke(app, args)
+    #
+    # assert result.exit_code == 0, result.exc_info
 
     # 12. Check status of files in the database.
     #     Should all be `False` now.

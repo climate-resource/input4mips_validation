@@ -4,7 +4,6 @@ Database validation
 
 from __future__ import annotations
 
-import concurrent.futures
 from pathlib import Path
 from typing import Any, Optional
 
@@ -19,7 +18,6 @@ from input4mips_validation.exceptions import NonUniqueError
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.logging import (
     LOG_LEVEL_INFO_DB_ENTRY,
-    LOG_LEVEL_INFO_DB_ENTRY_ERROR,
     setup_logging,
 )
 from input4mips_validation.logging_config import (
@@ -398,12 +396,12 @@ def validate_database_entries(  # noqa: PLR0913
     #         else:
     #             logger.log(
     #                 LOG_LEVEL_INFO_DB_ENTRY_ERROR.name,
-    #                 f"Validation failed with {file_validation_result.exception_type=} "
+    #             f"Validation failed with {file_validation_result.exception_type=} "
     #                 "for the entry pointing to "
     #                 f"{file_validation_result.entry.filepath}",
     #             )
     #             logger.debug(
-    #                 f"Validation failed with {file_validation_result.exception_type=} "
+    #             f"Validation failed with {file_validation_result.exception_type=} "
     #                 f"for {file_validation_result.entry.filepath}.\n"
     #                 f"Details: {file_validation_result.exception_msg}"
     #             )

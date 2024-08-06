@@ -247,9 +247,6 @@ def test_validate_flow(tmp_path):
     11. Validate with the `--force` flag
     12. Check the status of all files in the database is `False`
     """
-    from loguru import logger
-
-    logger.enable("input4mips_validation")
     cvs = load_cvs(cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     # Create ourselves a tree

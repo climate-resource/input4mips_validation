@@ -183,6 +183,7 @@ This means that any previous validation of the entries is ignored.""",
     """
     Validate the entries in the database
     """
+    logger.enable("input4mips_validation")
     db_existing_entries = load_database_file_entries(db_dir)
 
     # If tracking IDs aren't unique, we can fail immediately,

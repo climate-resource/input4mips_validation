@@ -202,6 +202,7 @@ This means that any previous validation of the entries is ignored.""",
             logger.info(f"All files in {db_dir} have already been validated")
             return
 
+    explode
     validated_entries = validate_database_entries(
         entries_to_validate,
         cv_source=cv_source,

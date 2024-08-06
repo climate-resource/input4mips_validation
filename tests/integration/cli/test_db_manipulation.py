@@ -284,7 +284,6 @@ def test_validate_flow(tmp_path):
         args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
         result = runner.invoke(app, args)
 
-    explode
     # 2. Check initial status
     assert all(
         v.validated_input4mips is None for v in load_database_file_entries(db_dir)
@@ -394,3 +393,4 @@ def test_validate_flow(tmp_path):
     #     Should all be `False` now.
     db_5 = {v.filepath: v for v in load_database_file_entries(db_dir)}
     assert all(v.validated_input4mips is False for k, v in db_5.items())
+    explode

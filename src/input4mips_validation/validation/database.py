@@ -336,6 +336,7 @@ def validate_database_entries(  # noqa: PLR0913
         f"{'entries' if len(entries_to_validate) > 1 else 'entry'} in parallel using "
         f"{n_processes} {'processes' if n_processes > 1 else 'process'}"
     )
+
     with concurrent.futures.ProcessPoolExecutor(max_workers=n_processes) as executor:
         futures = [
             executor.submit(

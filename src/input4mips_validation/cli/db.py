@@ -59,7 +59,7 @@ def db_create_command(  # noqa: PLR0913
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
     time_dimension: TIME_DIMENSION_OPTION = "time",
     rglob_input: RGLOB_INPUT_OPTION = "*.nc",
-    n_processes: N_PROCESSES_OPTION = 4,
+    n_processes: N_PROCESSES_OPTION = 1,
 ) -> None:
     """
     Create a database from a tree of files
@@ -115,7 +115,7 @@ def db_add_tree_command(  # noqa: PLR0913
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
     time_dimension: TIME_DIMENSION_OPTION = "time",
     rglob_input: RGLOB_INPUT_OPTION = "*.nc",
-    n_processes: N_PROCESSES_OPTION = 4,
+    n_processes: N_PROCESSES_OPTION = 1,
 ) -> None:
     """
     Add files from a tree to the database
@@ -169,7 +169,7 @@ def db_validate_command(  # noqa: PLR0913
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
     time_dimension: TIME_DIMENSION_OPTION = "time",
     allow_cf_checker_warnings: ALLOW_CF_CHECKER_WARNINGS_TYPE = False,
-    n_processes: N_PROCESSES_OPTION = 4,
+    n_processes: N_PROCESSES_OPTION = 1,
     force: Annotated[
         bool,
         typer.Option(

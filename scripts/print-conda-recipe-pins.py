@@ -41,6 +41,7 @@ def main() -> None:
         "cf-xarray": "cf_xarray",
         "pint": "Pint",
         "pint-xarray": "pint_xarray",
+        "typing-extensions": "typing_extensions",
     }
     name_install_map = {"pint_xarray": "pint-xarray", "Pint": "pint"}
     version_info_l = []
@@ -63,6 +64,7 @@ def main() -> None:
 
         if len(packages) != 1:
             print(f"Something wrong for {package_name}")
+            # breakpoint()
             continue
         #
         # if "pint" in package_name:

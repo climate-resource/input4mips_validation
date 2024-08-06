@@ -17,10 +17,14 @@ from input4mips_validation.logging import (
     LOG_LEVEL_INFO_INDIVIDUAL_CHECK,
 )
 from input4mips_validation.validation.cf_checker import check_with_cf_checker
+from input4mips_validation.validation.datasets_to_write_to_disk import (
+    validate_ds_to_write_to_disk,
+)
 from input4mips_validation.validation.error_catching import get_catch_error_decorator
 from input4mips_validation.validation.exceptions import (
     InvalidFileError,
 )
+from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
 
 
 def validate_file(
@@ -101,7 +105,6 @@ def validate_file(
     )(infile, use_cftime=True)
 
     # Basic loading - iris
-    # cubes = catch_error(iris.load, call_purpose="Load data with `iris.load`")(infile)
     cubes = catch_error(iris.load, call_purpose="Load data with `iris.load`")(infile)
     if cubes is not None and len(cubes) == 1:
         catch_error(iris.load_cube, call_purpose="Load data with `iris.load_cube`")(
@@ -122,24 +125,27 @@ def validate_file(
             infile, ds=ds_xr_open, no_raise_if_only_warnings=allow_cf_checker_warnings
         )
 
-    # TODO: Check that the data, metadata and CVs are all consistent
-    # ds_careful_load = from_iris_cubes(
-    #   cubes, bnds_coord_indicator=bnds_coord_indicator
-    # )
-    # catch_error(
-    #     validate_ds,
-    #     call_purpose="Check the dataset's data and metadata",
-    # )(ds_careful_load, cvs=cvs)
-
-    # Check that the filename and metadata are consistent
-    # Checking of the directory and metadata is only done in validate_tree
-
     if cvs is None:
         logger.error("Skipping checks of CV consistency because cvs loading failed")
 
+    elif cubes is None:
+        logger.error("Skipping checks of CV consistency because cubes loading failed")
+
     else:
         # TODO: check consistency with CVs
-        pass
+        # TODO: Check that the data, metadata and CVs are all consistent
+        # Check that the filename and metadata are consistent
+        # Checking of the directory and metadata is only done in validate_tree
+        ds_careful_load = ds_from_iris_cubes(
+            cubes, bnds_coord_indicator=bnds_coord_indicator
+        )
+        catch_error(
+            validate_ds_to_write_to_disk,
+            call_purpose=(
+                "Check that the dataset is formatted correctly "
+                "for being written to disk"
+            ),
+        )(ds_careful_load, out_path=Path(infile), cvs=cvs)
 
     if caught_errors:
         n_caught_errors = len(caught_errors)

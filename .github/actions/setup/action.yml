@@ -13,8 +13,7 @@ runs:
     - name: Install pixi  # also includes auto-caching
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        # cache: true
-        cache: false
+        cache: true
         environments: ${{ inputs.pixi-environments }}
         # pre-commit ensures that pixi.lock is up to date with pyproject.toml,
         # hence here we can just follow the lock file exactly

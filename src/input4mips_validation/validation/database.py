@@ -387,5 +387,4 @@ def validate_database_entries(  # noqa: PLR0913
                     f"Details: {file_validation_result.exception_msg}"
                 )
 
-    explode
     return tuple(out_l)

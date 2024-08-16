@@ -34,6 +34,9 @@ class InvalidFileError(ValueError):
             and the error which was caught
             while validating the file.
         """
+        if isinstance(filepath, str):
+            filepath = Path(filepath)
+
         # Not clear how input could be further validated hence noqa
         ncdump_loc = shutil.which("ncdump")
         if ncdump_loc is None:
@@ -41,11 +44,10 @@ class InvalidFileError(ValueError):
             raise AssertionError(msg)
 
         # Not clear how input could be further validated hence noqa
-        subprocess.check_output(
-            [ncdump_loc, "--help"]  # noqa: S603
-        )
+        print(filepath)
+        print(str(filepath))
         file_ncdump_h = subprocess.check_output(
-            [ncdump_loc, "-h", str(filepath)]  # noqa: S603
+            [ncdump_loc, "-h", str(filepath.absolute())]  # noqa: S603
         ).decode()
 
         error_msgs: list[str] = []

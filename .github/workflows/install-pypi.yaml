@@ -22,8 +22,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Unsure how to make pip install work on MacOS and Windows,
-        # recommend to use conda.
+        # Unsure how to make pip install work on MacOS and Windows
+        # given the udunits2 headache,
+        # recommend to use conda instead.
         # os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         os: ["ubuntu-latest"]
         python-version: [ "3.9", "3.10", "3.11" ]
@@ -46,7 +47,7 @@ jobs:
         cd ..
         ls $HOME/udunits/lib/
     - name: Install netCDF binaries
-      if: matrix.os -= 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest'
       run: apt-get install netcdf-bin
     - name: Set up Python "${{ matrix.python-version }}"
       id: setup-python

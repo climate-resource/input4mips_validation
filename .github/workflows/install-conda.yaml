@@ -22,7 +22,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # There is an issue on windows, one for another day
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: [ "3.9", "3.10", "3.11" ]
         # Check both the 'library' and the 'application' (i.e. locked package)

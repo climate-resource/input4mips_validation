@@ -44,14 +44,14 @@ jobs:
       matrix:
         os: [ "ubuntu-latest" ]
         test-python-id: [ "py39", "py310", "py311" ]
-      include:
-        # Check that there's no obvious breaks with MacOS or windows.
-        # Waste of compute to run all cross-combinations,
-        # particularly given we target linux machines.
-        - os: macos-latest
-          test-python-id: py311
-        - os: windows-latest
-          test-python-id: py311
+        include:
+          # Check that there's no obvious breaks with MacOS or windows.
+          # Waste of compute to run all cross-combinations,
+          # particularly given we target linux machines.
+          - os: macos-latest
+            test-python-id: py311
+          - os: windows-latest
+            test-python-id: py311
     runs-on: "${{ matrix.os }}"
     defaults:
       run:

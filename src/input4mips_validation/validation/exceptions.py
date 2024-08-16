@@ -41,6 +41,9 @@ class InvalidFileError(ValueError):
             raise AssertionError(msg)
 
         # Not clear how input could be further validated hence noqa
+        subprocess.check_output(
+            [ncdump_loc, "--help"]  # noqa: S603
+        )
         file_ncdump_h = subprocess.check_output(
             [ncdump_loc, "-h", str(filepath)]  # noqa: S603
         ).decode()

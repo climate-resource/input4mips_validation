@@ -65,8 +65,12 @@ def test_validate_written_single_variable_file(tmp_path):
 
     written_file = input4mips_ds.write(root_data_dir=tmp_path)
 
-    # # Make sure that the starting file passes
-    # validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
+    # Make sure the file exists as expected
+    if not written_file.exists():
+        raise FileNotFoundError(written_file)
+
+    # Make sure that the starting file passes
+    validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     # Add an attribute that shouldn't be there.
     # This induces a warning in the CF-checker.
@@ -85,6 +89,9 @@ def test_validate_written_single_variable_file(tmp_path):
     with pytest.raises(InvalidFileError, match=error_msg):
         validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
+    # Make sure the file exists as expected
+    if not written_file.exists():
+        raise FileNotFoundError(written_file)
     # The file should pass if we set the right flag
     validate_file(
         written_file,

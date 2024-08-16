@@ -67,6 +67,7 @@ jobs:
           pixi-environments: "test-${{ matrix.test-python-id }}"
       - name: Run tests
         run: |
+          pixi run -e all-dev python -c 'import shutil; print(shutil.which("ncdump"))'
           pixi run --frozen -e "test-${{ matrix.test-python-id }}" pytest -r a -v src tests --doctest-modules --cov=src --cov-report=term-missing --cov-report=xml
           pixi run --frozen -e "test-${{ matrix.test-python-id }}"  coverage report
       - name: Upload coverage reports to Codecov

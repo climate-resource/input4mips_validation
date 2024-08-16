@@ -74,6 +74,10 @@ def test_validate_written_single_variable_file(tmp_path):
     ncd["lat_bnds"].setncattr("units", "degrees_north")
     ncd.close()
 
+    # Make sure the file exists as expected
+    if not written_file.exists():
+        raise FileNotFoundError(written_file)
+
     # The written file should now fail validation
     error_msg = re.escape(
         "WARN: (7.1): Boundary var lat_bnds should not have attribute units"

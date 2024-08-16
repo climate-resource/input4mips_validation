@@ -45,6 +45,9 @@ jobs:
         cd ..
         cd ..
         ls $HOME/udunits/lib/
+    - name: Install netCDF binaries
+      if: matrix.os -= 'ubuntu-latest'
+      run: apt-get install netcdf-bin
     - name: Set up Python "${{ matrix.python-version }}"
       id: setup-python
       uses: actions/setup-python@v4

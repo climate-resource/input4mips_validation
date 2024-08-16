@@ -42,7 +42,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-latest" ]
+        os: [ "ubuntu-latest", "windows-latest" ]
         test-python-id: [ "py39", "py310", "py311" ]
     runs-on: "${{ matrix.os }}"
     defaults:

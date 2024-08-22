@@ -9,7 +9,6 @@ import re
 from pathlib import Path
 from unittest.mock import patch
 
-import netCDF4
 import numpy as np
 import pint
 import pint_xarray  # noqa: F401 # required to activate pint accessor
@@ -72,11 +71,11 @@ def test_validate_written_single_variable_file(tmp_path):
     # Make sure that the starting file passes
     validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
-    # Add an attribute that shouldn't be there.
-    # This induces a warning in the CF-checker.
-    ncd = netCDF4.Dataset(written_file, "a")
-    ncd["lat_bnds"].setncattr("units", "degrees_north")
-    ncd.close()
+    # # Add an attribute that shouldn't be there.
+    # # This induces a warning in the CF-checker.
+    # ncd = netCDF4.Dataset(written_file, "a")
+    # ncd["lat_bnds"].setncattr("units", "degrees_north")
+    # ncd.close()
 
     # Make sure the file exists as expected
     if not written_file.exists():

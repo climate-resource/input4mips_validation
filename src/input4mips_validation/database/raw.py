@@ -212,5 +212,5 @@ class Input4MIPsDatabaseEntryFileRaw:
 
     """
 
-    xlink: Union[list[str], None] = None
+    xlink: Union[tuple[str], None] = None
     """Cross-link to more information about the file (DOI?)"""

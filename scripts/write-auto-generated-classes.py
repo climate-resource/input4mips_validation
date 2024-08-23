@@ -512,7 +512,7 @@ which is different again.
     ),
     "xlink": Attribute(
         name="xlink",
-        type_dec="Union[list[str], None] = None",
+        type_dec="Union[tuple[str], None] = None",
         docstring="Cross-link to more information about the file (DOI?)",
         comments=["TODO: validation (should have certain form and be live link?)"],
     ),

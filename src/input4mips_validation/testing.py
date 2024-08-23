@@ -68,7 +68,7 @@ def get_valid_ds_min_metadata_example(
         target_mip="CMIP",
     )
 
-    lon = np.arange(-165.0, 180.0, 30.0, dtype=np.float64)
+    lon = np.arange(-165.0, 180.0, 15.0, dtype=np.float64)
     lat = np.arange(-82.5, 90.0, 15.0, dtype=np.float64)
 
     rng = np.random.default_rng()
@@ -80,7 +80,7 @@ def get_valid_ds_min_metadata_example(
         ]
 
         ds_data = ur.Quantity(
-            rng.random((lon.size, lat.size, len(time))),
+            rng.random((lat.size, lon.size, len(time))),
             units,
         )
         dimensions = ["lat", "lon", "time"]
@@ -92,7 +92,7 @@ def get_valid_ds_min_metadata_example(
 
     else:
         ds_data = ur.Quantity(
-            rng.random((lon.size, lat.size)),
+            rng.random((lat.size, lon.size)),
             units,
         )
         dimensions = ["lat", "lon"]

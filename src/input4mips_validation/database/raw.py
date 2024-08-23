@@ -156,6 +156,9 @@ class Input4MIPsDatabaseEntryFileRaw:
     data_node: Union[str, None] = None
     """Data node on which this file is stored on ESGF"""
 
+    doi: Union[str, None] = None
+    """The digital object identifier (DOI) associated with the file."""
+
     grid: Union[str, None] = None
     """Long-form description of the grid referred to by `grid_label`"""
 

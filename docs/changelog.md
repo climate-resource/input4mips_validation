@@ -19,6 +19,18 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.11.4 (2024-08-23)
+
+
+### 🆕 Features
+
+- Add "doi" to the list of fields tracked by our database entries. ([#64](https://github.com/climate-resource/input4mips_validation/pulls/64))
+
+### 🔧 Trivial/Internal Changes
+
+- [#62](https://github.com/climate-resource/input4mips_validation/pulls/62)
+
+
 ## input4mips-validation v0.11.3 (2024-08-06)
 
 

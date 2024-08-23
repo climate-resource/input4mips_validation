@@ -18,8 +18,8 @@ cloudpickle==3.0.0
 colorama==0.4.6
 contourpy==1.2.1
 cycler==0.12.1
-dask==2024.7.1
-dask[array]==2024.7.1
+dask==2024.8.0
+dask[array]==2024.8.0
 exceptiongroup==1.2.2; python_version < "3.11"
 flexcache==0.3
 flexparser==0.3.1
@@ -27,18 +27,18 @@ fonttools==4.53.1
 fsspec==2024.6.1
 future==1.0.0
 idna==3.7
-importlib-metadata==8.2.0
-importlib-resources==6.4.0; python_version < "3.10"
+importlib-metadata==8.4.0
+importlib-resources==6.4.4; python_version < "3.10"
 jinja2==3.1.4
 kiwisolver==1.4.5
 locket==1.0.0
 loguru==0.7.2
 markdown-it-py==3.0.0
 markupsafe==2.1.5
-matplotlib==3.9.0
+matplotlib==3.9.2
 mdurl==0.1.2
 ncdata==0.1.1
-netcdf4==1.7.1.post1
+netcdf4==1.7.1.post2
 numpy==1.26.4
 packaging==24.1
 pandas==2.2.2
@@ -54,22 +54,22 @@ pyproj==3.6.1
 pyshp==2.3.1
 python-dateutil==2.9.0.post0
 pytz==2024.1
-pyyaml==6.0.1
+pyyaml==6.0.2
 requests==2.32.3
 rich==13.7.1
 scipy==1.13.1
 scitools-iris==3.8.1
-shapely==2.0.5
+shapely==2.0.6
 shellingham==1.5.4
 six==1.16.0
 toolz==0.12.1
 tqdm==4.66.5
-typer==0.12.3
+typer==0.12.4
 typing-extensions==4.12.2
 tzdata==2024.1
 urllib3==2.2.2
 validators==0.33.0
 win32-setctime==1.1.0; sys_platform == "win32"
 xarray==2024.7.0
-xxhash==3.4.1
-zipp==3.19.2
+xxhash==3.5.0
+zipp==3.20.0

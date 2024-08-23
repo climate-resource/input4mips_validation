@@ -274,7 +274,7 @@ class Input4MIPsDataset:
             else:
                 data = data.cf.add_bounds(dim, output_dim=bounds_dim)
 
-        # Get whatever other metadata information we can for free from cf-xarray.
+        # Get other metadata information from cf-xarray.
         # TODO: check if any of this conflicts with CF-conventions,
         # given that naming of bounds seems to be wrong.
         data = data.cf.guess_coord_axis().cf.add_canonical_attributes()

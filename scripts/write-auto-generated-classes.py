@@ -240,6 +240,15 @@ If the file has no time axis or is a fixed file, this should be `None`""",
             "but unclear right now what the rules are",
         ],
     ),
+    "doi": Attribute(
+        name="doi",
+        type_dec="Union[str, None] = None",
+        docstring="The digital object identifier (DOI) associated with the file.",
+        comments=[
+            "TODO: validation",
+            "Should have specific form, based on rules for DOIs.",
+        ],
+    ),
     "esgf_dataset_master_id": Attribute(
         name="esgf_dataset_master_id",
         type_dec="str",
@@ -503,7 +512,7 @@ which is different again.
     ),
     "xlink": Attribute(
         name="xlink",
-        type_dec="Union[list[str], None] = None",
+        type_dec="Union[tuple[str], None] = None",
         docstring="Cross-link to more information about the file (DOI?)",
         comments=["TODO: validation (should have certain form and be live link?)"],
     ),
@@ -548,6 +557,7 @@ def get_files_to_write() -> Iterable[FileToWrite]:
         "comment",
         "comment_post_publication",
         "data_node",
+        "doi",
         "grid",
         "institution",
         "latest",
@@ -604,6 +614,7 @@ For a more useful class, see
         "variable_id",
         # Fields with default values have to go at the end
         "comment",
+        "doi",
         "institution",
         "license_id",
         "product",
@@ -652,6 +663,11 @@ This is the minimum metadata required to create a valid
         ),
     )
 
+    DATASET_PRODUCER_MULTI_VARIABLE_MINIMUM_ATTRIBUTES = (
+        *DATASET_PRODUCER_MINIMUM_ATTRIBUTES,
+        "dataset_category",
+        "realm",
+    )
     file_metadata_producer_multi_variable_minimum = FileToWrite(
         SRC / "dataset" / "metadata_data_producer_multiple_variable_minimum.py",
         module_docstring="""
@@ -666,11 +682,7 @@ This is the minimum metadata required to create a valid
 [`from_data_producer_minimum_information_multiple_variable`][input4mips_validation.dataset.dataset.Input4MIPsDataset.from_data_producer_minimum_information_multiple_variable].""",  # noqa E501
         class_attributes=(
             ALL_KNOWN_DATABASE_FIELDS[k]
-            for k in [
-                *DATASET_PRODUCER_MINIMUM_ATTRIBUTES,
-                "dataset_category",
-                "realm",
-            ]
+            for k in DATASET_PRODUCER_MULTI_VARIABLE_MINIMUM_ATTRIBUTES
         ),
     )
 

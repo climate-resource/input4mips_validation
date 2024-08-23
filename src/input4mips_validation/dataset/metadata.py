@@ -76,6 +76,9 @@ class Input4MIPsDatasetMetadata:
     see `comment_post_publication`.
     """
 
+    doi: Union[str, None] = None
+    """The digital object identifier (DOI) associated with the file."""
+
     institution: Union[str, None] = None
     """Long-form description of the institute referred to by `institution_id`"""
 

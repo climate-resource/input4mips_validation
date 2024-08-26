@@ -26,4 +26,4 @@ runs:
         # when we update our version number in `pyproject.toml`.
         # We check the locked status using the `check-lock-file` job
         # in the CI workflow instead.
-        log-level: vv
+        log-level: v

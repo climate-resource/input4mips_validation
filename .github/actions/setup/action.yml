@@ -15,6 +15,7 @@ runs:
       with:
         pixi-version: v0.28.0
         cache: true
+        cache-key: ${{ inputs.pixi-environments }}
         environments: ${{ inputs.pixi-environments }}
         # pre-commit ensures that pixi.lock is up to date with pyproject.toml,
         # hence here we can just follow the lock file exactly

@@ -30,7 +30,7 @@ jobs:
           pixi-environments: "docs"
       - name: docs
         run: |
-          pixi run --frozen -e docs typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
+          pixi run --frozen -e docs typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation-cli
           pixi run --frozen -e docs mkdocs build --strict
           # Check CHANGELOG will build too
           pixi run --frozen -e all-dev towncrier build --yes

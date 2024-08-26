@@ -84,26 +84,30 @@ def cli(
         Optional[bool],
         typer.Option(
             "--no-logging",
-            help="""Disable all logging.
-
-If supplied, overrides '--logging-config'""",
+            help=("Disable all logging. If supplied, overrides '--logging-config'."),
         ),
     ] = None,
     logging_level: Annotated[
         Optional[str],
         typer.Option(
-            help="""Logging level to use.
-
-This is only applied if no other logging configuration flags are supplied."""
+            help=(
+                "Logging level to use. "
+                "This is only applied "
+                "if no other logging configuration flags are supplied."
+            ),
         ),
     ] = None,
     logging_config: Annotated[
         Optional[Path],
         typer.Option(
-            help="""Path to the logging configuration file.
-
-This will be loaded with [loguru-config](https://github.com/erezinman/loguru-config).
-If supplied, this overrides any value provided with `--log-level`."""
+            help=(
+                "Path to the logging configuration file. "
+                "This will be loaded with "
+                "[loguru-config](https://github.com/erezinman/loguru-config). "
+                "If supplied, this overrides any value provided with `--log-level`."
+                "For a sample configuration file, see "
+                "[How to configure logging with input4MIPs-validation?][how-to-configure-logging-with-input4mips-validation]"  # noqa: E501
+            )
         ),
     ] = None,
 ) -> None:
@@ -262,19 +266,21 @@ def upload_ftp_command(  # noqa: PLR0913
     ftp_dir_rel_to_root: Annotated[
         str,
         typer.Option(
-            help="""Directory, relative to `root_dir_ftp_incoming_files`, in which to upload the files on the FTP server.
-
-For example, "my-institute-input4mips"
-"""  # noqa: E501
+            help=(
+                "Directory, relative to `root_dir_ftp_incoming_files`, "
+                "in which to upload the files on the FTP server. "
+                'For example, "my-institute-input4mips".'
+            )
         ),
     ],
     password: Annotated[
         str,
         typer.Option(
-            help="""Password to use when logging in.
-
-If you are uploading to LLNL's FTP server,
-please use your email address here."""
+            help=(
+                "Password to use when logging in. "
+                "If you are uploading to LLNL's FTP server, "
+                "please use your email address here."
+            )
         ),
     ],
     username: Annotated[
@@ -297,9 +303,11 @@ please use your email address here."""
         bool,
         typer.Option(
             "--dry-run",
-            help="""Perform a dry run
-
-In other words, don't actually upload the files, but show what would be uploaded.""",
+            help=(
+                "Perform a dry run. "
+                "In other words, don't actually upload the files, "
+                "but show what would be uploaded."
+            ),
         ),
     ] = False,
 ) -> None:

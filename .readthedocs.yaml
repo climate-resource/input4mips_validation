@@ -15,7 +15,7 @@ build:
   jobs:
     pre_build:
       - pip install --no-deps .
-      - typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
+      - typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation-cli
       - ls
       - input4mips-validation --help
       # Can add other checks in here if things blow up confusingly

@@ -122,7 +122,7 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
 
         all_metadata: dict[str, Union[str, None]] = {}
         used_sources: list[str] = []
-        # TODO: make clearer, order below sets order of sources
+        # TODO: make clearer, order below sets order of preference of sources
         for source, md in (
             ("inferred from the file's data", metadata_data),
             ("inferred from the file path", metadata_directories),

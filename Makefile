@@ -64,7 +64,7 @@ docs-serve: docs/cli/index.md  ## serve the docs locally
 	pixi run -e all-dev mkdocs serve
 
 docs/cli/index.md: src/input4mips_validation/cli/__init__.py  ## auto-generate the typer app docs
-	pixi run -e all-dev typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
+	pixi run -e all-dev typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation-cli
 
 .PHONY: changelog-draft
 changelog-draft:  ## compile a draft of the next changelog
@@ -80,7 +80,7 @@ licence-check:  ## Check that licences of the dependencies are suitable
 
 .PHONY: virtual-environment
 virtual-environment:  ## update virtual environment, create a new one if it doesn't already exist
-	pixi install
+	pixi install -e all-dev
 	pixi run -e all-dev pre-commit install
 	# Make sure pdm lock file is up to date too
 	pdm lock --strategy=inherit_metadata --dev --group :all

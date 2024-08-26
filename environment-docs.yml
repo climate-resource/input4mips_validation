@@ -6,7 +6,7 @@ dependencies:
 - brotli=1.1.0=hd590300_1
 - brotli-bin=1.1.0=hd590300_1
 - bzip2=1.0.8=h4bc722e_7
-- c-ares=1.32.2=h4bc722e_0
+- c-ares=1.33.1=heb4867d_0
 - ca-certificates=2024.7.4=hbcca054_0
 - cartopy=0.23.0=py39hfc16268_1
 - certifi=2024.7.4=pyhd8ed1ab_0
@@ -18,19 +18,19 @@ dependencies:
 - cloudpickle=3.0.0=pyhd8ed1ab_0
 - contourpy=1.2.1=py39h7633fee_0
 - cycler=0.12.1=pyhd8ed1ab_0
-- dask-core=2024.7.0=pyhd8ed1ab_0
+- dask-core=2024.8.0=pyhd8ed1ab_0
 - fonttools=4.53.1=py39hcd6043d_0
 - freetype=2.12.1=h267a509_2
 - fsspec=2024.6.1=pyhff2d567_0
 - future=1.0.0=pyhd8ed1ab_0
-- geos=3.12.2=hac33072_0
+- geos=3.12.2=he02047a_1
 - hdf4=4.2.15=h2a13503_7
 - hdf5=1.14.3=nompi_hdf9ad27_105
 - icu=75.1=he02047a_0
-- importlib-metadata=8.0.0=pyha770c72_0
-- importlib-resources=6.4.0=pyhd8ed1ab_0
-- importlib_metadata=8.0.0=hd8ed1ab_0
-- importlib_resources=6.4.0=pyhd8ed1ab_0
+- importlib-metadata=8.4.0=pyha770c72_0
+- importlib-resources=6.4.4=pyhd8ed1ab_0
+- importlib_metadata=8.4.0=hd8ed1ab_0
+- importlib_resources=6.4.4=pyhd8ed1ab_0
 - iris=3.8.1=pyha770c72_0
 - jinja2=3.1.4=pyhd8ed1ab_0
 - kiwisolver=1.4.5=py39h7633fee_1
@@ -38,13 +38,13 @@ dependencies:
 - lcms2=2.16=hb7c19ff_0
 - ld_impl_linux-64=2.40=hf3520f5_7
 - libaec=1.1.3=h59595ed_0
-- libblas=3.9.0=22_linux64_openblas
+- libblas=3.9.0=23_linux64_openblas
 - libbrotlicommon=1.1.0=hd590300_1
 - libbrotlidec=1.1.0=hd590300_1
 - libbrotlienc=1.1.0=hd590300_1
-- libcblas=3.9.0=22_linux64_openblas
-- libcurl=8.8.0=hca28451_1
-- libdeflate=1.20=hd590300_0
+- libcblas=3.9.0=23_linux64_openblas
+- libcurl=8.9.1=hdb1bdb2_0
+- libdeflate=1.21=h4bc722e_0
 - libev=4.33=hd590300_2
 - libexpat=2.6.2=h59595ed_0
 - libgcc-ng=14.1.0=h77fa898_0
@@ -53,7 +53,7 @@ dependencies:
 - libgomp=14.1.0=h77fa898_0
 - libiconv=1.17=hd590300_2
 - libjpeg-turbo=3.0.0=hd590300_1
-- liblapack=3.9.0=22_linux64_openblas
+- liblapack=3.9.0=23_linux64_openblas
 - libnetcdf=4.9.2=nompi_h135f659_114
 - libnghttp2=1.58.0=h47da74e_1
 - libnsl=2.0.1=hd590300_0
@@ -62,39 +62,39 @@ dependencies:
 - libsqlite=3.46.0=hde9e2c9_0
 - libssh2=1.11.0=h0841786_0
 - libstdcxx-ng=14.1.0=hc0a3c3a_0
-- libtiff=4.6.0=h1dd3fc0_3
+- libtiff=4.6.0=h46a8edc_4
 - libudunits2=2.2.28=h40f5838_3
 - libuuid=2.38.1=h0b41bf4_0
 - libwebp-base=1.4.0=hd590300_0
-- libxcb=1.16=hd590300_0
+- libxcb=1.16=hb9d3cd8_1
 - libxcrypt=4.4.36=hd590300_1
 - libxml2=2.12.7=he7c6b58_4
 - libzip=1.10.1=h2629f0a_3
 - libzlib=1.3.1=h4ab18f5_1
 - lz4-c=1.9.4=hcb278e6_0
 - markupsafe=2.1.5=py39hd1e30aa_0
-- matplotlib-base=3.9.1=py39hd75cb13_0
-- ncurses=6.5=h59595ed_0
+- matplotlib-base=3.9.2=py39h0565ad7_0
+- ncurses=6.5=he02047a_1
 - netcdf4=1.7.1=nompi_py39hec96367_101
 - numpy=1.26.4=py39h474f0d3_0
 - openjpeg=2.5.2=h488ebb8_0
-- openssl=3.3.1=h4bc722e_2
+- openssl=3.3.1=hb9d3cd8_3
 - packaging=24.1=pyhd8ed1ab_0
 - partd=1.4.2=pyhd8ed1ab_0
 - pillow=10.4.0=py39h16a7006_0
-- proj=9.4.1=hb784bbd_0
-- pyparsing=3.1.2=pyhd8ed1ab_0
-- pyproj=3.6.1=py39heb31609_7
+- proj=9.4.1=h54d7996_1
+- pyparsing=3.1.4=pyhd8ed1ab_0
+- pyproj=3.6.1=py39hf8c1f24_8
 - python=3.9.19=h0755675_0_cpython
 - python-dateutil=2.9.0=pyhd8ed1ab_0
-- python-xxhash=3.4.1=py39hd1e30aa_0
-- python_abi=3.9=4_cp39
-- pyyaml=6.0.1=py39hd1e30aa_1
+- python-xxhash=3.5.0=py39hcd6043d_0
+- python_abi=3.9=5_cp39
+- pyyaml=6.0.2=py39hcd6043d_0
 - qhull=2020.2=h434a139_5
 - readline=8.2=h8228510_1
 - scipy=1.13.1=py39haf93ffa_0
-- setuptools=71.0.1=pyhd8ed1ab_0
-- shapely=2.0.5=py39h1254fa4_0
+- setuptools=72.2.0=pyhd8ed1ab_0
+- shapely=2.0.6=py39h1254fa4_0
 - snappy=1.2.1=ha2e4443_0
 - sqlite=3.46.0=h6d4b2fc_0
 - tk=8.6.13=noxft_h4845f30_101
@@ -104,7 +104,7 @@ dependencies:
 - unicodedata2=15.1.0=py39hd1e30aa_0
 - xorg-libxau=1.0.11=hd590300_0
 - xxhash=0.8.2=hd590300_0
-- zipp=3.19.2=pyhd8ed1ab_0
+- zipp=3.20.0=pyhd8ed1ab_0
 - zlib=1.3.1=h4ab18f5_1
 - zstd=1.5.6=ha6fb4c9_0
 - pip:
@@ -116,14 +116,13 @@ dependencies:
   - arrow==1.3.0
   - asttokens==2.4.1
   - async_lru==2.0.4
-  - attrs==23.2.0
-  - Babel==2.15.0
-  - backports_strenum==1.3.1
+  - attrs==24.2.0
+  - babel==2.16.0
   - beautifulsoup4==4.12.3
   - bleach==6.1.0
   - cattrs==23.2.3
   - cf_xarray==0.9.4
-  - cffi==1.16.0
+  - cffi==1.17.0
   - charset_normalizer==3.3.2
   - colorama==0.4.6
   - comm==0.2.2
@@ -139,11 +138,11 @@ dependencies:
   - fqdn==1.5.1
   - ghp_import==2.1.0
   - greenlet==3.0.3
-  - griffe==0.48.0
+  - griffe==1.2.0
   - h11==0.14.0
   - httpcore==1.0.5
   - httpx==0.27.0
-  - idna==3.7
+  - idna==3.8
   - imagesize==1.4.1
   - ipykernel==6.29.5
   - ipython==8.18.1
@@ -165,7 +164,7 @@ dependencies:
   - jupyterlab_server==2.27.3
   - jupytext==1.16.4
   - loguru==0.7.2
-  - Markdown==3.6
+  - Markdown==3.7
   - markdown_it_py==3.0.0
   - matplotlib_inline==0.1.7
   - mdit_py_plugins==0.4.1
@@ -173,16 +172,16 @@ dependencies:
   - mergedeep==1.3.4
   - mistune==3.0.2
   - mkdocs==1.6.0
-  - mkdocs_autorefs==1.0.1
+  - mkdocs_autorefs==1.1.0
   - mkdocs_gen_files==0.5.0
   - mkdocs_get_deps==0.2.0
   - mkdocs_jupyter==0.24.8
   - mkdocs_literate_nav==0.6.1
-  - mkdocs_material==9.5.31
+  - mkdocs_material==9.5.33
   - mkdocs_material_extensions==1.3.1
   - mkdocs_section_index==0.3.9
   - mkdocstrings==0.25.2
-  - mkdocstrings_python==1.10.7
+  - mkdocstrings_python==1.10.8
   - myst_nb==1.1.1
   - myst_parser==3.0.1
   - nbclient==0.10.0
@@ -192,6 +191,7 @@ dependencies:
   - nest_asyncio==1.6.0
   - notebook_shim==0.2.4
   - overrides==7.7.0
+  - paginate==0.5.7
   - pandas==2.2.2
   - pandocfilters==1.5.1
   - parso==0.8.4
@@ -212,19 +212,19 @@ dependencies:
   - python_json_logger==2.0.7
   - pytz==2024.1
   - pyyaml_env_tag==0.1
-  - pyzmq==26.1.0
+  - pyzmq==26.2.0
   - referencing==0.35.1
   - regex==2024.7.24
   - requests==2.32.3
   - rfc3339_validator==0.1.4
   - rfc3986_validator==0.1.1
   - rich==13.7.1
-  - rpds_py==0.19.1
+  - rpds_py==0.20.0
   - Send2Trash==1.8.3
   - shellingham==1.5.4
   - sniffio==1.3.1
   - snowballstemmer==2.2.0
-  - soupsieve==2.5
+  - soupsieve==2.6
   - sphinx==7.4.7
   - sphinxcontrib_applehelp==2.0.0
   - sphinxcontrib_devhelp==2.0.0
@@ -239,18 +239,18 @@ dependencies:
   - tinycss2==1.3.0
   - tomli==2.0.1
   - tornado==6.4.1
-  - tqdm==4.66.4
+  - tqdm==4.66.5
   - traitlets==5.14.3
-  - typer==0.12.3
-  - types_python_dateutil==2.9.0.20240316
+  - typer==0.12.5
+  - types_python_dateutil==2.9.0.20240821
   - typing_extensions==4.12.2
   - tzdata==2024.1
   - uri_template==1.3.0
   - urllib3==2.2.2
   - validators==0.33.0
-  - watchdog==4.0.1
+  - watchdog==4.0.2
   - wcwidth==0.2.13
-  - webcolors==24.6.0
+  - webcolors==24.8.0
   - webencodings==0.5.1
   - websocket_client==1.8.0
-  - xarray==2024.6.0
+  - xarray==2024.7.0

@@ -26,6 +26,7 @@ TITLE_RENAMINGS = {
     "io": "IO",
     "cvs": "CVs",
     "drs": "DRS",
+    "upload_ftp": "Upload FTP",
     "input4mips_validation": "input4mips_validation",
 }
 
@@ -122,7 +123,6 @@ def write_module_page(
     write_file = get_write_file(package_full_name, title)
 
     with mkdocs_gen_files.open(write_file, "w") as fh:
-        fh.write(f"[](){{#{package_full_name}}}\n")
         fh.write(f"# {title}\n")
 
         if sub_packages:

@@ -55,3 +55,77 @@ After you have a file(s) which passes validation, you have two options:
 
 If you are planning on managing a database of files,
 please take a look at ["How to manage a database"](how-to-manage-a-database).
+
+## How to configure logging with input4MIPs-validation?
+
+Logging in Python isn't as straightforward as it could be.
+As a result, here we provide a guide to configuring logging with input4MIPs validation.
+We hope that, one day in the future, such a guide won't be needed
+because logging will be done in a consistent way across the Python ecosystem.
+
+If you are using our [command-line interface][input4mips-validation-cli],
+you can specify every aspect of the logging,
+i.e. you have full control.
+Before you dive into this though, we provide much simpler options for basic logging control.
+These are documented in [the command-line interface's docs][input4mips-validation-cli].
+With that mentioned, back to complete logging control.
+Below is a sample `.yaml` logging configuration file.
+
+```yaml
+# A sample file, which illustrates how the logging can be configured
+handlers:
+  # Send messages to stderr
+  - sink: ext://sys.stderr
+    # Some other levels that might be useful
+    # level: DEBUG
+    # level: INFO_INDIVIDUAL_CHECK
+    # level: INFO_INDIVIDUAL_CHECK_ERROR
+    # level: INFO_FILE
+    # level: INFO_FILE_ERROR
+    level: INFO
+    colorize: true
+    format: "{process} - {thread} - <green>{time:!UTC}</> - <lvl>{level}</> - <cyan>{name}:{file}:{line}</> - <lvl>{message}</>"
+  # Log to a file too
+  - sink: file_{time}.log
+    level: DEBUG
+    enqueue: true
+    format: "{process} - {thread} - {time:!UTC} - {level} - {name}:{file}:{line} - {message}"
+activation:
+  - [ "input4mips_validation", true ]
+```
+
+If you save this file to disk,
+you can then use it to configure input4MIPs validation's logging as shown:
+
+```sh
+# Assume you have saved your logging config
+# to a file called `input4mips-validation-logging-config.yaml`.
+# This can be passed to the CLI as shown.
+input4MIPs-validation --logging-config input4mips-validation-logging-config.yaml
+```
+
+Under the hood, we use [loguru-config](https://github.com/erezinman/loguru-config)
+to load the configuration from disk and configure [loguru](https://loguru.readthedocs.io/).
+As a a result, all of [loguru](https://loguru.readthedocs.io/)'s
+options are available to your.
+For full details, see [loguru](https://loguru.readthedocs.io/)
+and [loguru-config](https://github.com/erezinman/loguru-config).
+
+If you are using the Python API, the logging is disabled by default
+(in line with [best practice](https://loguru.readthedocs.io/en/stable/overview.html#suitable-for-scripts-and-libraries)).
+This gives you, the user, full control of the logging.
+Activating the logging is very easy.
+All you need is code like the following
+
+```python
+from loguru import logger
+
+logger.activate("input4MIPs_validation")
+
+# Apply any other configuration options you want too.
+# See links to loguru's docs below for further details and examples.
+```
+
+All the usual loguru configuration can then be applied.
+For full configuration options, see
+[loguru's docs](https://loguru.readthedocs.io/en/stable/api/logger.html#loguru._logger.Logger.configure).

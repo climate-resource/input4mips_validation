@@ -174,9 +174,10 @@ def db_validate_command(  # noqa: PLR0913
         bool,
         typer.Option(
             "--force",
-            help="""Force re-validation of all entries.
-
-This means that any previous validation of the entries is ignored.""",
+            help=(
+                "Force re-validation of all entries. "
+                "This means that any previous validation of the entries is ignored."
+            ),
         ),
     ] = False,
 ) -> None:

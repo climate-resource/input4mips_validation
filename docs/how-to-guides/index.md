@@ -55,3 +55,26 @@ After you have a file(s) which passes validation, you have two options:
 
 If you are planning on managing a database of files,
 please take a look at ["How to manage a database"](how-to-manage-a-database).
+
+## How to configure logging with input4MIPs-validation?
+
+Logging in Python isn't as straightforward as it could be.
+As a result, here we provide a guide to configuring logging with input4MIPs-validation.
+We hope that, one day in the future, such a guide won't be needed
+because logging will be done in a consistent way across the Python ecosystem.
+
+When using our [command-line interface][input4mips-validation].
+
+We use [loguru](https://loguru.readthedocs.io/en/stable/)
+to control our logging.
+
+
+
+From the Python API, this makes activating the logging very easy.
+All you need is code like the following
+
+```python
+from loguru import logger
+
+logger.activate("input4MIPs_validation")
+```

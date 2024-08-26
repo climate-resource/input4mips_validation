@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from collections.abc import Collection
 from pathlib import Path
+from typing import Callable, TypeVar
 
 import tqdm
 import xarray as xr
@@ -19,6 +20,8 @@ from input4mips_validation.validation.exceptions import (
     InvalidTreeError,
 )
 from input4mips_validation.validation.file import validate_file
+
+R = TypeVar("R")
 
 
 def validate_tracking_ids_are_unique(files: Collection[Path]) -> None:
@@ -55,7 +58,8 @@ def validate_tree(  # noqa: PLR0913
     time_dimension: str = "time",
     rglob_input: str = "*.nc",
     allow_cf_checker_warnings: bool = False,
-) -> None:
+    result_processor: Callable[[ValidateTreeResult], R] | None = None,
+) -> R:
     """
     Validate a (directory) tree
 
@@ -118,11 +122,21 @@ def validate_tree(  # noqa: PLR0913
         In otherwise, is a file allowed to pass validation,
         even if there are warnings from the CF-checker?
 
-    Raises
-    ------
-    InvalidTreeError
-        The tree does not pass all of the validation.
+    result_processor
+        Function to use for processing the created
+        [`ValidateTreeResult`][input4mips_validation.validation.tree.ValidateTreeResult].
+
+        If not provided, we use
+        [`check_validate_tree_result`][input5mips_validation.validation.tree.check_validate_tree_result].
+
+    Returns
+    -------
+    :
+        The return value from `result_processor`.
     """
+    if result_processor is None:
+        result_processor = check_validate_tree_result
+
     logger.info(f"Validating the tree with root {root}")
     caught_errors: list[tuple[str, Exception]] = []
     checks_performed: list[str] = []
@@ -197,39 +211,33 @@ def validate_tree(  # noqa: PLR0913
         call_purpose="Validate that tracking IDs in all files are unique",
     )(all_files)
 
-    if caught_errors:
-        # # TODO: dump this out in html that can be interrogated
-        # failed_files = line_start.join([str(v) for v in failed_files_l])
-        # The following would be fine as a start
-        """
-Failures:
-<ol>
-    <li>
-        <details>
-          <summary>filename</summary>
-          <ol>
-              <li>
-                  <details>
-                      <summary>error headline</summary>
-                      Error full info
-                  </details>
-              </li>
-          </ol>
-        </details>
-    </li>
-</ol>
-Passed:
-<ol>
-    <li>filename</li>
-</ol>
-        """
+    return result_processor(validate_tree_result)
 
+
+def check_validate_tree_result(result: ValidateTreeResult) -> None:
+    """
+    Check a [`ValidateTreeResult`][input4mips_validation.validation.tree.ValidateTreeResult]
+
+    Parameters
+    ----------
+    result
+        Result to check
+
+    Raises
+    ------
+    InvalidTreeError
+        `result` contains errors
+    """  # noqa: E501
+    if result.caught_errors:
+        n_files_checked = len(result.files_checked)
         logger.error(
-            f"{len(failed_files_l)} out of {len(all_files)} "
-            f"{'files' if len(all_files) > 1 else 'file'} failed validation "
-            f"for the tree with root {root}",
+            f"{len(result.failed_files)} out of {n_files_checked} "
+            f"{'files' if n_files_checked > 1 else 'file'} failed validation "
+            f"for the tree with root {result.tree_root}",
         )
 
-        raise InvalidTreeError(root=root, error_container=caught_errors)
+        raise InvalidTreeError(
+            root=result.tree_root, error_container=result.caught_errors
+        )
 
-    logger.success(f"Validation passed for the tree with root {root}")
+    logger.success(f"Validation passed for the tree with root {result.tree_root}")

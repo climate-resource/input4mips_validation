@@ -80,7 +80,7 @@ licence-check:  ## Check that licences of the dependencies are suitable
 
 .PHONY: virtual-environment
 virtual-environment:  ## update virtual environment, create a new one if it doesn't already exist
-	pixi install
+	pixi install -e all-dev
 	pixi run -e all-dev pre-commit install
 	# Make sure pdm lock file is up to date too
 	pdm lock --strategy=inherit_metadata --dev --group :all

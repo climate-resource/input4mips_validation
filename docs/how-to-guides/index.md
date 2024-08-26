@@ -63,18 +63,53 @@ As a result, here we provide a guide to configuring logging with input4MIPs-vali
 We hope that, one day in the future, such a guide won't be needed
 because logging will be done in a consistent way across the Python ecosystem.
 
-When using our [command-line interface][input4mips-validation].
+If you are using our [command-line interface][input4mips-validation],
+then please checkout the [command-line interface's docs][input4mips-validation]
+for full details of the available logging configuration options.
+In addition to those docs, below we also provide a sample of the configuration
+which can be used with [loguru-config](https://github.com/erezinman/loguru-config).
+For full details, see [loguru](https://loguru.readthedocs.io/)
+and [loguru-config](https://github.com/erezinman/loguru-config).
 
-We use [loguru](https://loguru.readthedocs.io/en/stable/)
-to control our logging.
 
+```yaml
+# A sample file, which illustrates how the logging can be configured
+handlers:
+  # Send messages to stderr
+  - sink: ext://sys.stderr
+    # Some other levels that might be useful
+    # level: DEBUG
+    # level: INFO_INDIVIDUAL_CHECK
+    # level: INFO_INDIVIDUAL_CHECK_ERROR
+    # level: INFO_FILE
+    # level: INFO_FILE_ERROR
+    level: INFO
+    colorize: true
+    format: "{process} - {thread} - <green>{time:!UTC}</> - <lvl>{level}</> - <cyan>{name}:{file}:{line}</> - <lvl>{message}</>"
+  # Log to a file too
+  - sink: file_{time}.log
+    level: DEBUG
+    enqueue: true
+    format: "{process} - {thread} - {time:!UTC} - {level} - {name}:{file}:{line} - {message}"
+activation:
+  - [ "input4mips_validation", true ]
+```
 
-
-From the Python API, this makes activating the logging very easy.
+If you are using the Python API, by default, the logging is disabled
+(in line with [best practice](https://loguru.readthedocs.io/en/stable/overview.html#suitable-for-scripts-and-libraries)).
+This gives you, as the user, full control of the logging.
+Activating the logging is very easy.
 All you need is code like the following
 
 ```python
 from loguru import logger
 
 logger.activate("input4MIPs_validation")
+
+# Apply any other configuration options you want too.
+# See links to loguru's docs below for further details and examples.
 ```
+
+All the usual loguru configuration can also be applied.
+For full configuration options, see
+[loguru's docs](https://loguru.readthedocs.io/en/stable/api/logger.html#loguru._logger.Logger.configure).

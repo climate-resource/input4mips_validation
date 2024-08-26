@@ -105,6 +105,8 @@ def cli(
                 "This will be loaded with "
                 "[loguru-config](https://github.com/erezinman/loguru-config). "
                 "If supplied, this overrides any value provided with `--log-level`."
+                "For a sample configuration file, see "
+                "[How to configure logging with input4MIPs-validation?][how-to-configure-logging-with-input4mips-validation]"  # noqa: E501
             )
         ),
     ] = None,

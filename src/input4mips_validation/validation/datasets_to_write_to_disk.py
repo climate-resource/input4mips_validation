@@ -5,13 +5,17 @@ Validation of datasets that we are writing to disk
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Union
 
 import xarray as xr
 
 from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.deprecation import raise_deprecation_warning
 from input4mips_validation.validation.creation_date import validate_creation_date
-from input4mips_validation.validation.error_catching import get_catch_error_decorator
+from input4mips_validation.validation.error_catching import (
+    ValidationResultsStore,
+    get_catch_error_decorator,
+)
 
 
 class InvalidDatasetToWriteToDiskError(ValueError):
@@ -54,6 +58,50 @@ class InvalidDatasetToWriteToDiskError(ValueError):
         super().__init__(error_msg)
 
 
+def get_ds_to_write_to_disk_validation_result(
+    ds: xr.Dataset,
+    out_path: Path,
+    cvs: Input4MIPsCVs,
+    vrs: Union[ValidationResultsStore, None] = None,
+) -> ValidationResultsStore:
+    """
+    Get the result of validating a dataset that is going to be written to disk
+
+    Parameters
+    ----------
+    ds
+        Dataset to write to disk.
+        May contain one or more variables.
+
+    out_path
+        Path in which to the dataset will be written
+
+    cvs
+        CVs to use to validate the dataset before writing
+
+    vrs
+        The validation results store to use for the validation.
+
+        If not supplied, we instantiate a new
+        [`ValidationResultsStore`][input4mips_validation.validation.error_catching.ValidationResultsStore]
+        instance.
+
+    Returns
+    -------
+    :
+        The validation results store.
+    """
+    if vrs is None:
+        vrs = ValidationResultsStore()
+
+    vrs.wrap(
+        validate_creation_date,
+        func_description="Validate the creation_date attribute",
+    )(ds.attrs["creation_date"])
+
+    return vrs
+
+
 def validate_ds_to_write_to_disk(
     ds: xr.Dataset, out_path: Path, cvs: Input4MIPsCVs
 ) -> None:
@@ -78,7 +126,9 @@ def validate_ds_to_write_to_disk(
         Given the values of `out_path` and `cvs`,
         `ds` is not valid for writing to disk.
     """
-    raise_deprecation_warning("validate_ds_to_write_to_disk", removed_in="0.14.0")
+    raise_deprecation_warning(
+        "validate_ds_to_write_to_disk", removed_in="0.14.0", use_instead=""
+    )
 
     caught_errors: list[tuple[str, Exception]] = []
     checks_performed: list[str] = []

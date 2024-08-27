@@ -20,6 +20,7 @@ from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
+from input4mips_validation.validation.tree import get_validate_tree_result
 
 UR = pint.get_application_registry()
 try:
@@ -40,8 +41,6 @@ def test_errors_html(tmp_path, file_regression):
     """
     root_dir_tree = tmp_path / "tree-to-validate"
     root_dir_tree.mkdir()
-
-    html_output_path = tmp_path / "html-errors-dump.html"
 
     cvs = load_cvs(cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
@@ -87,13 +86,18 @@ def test_errors_html(tmp_path, file_regression):
         root_dir_tree, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
     )
 
-    with open(html_output_path, "w") as fh:
-        fh.write(validate_tree_result.to_html())
+    def sanitise_regression_string(inp: str) -> str:
+        return inp.replace(str(root_dir_tree), "&lt;tree_root&gt;").replace(
+            str(Path(__file__).parents[3]), "<repo-root-dir>"
+        )
 
-    file_regression.check(html_output_path)
+    file_regression.check(
+        sanitise_regression_string(validate_tree_result.to_html()),
+        extension=".html",
+    )
 
     # Then test the CLI
-    html_output_path.unlink()
+    html_output_path = tmp_path / "html-errors-dump.html"
     with patch.dict(
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
@@ -108,6 +112,10 @@ def test_errors_html(tmp_path, file_regression):
             ],
         )
 
-    assert result.exit_code == 0, result.exc_info
+    assert result.exit_code == 1, result.output
 
-    file_regression.check(html_output_path)
+    with open(html_output_path) as fh:
+        file_regression.check(
+            sanitise_regression_string(fh.read()),
+            extension=".html",
+        )

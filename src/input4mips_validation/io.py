@@ -16,7 +16,7 @@ import xarray as xr
 from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.validation.creation_date import CREATION_DATE_FORMAT
 from input4mips_validation.validation.datasets_to_write_to_disk import (
-    validate_ds_to_write_to_disk,
+    get_ds_to_write_to_disk_validation_result,
 )
 
 iris.FUTURE.save_split_attrs = True
@@ -60,7 +60,10 @@ def write_ds_to_disk(
     # As part of https://github.com/climate-resource/input4mips_validation/issues/14
     # add final validation here for bullet proofness
     # - tracking ID, creation date, comparison with DRS from cvs etc.
-    validate_ds_to_write_to_disk(ds=ds, out_path=out_path, cvs=cvs)
+    validation_result = get_ds_to_write_to_disk_validation_result(
+        ds=ds, out_path=out_path, cvs=cvs
+    )
+    validation_result.raise_if_errors()
 
     # Having validated, make the target directory and write
     out_path.parent.mkdir(parents=True, exist_ok=True)

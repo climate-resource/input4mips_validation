@@ -15,6 +15,7 @@ from loguru import logger
 import input4mips_validation.logging_config
 from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
 from input4mips_validation.database.database import Input4MIPsDatabaseEntryFile
+from input4mips_validation.deprecation import raise_deprecation_warning
 from input4mips_validation.exceptions import NonUniqueError
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.logging import (
@@ -124,6 +125,8 @@ def validate_database_file_entry(  # noqa: PLR0913
     ValueError
         The hash of the file does not match what is in the database.
     """
+    raise_deprecation_warning("validate_database_file_entry", removed_in="0.14.0")
+
     # Check the sha to start.
     # If this is wrong, let things explode because something is really wrong.
     sha256 = get_file_hash_sha256(Path(entry.filepath))

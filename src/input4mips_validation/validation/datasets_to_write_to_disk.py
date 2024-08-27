@@ -9,6 +9,7 @@ from pathlib import Path
 import xarray as xr
 
 from input4mips_validation.cvs import Input4MIPsCVs
+from input4mips_validation.deprecation import raise_deprecation_warning
 from input4mips_validation.validation.creation_date import validate_creation_date
 from input4mips_validation.validation.error_catching import get_catch_error_decorator
 
@@ -77,6 +78,8 @@ def validate_ds_to_write_to_disk(
         Given the values of `out_path` and `cvs`,
         `ds` is not valid for writing to disk.
     """
+    raise_deprecation_warning("validate_ds_to_write_to_disk", removed_in="0.14.0")
+
     caught_errors: list[tuple[str, Exception]] = []
     checks_performed: list[str] = []
     catch_error = get_catch_error_decorator(caught_errors, checks_performed)

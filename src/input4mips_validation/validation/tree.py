@@ -12,6 +12,7 @@ import xarray as xr
 from loguru import logger
 
 from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
+from input4mips_validation.deprecation import raise_deprecation_warning
 from input4mips_validation.exceptions import NonUniqueError
 from input4mips_validation.validation.error_catching import get_catch_error_decorator
 from input4mips_validation.validation.exceptions import (
@@ -123,6 +124,8 @@ def validate_tree(  # noqa: PLR0913
     InvalidTreeError
         The tree does not pass all of the validation.
     """
+    raise_deprecation_warning("validate_tree", removed_in="0.14.0")
+
     logger.info(f"Validating the tree with root {root}")
     caught_errors: list[tuple[str, Exception]] = []
     checks_performed: list[str] = []

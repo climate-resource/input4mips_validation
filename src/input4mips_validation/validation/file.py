@@ -11,6 +11,7 @@ import xarray as xr
 from loguru import logger
 
 from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
+from input4mips_validation.deprecation import raise_deprecation_warning
 from input4mips_validation.logging import (
     LOG_LEVEL_INFO_FILE,
     LOG_LEVEL_INFO_FILE_ERROR,
@@ -78,6 +79,8 @@ def validate_file(
     InvalidFileError
         The file does not pass all of the validation.
     """
+    raise_deprecation_warning("validate_file", removed_in="0.14.0")
+
     logger.log(LOG_LEVEL_INFO_FILE.name, f"Validating {infile}")
     caught_errors: list[tuple[str, Exception]] = []
     checks_performed: list[str] = []

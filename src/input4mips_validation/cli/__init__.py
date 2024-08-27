@@ -246,7 +246,6 @@ def validate_tree_command(  # noqa: PLR0913
             rglob_input=rglob_input,
             allow_cf_checker_warnings=allow_cf_checker_warnings,
         )
-
     except InvalidTreeError as exc:
         logger.debug(f"{type(exc).__name__}: {exc}")
 

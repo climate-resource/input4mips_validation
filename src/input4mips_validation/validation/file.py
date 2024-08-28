@@ -173,7 +173,7 @@ def get_validate_file_result(  # noqa: PLR0913
     bnds_coord_indicator: str = "bnds",
     allow_cf_checker_warnings: bool = False,
     vrs: Union[ValidationResultsStore, None] = None,
-) -> None:
+) -> ValidationResultsStore:
     """
     Get the result of validating a file
 

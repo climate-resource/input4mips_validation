@@ -122,6 +122,7 @@ class ValidationResultsStoreError(ValueError):
             The validation results store that contains failures.
         """
         # Get inspiration from TreeValidationResultsStoreError
+        assert False, "Implement here"
         raise NotImplementedError()
 
         # super().__init__(error_msg)
@@ -219,7 +220,7 @@ class ValidationResultsStore:
         ValidationError
             One of the validation steps in `self.validation_results` failed.
         """
-        if any(not v.passed for v in self.validation_results):
+        if not self.all_passed:
             raise ValidationResultsStoreError(self)
 
     def checks_summary_str(self, passing: bool) -> str:

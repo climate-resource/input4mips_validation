@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import concurrent.futures
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import tqdm
 from attrs import define, evolve
@@ -28,11 +28,17 @@ from input4mips_validation.logging_config import (
     deserialise_logging_config,
     serialise_logging_config,
 )
-from input4mips_validation.validation.error_catching import get_catch_error_decorator
+from input4mips_validation.validation.error_catching import (
+    get_catch_error_decorator,
+    ValidationResultsStore,
+)
 from input4mips_validation.validation.exceptions import (
     FileAssociatedWithDatabaseEntryError,
 )
-from input4mips_validation.validation.file import validate_file
+from input4mips_validation.validation.file import (
+    validate_file,
+    get_validate_file_result,
+)
 
 
 def validate_tracking_ids_are_unique(
@@ -57,6 +63,147 @@ def validate_tracking_ids_are_unique(
             description="Tracking IDs for all entries should be unique",
             values=tracking_ids,
         )
+
+
+def get_validate_database_file_entry_result(  # noqa: PLR0913
+    entry: Input4MIPsDatabaseEntryFile,
+    cv_source: str | None = None,
+    cvs: Input4MIPsCVs | None = None,
+    bnds_coord_indicator: str = "bnds",
+    frequency_metadata_key: str = "frequency",
+    no_time_axis_frequency: str = "fx",
+    time_dimension: str = "time",
+    allow_cf_checker_warnings: bool = False,
+    vrs: Union[ValidationResultsStore, None] = None,
+) -> ValidationResultsStore:
+    """
+    Get the result of validating an entry for a file in our database
+
+    Parameters
+    ----------
+    entry
+        Entry to validate
+
+    cv_source
+        Source from which to load the CVs
+
+        Only required if `cvs` is `None`.
+
+        For full details on options for loading CVs,
+        see
+        [`get_raw_cvs_loader`][input4mips_validation.cvs.loading_raw.get_raw_cvs_loader].
+
+    cvs
+        CVs to use when validating the file.
+
+        If these are passed, then `cv_source` is ignored.
+
+    bnds_coord_indicator
+        String that indicates that a variable is a bounds co-ordinate
+
+        This helps us with identifying `infile`'s variables correctly
+        in the absence of an agreed convention for doing this
+        (xarray has a way, but it conflicts with the CF-conventions,
+        so here we are).
+
+    frequency_metadata_key
+        The key in the data's metadata
+        which points to information about the data's frequency
+
+    no_time_axis_frequency
+        The value of `frequency_metadata_key` in the metadata which indicates
+        that the file has no time axis i.e. is fixed in time.
+
+    time_dimension
+        The time dimension of the data
+
+    allow_cf_checker_warnings
+        Should warnings from the CF-checker be allowed?
+
+        In otherwise, is a file allowed to pass validation,
+        even if there are warnings from the CF-checker?
+
+    vrs
+        The validation results store to use for the validation.
+
+        If not supplied, we instantiate a new
+        [`ValidationResultsStore`][input4mips_validation.validation.error_catching.ValidationResultsStore]
+        instance.
+
+    Returns
+    -------
+    :
+        The validation results store.
+
+    Raises
+    ------
+    ValueError
+        The hash of the file does not match what is in the database.
+
+        This is a pure raise (i.e. things will not fail gracefully).
+        This is done in purpose.
+        If the hash doesn't match what is expected, something is really wrong.
+    """
+    logger.log(
+        LOG_LEVEL_INFO_DB_ENTRY.name, f"Checking the SHA for file: {entry.filepath}"
+    )
+    # Check the sha to start.
+    # If this is wrong, let things explode because something is really wrong.
+    sha256 = get_file_hash_sha256(Path(entry.filepath))
+    if sha256 != entry.sha256:
+        msg = (
+            f"{entry.sha256=}, but we calculated a sha256 of {sha256} "
+            f"for {entry.filepath}"
+        )
+
+        raise ValueError(msg)
+
+    logger.log(
+        LOG_LEVEL_INFO_DB_ENTRY.name,
+        f"Creating validation results for the entry for file: {entry.filepath}",
+    )
+
+    if vrs is None:
+        logger.debug("Instantiating a new `ValidationResultsStore`")
+        vrs = ValidationResultsStore()
+
+    if cvs is None:
+        # Load CVs, we need them for the following steps
+        cvs = vrs.wrap(
+            load_cvs,
+            func_description="Load controlled vocabularies to use during validation",
+        )(cv_source=cv_source).result
+
+    elif cv_source is not None:
+        logger.warning(f"Using provided cvs instead of {cv_source=}")
+
+    # Use validate individual file to check file loading and metadata
+    vrs.wrap(get_validate_file_result, func_description="Validate individual file")(
+        entry.filepath,
+        cvs=cvs,
+        bnds_coord_indicator=bnds_coord_indicator,
+        allow_cf_checker_warnings=allow_cf_checker_warnings,
+        vrs=vrs,
+    )
+
+    vrs.wrap(
+        cvs.DRS.validate_file_written_according_to_drs,
+        func_description="Validate file written according to the DRS",
+    )(
+        Path(entry.filepath),
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
+        time_dimension=time_dimension,
+    )
+
+    # TODO: all references to external variables (like cell areas) can be resolved
+    #       within the tree in which the file exists
+
+    logger.log(
+        LOG_LEVEL_INFO_DB_ENTRY.name,
+        f"Created validation results for the entry for file: {entry.filepath}",
+    )
+    return vrs
 
 
 def validate_database_file_entry(  # noqa: PLR0913
@@ -125,7 +272,14 @@ def validate_database_file_entry(  # noqa: PLR0913
     ValueError
         The hash of the file does not match what is in the database.
     """
-    raise_deprecation_warning("validate_database_file_entry", removed_in="0.14.0")
+    raise_deprecation_warning(
+        "validate_database_file_entry",
+        removed_in="0.14.0",
+        use_instead=(
+            "`get_validate_database_file_entry_result`, "
+            "then process the result to suit your use case"
+        ),
+    )
 
     # Check the sha to start.
     # If this is wrong, let things explode because something is really wrong.
@@ -191,8 +345,6 @@ def validate_database_file_entry(  # noqa: PLR0913
 class FileEntryValidationResult:
     """
     Container for holding the results of database file entry validation
-
-    Used to avoid explosions when trying to pass exceptions out of parallel processes.
     """
 
     entry: Input4MIPsDatabaseEntryFile
@@ -236,18 +388,21 @@ def database_file_entry_is_valid(
     Returns
     -------
     :
-        Result of the validation of `entry`
+        Result of the validation of `entry`.
     """
     logging_config = deserialise_logging_config(logging_config_serialised)
-    setup_logging(
-        enable=logging_config is not None,
-        logging_config=logging_config,
-    )
+    if logging_config is not None:
+        setup_logging(
+            enable=True,
+            logging_config=logging_config,
+        )
 
+    vrs = get_validate_database_file_entry_result(entry=entry, **kwargs)
     try:
-        validate_database_file_entry(entry=entry, **kwargs)
+        vrs.raise_if_errors()
         res = FileEntryValidationResult(entry=entry, passed_validation=True)
-    except FileAssociatedWithDatabaseEntryError as exc:
+
+    except Exception as exc:
         res = FileEntryValidationResult(
             entry=entry,
             passed_validation=False,
@@ -365,13 +520,14 @@ def validate_database_entries(  # noqa: PLR0913
             total=len(futures),
         ):
             file_validation_result = future.result()
+            passed_validation = file_validation_result.passed_validation
             out_l.append(
                 evolve(
                     file_validation_result.entry,
-                    validated_input4mips=file_validation_result.passed_validation,
+                    validated_input4mips=passed_validation,
                 )
             )
-            if file_validation_result.passed_validation:
+            if passed_validation:
                 logger.log(
                     LOG_LEVEL_INFO_DB_ENTRY.name,
                     "Validation passed for the entry pointing to "

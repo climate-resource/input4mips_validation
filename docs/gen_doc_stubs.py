@@ -27,6 +27,7 @@ TITLE_RENAMINGS = {
     "cvs": "CVs",
     "drs": "DRS",
     "upload_ftp": "Upload FTP",
+    "datasets_to_write_to_disk": "Datasets to write to disk",
     "input4mips_validation": "input4mips_validation",
 }
 

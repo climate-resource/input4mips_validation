@@ -219,6 +219,13 @@ def validate_database_file_entry(  # noqa: PLR0913
     """
     Validate an entry for a file in our database
 
+    /// danger | Deprecated
+    `validate_database_file_entry` was deprecated in v0.12.0.
+    It will be removed in v0.14.0.
+    Please use [`get_validate_database_file_entry_result`][input4mips_validation.validation.database.get_validate_database_file_entry_result]
+    instead because it provides greater control.
+    ///
+
     Parameters
     ----------
     entry
@@ -271,7 +278,7 @@ def validate_database_file_entry(  # noqa: PLR0913
 
     ValueError
         The hash of the file does not match what is in the database.
-    """
+    """  # noqa: E501
     raise_deprecation_warning(
         "validate_database_file_entry",
         removed_in="0.14.0",

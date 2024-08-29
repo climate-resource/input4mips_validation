@@ -46,6 +46,13 @@ def validate_file(
     This checks that the file can be loaded with standard libraries
     and passes metadata and data checks.
 
+    /// danger | Deprecated
+    `validate_file` was deprecated in v0.12.0.
+    It will be removed in v0.14.0.
+    Please use [`get_validate_file_result`][input4mips_validation.validation.file.get_validate_file_result]
+    instead because it provides greater control.
+    ///
+
     Parameters
     ----------
     infile
@@ -83,7 +90,7 @@ def validate_file(
     ------
     InvalidFileError
         The file does not pass all of the validation.
-    """
+    """  # noqa: E501
     raise_deprecation_warning(
         "validate_file",
         removed_in="0.14.0",

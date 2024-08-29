@@ -108,6 +108,13 @@ def validate_ds_to_write_to_disk(
     """
     Validate a dataset that is going to be written to disk
 
+    /// danger | Deprecated
+    `validate_ds_to_write_to_disk` was deprecated in v0.12.0.
+    It will be removed in v0.14.0.
+    Please use [`get_ds_to_write_to_disk_validation_result`][input4mips_validation.validation.datasets_to_write_to_disk.get_ds_to_write_to_disk_validation_result]
+    instead because it provides greater control.
+    ///
+
     Parameters
     ----------
     ds
@@ -125,7 +132,7 @@ def validate_ds_to_write_to_disk(
     InvalidDatasetToWriteToDiskError
         Given the values of `out_path` and `cvs`,
         `ds` is not valid for writing to disk.
-    """
+    """  # noqa: E501
     raise_deprecation_warning(
         "validate_ds_to_write_to_disk",
         removed_in="0.14.0",

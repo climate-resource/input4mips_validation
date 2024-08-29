@@ -77,6 +77,13 @@ def validate_tree(  # noqa: PLR0913
     1. all references to external variables (like cell areas) can be resolved
     1. all files have a unique tracking ID
 
+    /// danger | Deprecated
+    `validate_tree` was deprecated in v0.12.0.
+    It will be removed in v0.14.0.
+    Please use [`get_validate_tree_result`][input4mips_validation.validation.tree.get_validate_tree_result]
+    instead because it provides greater control.
+    ///
+
     Parameters
     ----------
     root
@@ -131,7 +138,7 @@ def validate_tree(  # noqa: PLR0913
     ------
     InvalidTreeError
         The tree does not pass all of the validation.
-    """
+    """  # noqa: E501
     raise_deprecation_warning(
         "validate_tree",
         removed_in="0.14.0",

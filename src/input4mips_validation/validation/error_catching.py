@@ -39,7 +39,7 @@ def exception_info_consistent_with_passed(
     attribute
         Attribute being set
 
-    Value
+    value
         Value being set
 
     Raises
@@ -285,6 +285,13 @@ def get_catch_error_decorator(
     """
     Get a decorator which can be used to collect errors without stopping the program
 
+    /// danger | Deprecated
+    `get_catch_error_decorator` was deprecated in v0.12.0.
+    It will be removed in v0.14.0.
+    Please use [`ValidationResultsStore`][input4mips_validation.validation.error_catching.ValidationResultsStore]
+    instead because it provides greater control.
+    ///
+
     Parameters
     ----------
     error_container
@@ -298,7 +305,7 @@ def get_catch_error_decorator(
     :
         Decorator which can be used to collect errors
         that occur while calling callables.
-    """
+    """  # noqa: E501
     raise_deprecation_warning(
         "get_catch_error_decorator",
         removed_in="0.14.0",

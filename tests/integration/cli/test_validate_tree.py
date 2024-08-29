@@ -19,7 +19,7 @@ from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
-from input4mips_validation.validation import validate_tree
+from input4mips_validation.validation.tree import get_validate_tree_result
 
 UR = pint.get_application_registry()
 try:
@@ -69,7 +69,9 @@ def test_basic(tmp_path):
         written_files.append(written_file)
 
     # Test the function directly first (helps with debugging)
-    validate_tree(tmp_path, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
+    get_validate_tree_result(
+        tmp_path, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+    ).raise_if_errors()
 
     # Then test the CLI
     with patch.dict(

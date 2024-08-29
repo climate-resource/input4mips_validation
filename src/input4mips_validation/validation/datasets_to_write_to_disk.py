@@ -127,7 +127,12 @@ def validate_ds_to_write_to_disk(
         `ds` is not valid for writing to disk.
     """
     raise_deprecation_warning(
-        "validate_ds_to_write_to_disk", removed_in="0.14.0", use_instead=""
+        "validate_ds_to_write_to_disk",
+        removed_in="0.14.0",
+        use_instead=(
+            "`get_ds_to_write_to_disk_validation_result`, "
+            "then process the result to suit your use case"
+        ),
     )
 
     caught_errors: list[tuple[str, Exception]] = []

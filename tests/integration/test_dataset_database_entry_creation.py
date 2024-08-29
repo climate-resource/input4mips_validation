@@ -20,7 +20,7 @@ from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
 from input4mips_validation.dataset.metadata import Input4MIPsDatasetMetadata
-from input4mips_validation.validation import validate_file
+from input4mips_validation.validation.file import get_validate_file_result
 from input4mips_validation.xarray_helpers import add_time_bounds
 
 UR = pint.get_application_registry()
@@ -132,7 +132,7 @@ def test_create_dataset_database_entry(
 
     written_file = input4mips_ds.write(root_data_dir=tmp_path)
 
-    validate_file(written_file, cvs=cvs)
+    get_validate_file_result(written_file, cvs=cvs).raise_if_errors()
 
     database_entry = Input4MIPsDatabaseEntryFile.from_file(
         written_file, cvs=input4mips_ds.cvs

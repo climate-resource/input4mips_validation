@@ -83,7 +83,14 @@ def validate_file(
     InvalidFileError
         The file does not pass all of the validation.
     """
-    raise_deprecation_warning("validate_file", removed_in="0.14.0")
+    raise_deprecation_warning(
+        "validate_file",
+        removed_in="0.14.0",
+        use_instead=(
+            "`get_validate_file_result`, "
+            "then process the result to suit your use case"
+        ),
+    )
 
     logger.log(LOG_LEVEL_INFO_FILE.name, f"Validating {infile}")
     caught_errors: list[tuple[str, Exception]] = []

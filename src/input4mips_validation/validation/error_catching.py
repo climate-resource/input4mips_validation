@@ -122,7 +122,8 @@ class ValidationResultsStoreError(ValueError):
             The validation results store that contains failures.
         """
         # Get inspiration from TreeValidationResultsStoreError
-        assert False, "Implement here"
+        # breakpoint()
+        # assert False, "Implement here"
         raise NotImplementedError()
 
         # super().__init__(error_msg)

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 from pathlib import Path
 from unittest.mock import patch
 
@@ -13,6 +14,7 @@ import netCDF4
 import numpy as np
 import pint
 import pint_xarray  # noqa: F401 # required to activate pint accessor
+import pytest
 from typer.testing import CliRunner
 
 from input4mips_validation.cli import app
@@ -36,6 +38,10 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
 )
 
 
+@pytest.mark.skipif(
+    sys.version_info[0] != 3 or sys.version_info[1] != 9,
+    reason="System packages vary by version",
+)
 def test_errors_html(tmp_path, file_regression):
     """
     Test for any changes in our error-interrogating HTML output

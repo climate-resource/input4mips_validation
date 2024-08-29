@@ -112,21 +112,34 @@ class ValidationResultsStoreError(ValueError):
     object contains failed validation results.
     """
 
-    def __init__(self, validation_results_store: ValidationResultsStore) -> None:
+    def __init__(self, vrs: ValidationResultsStore) -> None:
         """
         Initialise the error
 
         Parameters
         ----------
-        validation_results_store
+        vrs
             The validation results store that contains failures.
         """
-        # Get inspiration from TreeValidationResultsStoreError
-        # breakpoint()
-        # assert False, "Implement here"
-        raise NotImplementedError()
+        error_msg_l: list[str] = [
+            f"Checks passing: {vrs.checks_summary_str(passing=True)}",
+            f"Checks failing: {vrs.checks_summary_str(passing=False)}",
+        ]
 
-        # super().__init__(error_msg)
+        checks_failing = vrs.checks_failing
+        if checks_failing:
+            error_msg_l.append("")
+            error_msg_l.append("Failing checks details")
+            for gcf in checks_failing:
+                error_msg_l.append("")
+                error_msg_l.append(
+                    f"{gcf.description} ({type(gcf.exception).__name__})"
+                )
+                error_msg_l.extend(gcf.exception_info.splitlines())
+
+        error_msg = "\n".join(error_msg_l)
+
+        super().__init__(error_msg)
 
 
 @define

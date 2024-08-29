@@ -253,7 +253,7 @@ def get_validate_file_result(  # noqa: PLR0913
         cvs = vrs.wrap(
             load_cvs,
             func_description="Load controlled vocabularies to use during validation",
-        )(cv_source=cv_source)
+        )(cv_source=cv_source).result
 
     elif cv_source is not None:
         logger.warning(

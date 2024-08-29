@@ -255,19 +255,19 @@ class TreeValidationResultsStoreError(ValueError):
             f"Tree root: {tvrs.tree_root!r}",
             (
                 "General checks passing: "
-                f"{tvrs.checks_summary_str(general=True, passing=True)}",
+                f"{tvrs.checks_summary_str(general=True, passing=True)}"
             ),
             (
                 "General checks failing: "
-                f"{tvrs.checks_summary_str(general=True, passing=False)}",
+                f"{tvrs.checks_summary_str(general=True, passing=False)}"
             ),
             (
                 "Individual files passing: "
-                f"{tvrs.checks_summary_str(general=False, passing=True)}",
+                f"{tvrs.checks_summary_str(general=False, passing=True)}"
             ),
             (
                 "Individual files failing: "
-                f"{tvrs.checks_summary_str(general=False, passing=False)}",
+                f"{tvrs.checks_summary_str(general=False, passing=False)}"
             ),
         ]
 
@@ -280,6 +280,10 @@ class TreeValidationResultsStoreError(ValueError):
                 error_msg_l.append(
                     f"{gcf.description} ({type(gcf.exception).__name__})"
                 )
+                if gcf.exception_info is None:
+                    msg = "Should have an exception here"
+                    raise AssertionError(msg)
+
                 error_msg_l.extend(gcf.exception_info.splitlines())
 
         files_failing = tvrs.files_failing
@@ -294,6 +298,10 @@ class TreeValidationResultsStoreError(ValueError):
                     error_msg_l.append(
                         f"{ifcf.description} ({type(ifcf.exception).__name__})"
                     )
+                    if ifcf.exception_info is None:
+                        msg = "Should have an exception here"
+                        raise AssertionError(msg)
+
                     error_msg_l.extend(ifcf.exception_info.splitlines())
 
         error_msg = "\n".join(error_msg_l)
@@ -401,7 +409,7 @@ class TreeValidationResultsStore:
             ]
         )
 
-        failing_file_foldouts_l = []
+        failing_file_foldouts_l: list[str] = []
         individual_file_checks_failed = self.files_failing
         for i, failing_path in enumerate(sorted(individual_file_checks_failed.keys())):
             vrs = individual_file_checks_failed[failing_path]
@@ -420,6 +428,10 @@ class TreeValidationResultsStore:
 
             failing_checks_foldouts = []
             for fc in vrs.checks_failing:
+                if fc.exception_info is None:
+                    msg = "Should have an exception here"
+                    raise AssertionError(msg)
+
                 tmp = [
                     "<li>",
                     "<details>",

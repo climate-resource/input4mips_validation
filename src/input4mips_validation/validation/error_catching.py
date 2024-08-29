@@ -135,6 +135,10 @@ class ValidationResultsStoreError(ValueError):
                 error_msg_l.append(
                     f"{gcf.description} ({type(gcf.exception).__name__})"
                 )
+                if gcf.exception_info is None:
+                    msg = "Should have an exception here"
+                    raise AssertionError(msg)
+
                 error_msg_l.extend(gcf.exception_info.splitlines())
 
         error_msg = "\n".join(error_msg_l)
@@ -194,7 +198,7 @@ class ValidationResultsStore:
         """
 
         @wraps(func_to_call)
-        def decorated(*args: P.args, **kwargs: P.kwargs) -> T | None:
+        def decorated(*args: P.args, **kwargs: P.kwargs) -> ValidationResult:
             try:
                 res_func = func_to_call(*args, **kwargs)
                 res = ValidationResult(

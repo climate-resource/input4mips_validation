@@ -19,6 +19,34 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.12.0 (2024-08-29)
+
+
+### 🗑️ Deprecations
+
+- Deprecated
+  [`validate_database_file_entry`][input4mips_validation.validation.database.validate_database_file_entry],
+  [`validate_ds_to_write_to_disk`][input4mips_validation.validation.datasets_to_write_to_disk.validate_ds_to_write_to_disk],
+  [`validate_file`][input4mips_validation.validation.file.validate_file]
+  and [`validate_tree`][input4mips_validation.validation.tree.validate_tree].
+  See the docs for each function and deprecation warnings for recommended alternatives. ([#66](https://github.com/climate-resource/input4mips_validation/pulls/66))
+
+### 🆕 Features
+
+- Added the `--output-html` flag to `input4mips-validation validate-tree`.
+  This allows you to output the results of the validation as HTML,
+  which provides easier exploration of the failures. ([#66](https://github.com/climate-resource/input4mips_validation/pulls/66))
+
+### 📚 Improved Documentation
+
+- Improved documentation of our command-line interface,
+  particularly how to configure logging. ([#65](https://github.com/climate-resource/input4mips_validation/pulls/65))
+
+### 🔧 Trivial/Internal Changes
+
+- [#65](https://github.com/climate-resource/input4mips_validation/pulls/65)
+
+
 ## input4mips-validation v0.11.4 (2024-08-23)
 
 

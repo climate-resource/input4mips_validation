@@ -38,11 +38,10 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
 )
 
 
-@pytest.mark.skipif(
-    sys.version_info[0] != 3 or sys.version_info[1] != 9,
-    reason="System packages vary by version",
+@pytest.mark.parametrize(
+    "python_version", (f"{sys.version_info.major}.{sys.version_info.minor}",)
 )
-def test_errors_html(tmp_path, file_regression):
+def test_errors_html(tmp_path, file_regression, python_version):
     """
     Test for any changes in our error-interrogating HTML output
     """

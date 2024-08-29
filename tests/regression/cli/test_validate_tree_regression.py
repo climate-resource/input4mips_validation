@@ -92,8 +92,9 @@ def test_errors_html(tmp_path, file_regression):
             str(Path(__file__).parents[3]), "REPO_ROOT_DIR"
         )
 
-        out = re.sub(f"{os.sep}v[0-9]*{os.sep}", f"{os.sep}vVERSION{os.sep}", out)
+        out = re.sub(rf"{os.sep}v\d*{os.sep}", f"{os.sep}vVERSION{os.sep}", out)
         out = re.sub(rf"[^\s]*{os.sep}bin", rf"...{os.sep}bin", out)
+        out = re.sub(r"line \d*", "line no.", out)
         out = re.sub(rf"[^\s]*{os.sep}(.*\.py)", rf"...{os.sep}\1", out)
 
         return out

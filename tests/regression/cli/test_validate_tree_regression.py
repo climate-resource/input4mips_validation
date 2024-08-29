@@ -5,6 +5,7 @@ Regression tests of our validate-tree command
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from unittest.mock import patch
 
@@ -87,9 +88,15 @@ def test_errors_html(tmp_path, file_regression):
     )
 
     def sanitise_regression_string(inp: str) -> str:
-        return inp.replace(str(root_dir_tree), "&lt;tree_root&gt;").replace(
-            str(Path(__file__).parents[3]), "<repo-root-dir>"
+        out = inp.replace(str(root_dir_tree), "TREE_ROOT").replace(
+            str(Path(__file__).parents[3]), "REPO_ROOT_DIR"
         )
+
+        out = re.sub(f"{os.sep}v[0-9]*{os.sep}", f"{os.sep}vVERSION{os.sep}", out)
+        out = re.sub(rf"[^\s]*{os.sep}bin", rf"...{os.sep}bin", out)
+        out = re.sub(rf"[^\s]*{os.sep}(.*\.py)", rf"...{os.sep}\1", out)
+
+        return out
 
     file_regression.check(
         sanitise_regression_string(validate_tree_result.to_html()),

@@ -29,15 +29,15 @@ from input4mips_validation.logging_config import (
     serialise_logging_config,
 )
 from input4mips_validation.validation.error_catching import (
-    get_catch_error_decorator,
     ValidationResultsStore,
+    get_catch_error_decorator,
 )
 from input4mips_validation.validation.exceptions import (
     FileAssociatedWithDatabaseEntryError,
 )
 from input4mips_validation.validation.file import (
-    validate_file,
     get_validate_file_result,
+    validate_file,
 )
 
 

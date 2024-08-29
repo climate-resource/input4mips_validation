@@ -452,6 +452,8 @@ class TreeValidationResultsStore:
                 "",
                 "<h3>Failing files</h3>",
                 *failing_file_foldouts_l,
+                # End with newline following unix conventions
+                "",
             ]
         )
 

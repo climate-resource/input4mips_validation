@@ -29,10 +29,7 @@ from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.inference.from_data import infer_time_start_time_end
 from input4mips_validation.logging import setup_logging
 from input4mips_validation.upload_ftp import upload_ftp
-from input4mips_validation.validation import (
-    InvalidFileError,
-    validate_file,
-)
+from input4mips_validation.validation.file import get_validate_file_result
 from input4mips_validation.validation.tree import get_validate_tree_result
 from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
 
@@ -156,16 +153,11 @@ def validate_file_command(  # noqa: PLR0913
     because some validation can only be performed if we have the entire file tree.
     See the ``validate-tree`` command for this validation.
     """
-    try:
-        validate_file(
-            file,
-            cv_source=cv_source,
-            allow_cf_checker_warnings=allow_cf_checker_warnings,
-        )
-    except InvalidFileError as exc:
-        logger.debug(f"{type(exc).__name__}: {exc}")
-
-        raise typer.Exit(code=1) from exc
+    get_validate_file_result(
+        file,
+        cv_source=cv_source,
+        allow_cf_checker_warnings=allow_cf_checker_warnings,
+    ).raise_if_errors()
 
     if write_in_drs:
         cvs = load_cvs(cv_source=cv_source)

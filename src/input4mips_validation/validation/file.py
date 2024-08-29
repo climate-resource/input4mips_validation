@@ -20,6 +20,7 @@ from input4mips_validation.logging import (
 )
 from input4mips_validation.validation.cf_checker import check_with_cf_checker
 from input4mips_validation.validation.datasets_to_write_to_disk import (
+    get_ds_to_write_to_disk_validation_result,
     validate_ds_to_write_to_disk,
 )
 from input4mips_validation.validation.error_catching import (
@@ -303,13 +304,12 @@ def get_validate_file_result(  # noqa: PLR0913
         ds_careful_load = ds_from_iris_cubes(
             cubes, bnds_coord_indicator=bnds_coord_indicator
         )
-        vrs.wrap(
-            validate_ds_to_write_to_disk,
-            func_description=(
-                "Check that the dataset is formatted correctly "
-                "for being written to disk"
-            ),
-        )(ds_careful_load, out_path=Path(infile), cvs=cvs)
+        vrs = get_ds_to_write_to_disk_validation_result(
+            ds=ds_careful_load,
+            out_path=Path(infile),
+            cvs=cvs,
+            vrs=vrs,
+        )
 
     logger.log(
         LOG_LEVEL_INFO_FILE.name, f"Created validation results for file: {infile}"

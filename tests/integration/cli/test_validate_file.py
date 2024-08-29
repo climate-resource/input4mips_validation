@@ -21,7 +21,7 @@ from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
-from input4mips_validation.validation import InvalidFileError, validate_file
+from input4mips_validation.validation.error_catching import ValidationResultsStoreError
 from input4mips_validation.validation.file import get_validate_file_result
 
 UR = pint.get_application_registry()
@@ -81,17 +81,17 @@ def test_validate_written_single_variable_file(tmp_path):
     error_msg = re.escape(
         "WARN: (7.1): Boundary var lat_bnds should not have attribute units"
     )
-    with pytest.raises(InvalidFileError, match=error_msg):
+    with pytest.raises(ValidationResultsStoreError, match=error_msg):
         get_validate_file_result(
             written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
         ).raise_if_errors()
 
     # The file should pass if we set the right flag
-    validate_file(
+    get_validate_file_result(
         written_file,
         cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
         allow_cf_checker_warnings=True,
-    )
+    ).raise_if_errors()
 
     # Then test the CLI
     with patch.dict(

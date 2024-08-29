@@ -29,12 +29,8 @@ from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.inference.from_data import infer_time_start_time_end
 from input4mips_validation.logging import setup_logging
 from input4mips_validation.upload_ftp import upload_ftp
-from input4mips_validation.validation import (
-    InvalidFileError,
-    InvalidTreeError,
-    validate_file,
-    validate_tree,
-)
+from input4mips_validation.validation.file import get_validate_file_result
+from input4mips_validation.validation.tree import get_validate_tree_result
 from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
 
 app = typer.Typer()
@@ -157,16 +153,11 @@ def validate_file_command(  # noqa: PLR0913
     because some validation can only be performed if we have the entire file tree.
     See the ``validate-tree`` command for this validation.
     """
-    try:
-        validate_file(
-            file,
-            cv_source=cv_source,
-            allow_cf_checker_warnings=allow_cf_checker_warnings,
-        )
-    except InvalidFileError as exc:
-        logger.debug(f"{type(exc).__name__}: {exc}")
-
-        raise typer.Exit(code=1) from exc
+    get_validate_file_result(
+        file,
+        cv_source=cv_source,
+        allow_cf_checker_warnings=allow_cf_checker_warnings,
+    ).raise_if_errors()
 
     if write_in_drs:
         cvs = load_cvs(cv_source=cv_source)
@@ -229,6 +220,12 @@ def validate_tree_command(  # noqa: PLR0913
     time_dimension: TIME_DIMENSION_OPTION = "time",
     rglob_input: RGLOB_INPUT_OPTION = "*.nc",
     allow_cf_checker_warnings: ALLOW_CF_CHECKER_WARNINGS_TYPE = False,
+    output_html: Annotated[
+        Optional[Path],
+        typer.Option(
+            "--output-html", help="Output the result as HTML to this file too."
+        ),
+    ] = None,
 ) -> None:
     """
     Validate a tree of files
@@ -236,20 +233,21 @@ def validate_tree_command(  # noqa: PLR0913
     This checks things like whether all external variables are also provided
     and all tracking IDs are unique.
     """
-    try:
-        validate_tree(
-            root=tree_root,
-            cv_source=cv_source,
-            frequency_metadata_key=frequency_metadata_key,
-            no_time_axis_frequency=no_time_axis_frequency,
-            time_dimension=time_dimension,
-            rglob_input=rglob_input,
-            allow_cf_checker_warnings=allow_cf_checker_warnings,
-        )
-    except InvalidTreeError as exc:
-        logger.debug(f"{type(exc).__name__}: {exc}")
+    vtrs = get_validate_tree_result(
+        root=tree_root,
+        cv_source=cv_source,
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
+        time_dimension=time_dimension,
+        rglob_input=rglob_input,
+        allow_cf_checker_warnings=allow_cf_checker_warnings,
+    )
 
-        raise typer.Exit(code=1) from exc
+    if output_html is not None:
+        with open(output_html, "w") as fh:
+            fh.write(vtrs.to_html())
+
+    vtrs.raise_if_errors()
 
 
 @app.command(name="upload-ftp")

@@ -100,6 +100,7 @@ plugins:
 
 markdown_extensions:
   - attr_list
+  - pymdownx.blocks.admonition
   # Code highlighting handiness
   - pymdownx.highlight:
       anchor_linenums: true

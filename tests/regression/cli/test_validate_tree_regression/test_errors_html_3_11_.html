@@ -1,0 +1,115 @@
+<h1>Tree validation results for TREE_ROOT</h1>
+<h2>General validation results</h2>
+
+<ul>
+  <li>Passed: 100.00% (2 / 2)</li>
+  <li>Failed: 0.00% (0 / 2)</li>
+</ul>
+
+<h2>Individual file validation results</h2>
+<ul>
+  <li>Passing files: 50.00% (1 / 2)</li>
+  <li>Failing files: 50.00% (1 / 2)</li>
+</ul>
+
+<h3>Passing files</h3>
+<details>
+<summary>All passing files</summary>
+<ul>
+<details>
+<summary>1: mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc</summary>
+<p>Full path: TREE_ROOT/input4MIPs/CMIP6Plus/CMIP/CR/CR-CMIP-0-2-0/atmos/mon/mole-fraction-of-methane-in-air/gn/vVERSION/mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc</p>
+</details>
+</ul>
+</details>
+
+<h3>Failing files</h3>
+<details>
+<summary>1: mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc</summary>
+<p>Full path: TREE_ROOT/input4MIPs/CMIP6Plus/CMIP/CR/CR-CMIP-0-2-0/atmos/mon/mole-fraction-of-carbon-dioxide-in-air/gn/vVERSION/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc</p>
+<details>
+<summary>Passed: 83.33% (5 / 6)</summary>
+  <ol>
+    <li>Open data with `xr.open_dataset`</li>
+    <li>Load data with `iris.load`</li>
+    <li>Load data with `iris.load_cube`</li>
+    <li>Validate the creation_date attribute</li>
+    <li>Check file is written according to the DRS</li>
+  </ol>
+</details>
+<details>
+<summary>Failed: 16.67% (1 / 6)</summary>
+  <ol>
+<li>
+<details>
+<summary>Check data with cf-checker (ValueError)</summary>
+<pre>
+Traceback (most recent call last):
+  File .../cf_checker.py", line no., in check_with_cf_checker
+    subprocess.check_output(
+  File .../subprocess.py", line no., in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File .../subprocess.py", line no., in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command .../bin/cfchecks', '-v', '1.7', 'TREE_ROOT/input4MIPs/CMIP6Plus/CMIP/CR/CR-CMIP-0-2-0/atmos/mon/mole-fraction-of-carbon-dioxide-in-air/gn/vVERSION/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc']' returned non-zero exit status 255.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File .../error_catching.py", line no., in decorated
+    res_func = func_to_call(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File .../cf_checker.py", line no., in check_with_cf_checker
+    raise ValueError(error_msg) from exc
+ValueError: cf-checker validation failed. cfchecks output:
+
+CHECKING NetCDF FILE: TREE_ROOT/input4MIPs/CMIP6Plus/CMIP/CR/CR-CMIP-0-2-0/atmos/mon/mole-fraction-of-carbon-dioxide-in-air/gn/vVERSION/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc
+=====================
+Using CF Checker Version 4.1.0
+Checking against CF Version CF-1.7
+Using Standard Name Table Version 85 (2024-05-21T15:55:10Z)
+Using Area Type Table Version 11 (06 July 2023)
+Using Standardized Region Name Table Version 4 (18 December 2018)
+
+WARN: (7.1): Boundary var lat_bnds should not have attribute units
+
+------------------
+Checking variable: mole_fraction_of_carbon_dioxide_in_air
+------------------
+
+------------------
+Checking variable: time
+------------------
+
+------------------
+Checking variable: time_bnds
+------------------
+
+------------------
+Checking variable: lat
+------------------
+
+------------------
+Checking variable: lat_bnds
+------------------
+
+------------------
+Checking variable: lon
+------------------
+
+------------------
+Checking variable: lon_bnds
+------------------
+
+ERRORS detected: 0
+WARNINGS given: 1
+INFORMATION messages: 0
+
+</pre>
+</details>
+</li>
+  </ol>
+</details>
+</details>
+<br>

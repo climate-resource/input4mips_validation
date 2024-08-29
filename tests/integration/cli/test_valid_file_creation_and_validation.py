@@ -23,7 +23,7 @@ from input4mips_validation.dataset import (
 )
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
-from input4mips_validation.validation import validate_file
+from input4mips_validation.validation.file import get_validate_file_result
 
 UR = pint.get_application_registry()
 try:
@@ -68,7 +68,9 @@ def test_validate_written_single_variable_file(tmp_path):
     written_file = input4mips_ds.write(root_data_dir=tmp_path)
 
     # Test the function directly first (helps with debugging)
-    validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
+    get_validate_file_result(
+        written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+    ).raise_if_errors()
 
     # Then test the CLI
     with patch.dict(
@@ -190,7 +192,9 @@ def test_validate_written_multi_variable_file(tmp_path):
     written_file = input4mips_ds.write(root_data_dir=tmp_path)
 
     # Test the function directly first (helps with debugging)
-    validate_file(written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
+    get_validate_file_result(
+        written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+    ).raise_if_errors()
 
     # Then test the CLI
     with patch.dict(

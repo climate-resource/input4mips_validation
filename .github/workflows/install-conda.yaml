@@ -58,10 +58,10 @@ jobs:
         which python
         which cfchecks
         python scripts/test-install.py
-    - name: Install pytest
+    - name: Install pytest and other test dependencies
       shell: bash -leo pipefail {0}
       run: |
-        micromamba install pytest
+        micromamba install pytest pytest-regressions
     - name: Run tests
       shell: bash -leo pipefail {0}
       run: |

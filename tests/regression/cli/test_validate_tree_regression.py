@@ -101,6 +101,21 @@ def test_errors_html(tmp_path, file_regression, python_version):
         out = re.sub(rf"[^\s]*{os.sep}bin", rf"...{os.sep}bin", out)
         out = re.sub(r"line \d*", "line no.", out)
         out = re.sub(rf"[^\s]*{os.sep}(.*\.py)", rf"...{os.sep}\1", out)
+        out = re.sub(
+            r"Using Standard Name Table Version .*",
+            "Using Standard Name Table Version VERSION_INFO",
+            out,
+        )
+        out = re.sub(
+            r"Using Area Type Table Version .*",
+            "Using Area Type Table Version VERSION_INFO",
+            out,
+        )
+        out = re.sub(
+            r"Using Standardized Region Name Table Version .*",
+            "Using Standardized Region Name Table Version VERSION_INFO",
+            out,
+        )
 
         return out
 

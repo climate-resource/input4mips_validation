@@ -308,6 +308,16 @@ def upload_ftp_command(  # noqa: PLR0913
             ),
         ),
     ] = False,
+    continue_on_error: Annotated[
+        bool,
+        typer.Option(
+            "--continue-on-error",
+            help=(
+                "Continue trying to upload the rest of the files, "
+                "even if an error is raised while trying to upload a file."
+            ),
+        ),
+    ] = False,
 ) -> None:
     """
     Upload files to an FTP server
@@ -327,8 +337,8 @@ def upload_ftp_command(  # noqa: PLR0913
         ftp_dir_root=ftp_dir_root,
         n_threads=n_threads,
         dry_run=dry_run,
+        continue_on_error=continue_on_error,
     )
-    logger.success(f"Uploaded all files to {ftp_server}")
 
 
 app.add_typer(app_db, name="db")

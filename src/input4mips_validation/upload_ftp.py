@@ -307,6 +307,7 @@ def upload_files_p(  # noqa: PLR0913
     ftp_dir_rel_to_root: str,
     cvs: Input4MIPsCVs,
     n_threads: int,
+    continue_on_error: bool = False,
 ) -> Optional[ftplib.FTP]:
     """
     Upload files to the FTP server in parallel
@@ -338,6 +339,12 @@ def upload_files_p(  # noqa: PLR0913
     n_threads
         Number of threads to use for uploading
 
+    continue_on_error
+        Should the upload continue,
+        even if an error is raised while trying to upload a particular file?
+
+        If `True`, the exception will be logged and uploads will continue.
+
     Returns
     -------
     :
@@ -362,6 +369,7 @@ def upload_files_p(  # noqa: PLR0913
         f"{n_threads} {'threads' if n_threads > 1 else 'thread'}"
     )
     with concurrent.futures.ThreadPoolExecutor(max_workers=n_threads) as executor:
+        futures_dict = {}
         for file in files_to_upload:
             could_not_infer_root_data_dir = False
             try:
@@ -392,21 +400,35 @@ def upload_files_p(  # noqa: PLR0913
 
                 strip_pre_upload = Path(directory_metadata["root_data_dir"])
 
-            futures = [
-                executor.submit(
-                    upload_file_p,
-                    file,
-                    strip_pre_upload=strip_pre_upload,
-                    ftp_dir_upload_in=f"{ftp_dir_root}/{ftp_dir_rel_to_root}",
-                    get_ftp_connection=get_ftp_connection,
-                )
-            ]
+            future_h = executor.submit(
+                upload_file_p,
+                file,
+                strip_pre_upload=strip_pre_upload,
+                ftp_dir_upload_in=f"{ftp_dir_root}/{ftp_dir_rel_to_root}",
+                get_ftp_connection=get_ftp_connection,
+            )
+            futures_dict[future_h] = file
 
-        for future in concurrent.futures.as_completed(futures):
-            # Call in case there are any errors
-            future.result()
+        any_errors = False
+        for future in concurrent.futures.as_completed(futures_dict):
+            file = futures_dict[future]
+            if continue_on_error:
+                try:
+                    future.result()
+                except Exception:
+                    any_errors = True
+                    logger.exception(f"Exception raised while trying to upload {file}")
 
-    logger.success("Uploaded all files")
+            else:
+                # Call in case there are any errors
+                future.result()
+
+    if not any_errors:
+        logger.success("Uploaded all files")
+
+    else:
+        logger.info("Finished trying to upload files")
+
     return ftp
 
 
@@ -421,6 +443,7 @@ def upload_ftp(  # noqa: PLR0913
     rglob_input: str = "*.nc",
     n_threads: int = 4,
     dry_run: bool = False,
+    continue_on_error: bool = False,
 ) -> None:
     """
     Upload a tree of files to an FTP server
@@ -465,6 +488,12 @@ def upload_ftp(  # noqa: PLR0913
 
         If `True`, we won't actually upload the files,
         we'll just log the messages.
+
+    continue_on_error
+        Should the upload continue,
+        even if an error is raised while trying to upload a particular file?
+
+        If `True`, the exception will instead be logged and uploads will continue.
     """
     get_ftp_connection = partial(
         login_to_ftp,
@@ -481,4 +510,5 @@ def upload_ftp(  # noqa: PLR0913
         ftp_dir_rel_to_root=ftp_dir_rel_to_root,
         cvs=cvs,
         n_threads=n_threads,
+        continue_on_error=continue_on_error,
     )

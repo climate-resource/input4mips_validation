@@ -314,7 +314,7 @@ def upload_ftp_command(  # noqa: PLR0913
             "--continue-on-error",
             help=(
                 "Continue trying to upload the rest of the files, "
-                "even if an error is raised while trying to upload a file? "
+                "even if an error is raised while trying to upload a file."
             ),
         ),
     ] = False,

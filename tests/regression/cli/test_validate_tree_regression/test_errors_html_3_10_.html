@@ -28,17 +28,18 @@
 <summary>1: mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc</summary>
 <p>Full path: TREE_ROOT/input4MIPs/CMIP6Plus/CMIP/CR/CR-CMIP-0-2-0/atmos/mon/mole-fraction-of-carbon-dioxide-in-air/gn/vVERSION/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc</p>
 <details>
-<summary>Passed: 83.33% (5 / 6)</summary>
+<summary>Passed: 85.71% (6 / 7)</summary>
   <ol>
     <li>Open data with `xr.open_dataset`</li>
     <li>Load data with `iris.load`</li>
     <li>Load data with `iris.load_cube`</li>
-    <li>Validate the creation_date attribute</li>
+    <li>Validate the 'creation_date' attribute</li>
+    <li>Validate the 'tracking_id' attribute</li>
     <li>Check file is written according to the DRS</li>
   </ol>
 </details>
 <details>
-<summary>Failed: 16.67% (1 / 6)</summary>
+<summary>Failed: 14.29% (1 / 7)</summary>
   <ol>
 <li>
 <details>

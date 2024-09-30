@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.3
+#       jupytext_version: 1.16.4
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -35,6 +35,8 @@ from pathlib import Path
 import iris
 import ncdata.iris_xarray
 import xarray as xr
+
+import input4mips_validation.io
 
 # %% editable=true slideshow={"slide_type": ""}
 # Some iris config they recommend
@@ -139,7 +141,11 @@ start_iris
 # ### Getting more detail
 #
 # In this case, our file has failed validation.
-# We can see that the only check which failed was the check with the cf-checker.
+# We can see that there are two checks which failed:
+#
+# - the check with the cf-checker
+# - the check of the "tracking_id" attribute
+# -
 # To find out exactly why this failed,
 # we can re-run the validation with a more detailed log level.
 #
@@ -154,11 +160,12 @@ start_iris
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Understanding the issue
 #
-# From the above we can see three issues:
+# From the above we can see four issues:
 #
 # - the "external_variables" attribute is formatted incorrectly
 # - the "standard_name" assigned to the variable doesn't exist
 # - the "cell_measures" variable appears to be missing
+# - the "tracking_id" attribute is missing
 #
 # We will go through what these mean in the next paragraph.
 # However, in general, there can be quite some mystery surrounding these errors.
@@ -185,6 +192,9 @@ start_iris
 #   the CF-checker gets confused and things
 #   that cell_measures refers to variables which aren't properly documented.
 #   As we will see, fixing the issue with "external_variables" will also fix this issue.
+# - all datasets need to have a "tracking_id" attribute.
+#   This has a particular form,
+#   which can be generated with `input4mips_validation.io.generate_tracking_id`
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Fixing the file
@@ -207,6 +217,8 @@ fixed.attrs["external_variables"] = fixed.attrs["external_variables"].replace(",
 # Convert long_name to standard_name
 # (iris would actually do this for us, but for completeness...)
 fixed["CH4"].attrs["long_name"] = fixed["CH4"].attrs.pop("standard_name")
+# Add the tracking_id
+fixed.attrs["tracking_id"] = input4mips_validation.io.generate_tracking_id()
 
 # The eagle eyed will notice that this file name is definitely not correct.
 # We will soon show you why this doesn't matter in this particular case.
@@ -222,6 +234,7 @@ iris.save(cubes, fixed_file)
 # Check the updated attributes, could also be done with e.g. ncdump
 print(f"New external_variables: {fixed.attrs['external_variables']!r}")
 print(f"New variable attributes: {fixed['CH4'].attrs!r}")
+print(f"New tracking_id: {fixed.attrs['tracking_id']!r}")
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Validate again

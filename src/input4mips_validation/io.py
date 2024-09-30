@@ -55,6 +55,7 @@ def write_ds_to_disk(
 
     Returns
     -------
+    :
         Path in which the dataset was written
     """
     # As part of https://github.com/climate-resource/input4mips_validation/issues/14
@@ -84,6 +85,7 @@ def generate_tracking_id() -> str:
 
     Returns
     -------
+    :
         Tracking ID
     """
     # TODO: ask Paul what this hdl business is about
@@ -96,6 +98,7 @@ def generate_creation_timestamp() -> str:
 
     Returns
     -------
+    :
         Creation timestamp
     """
     ts = dt.datetime.now(dt.timezone.utc).replace(

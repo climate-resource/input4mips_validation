@@ -16,6 +16,7 @@ from input4mips_validation.validation.error_catching import (
     ValidationResultsStore,
     get_catch_error_decorator,
 )
+from input4mips_validation.validation.tracking_id import validate_tracking_id
 
 
 class InvalidDatasetToWriteToDiskError(ValueError):
@@ -98,6 +99,10 @@ def get_ds_to_write_to_disk_validation_result(
         validate_creation_date,
         func_description="Validate the creation_date attribute",
     )(ds.attrs["creation_date"])
+    vrs.wrap(
+        validate_tracking_id,
+        func_description="Validate the tracking_id attribute",
+    )(ds.attrs["tracking_id"])
 
     return vrs
 

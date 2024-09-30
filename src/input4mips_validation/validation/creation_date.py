@@ -56,7 +56,7 @@ def validate_creation_date(creation_date: str) -> None:
 
     except (DoesNotMatchRegexpError, ValueError) as exc:
         msg = (
-            "The `creation_date` attribute must be of the from YYYY-MM-DDThh:mm:ssZ, "
+            "The `creation_date` attribute must be of the form YYYY-MM-DDThh:mm:ssZ, "
             "i.e. be an ISO 8601 timestamp in the UTC timezone. "
             f"Received {creation_date=!r}"
         )

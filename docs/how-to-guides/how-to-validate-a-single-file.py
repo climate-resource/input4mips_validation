@@ -145,7 +145,7 @@ start_iris
 #
 # - the check with the cf-checker
 # - the check of the "tracking_id" attribute
-# -
+#
 # To find out exactly why this failed,
 # we can re-run the validation with a more detailed log level.
 #

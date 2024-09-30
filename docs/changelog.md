@@ -19,6 +19,23 @@ of rst and use slightly different categories.
 
 <!-- towncrier release notes start -->
 
+## input4mips-validation v0.13.0 (2024-09-30)
+
+
+### 🆕 Features
+
+- Add `--continue-on-error` flag to `input4mips-validation upload-ftp` ([#69](https://github.com/climate-resource/input4mips_validation/pulls/69))
+- Added validation of the tracking_id attribute, see [`input4mips_validation.validation.tracking_id.validate_tracking_id`][]. ([#70](https://github.com/climate-resource/input4mips_validation/pulls/70))
+
+### 🐛 Bug Fixes
+
+- Fixed total failure of validation if an expected attribute wasn't in the file being validated. ([#70](https://github.com/climate-resource/input4mips_validation/pulls/70))
+
+### 🔧 Trivial/Internal Changes
+
+- [#67](https://github.com/climate-resource/input4mips_validation/pulls/67), [#68](https://github.com/climate-resource/input4mips_validation/pulls/68), [#69](https://github.com/climate-resource/input4mips_validation/pulls/69), [#71](https://github.com/climate-resource/input4mips_validation/pulls/71)
+
+
 ## input4mips-validation v0.12.0 (2024-08-29)
 
 

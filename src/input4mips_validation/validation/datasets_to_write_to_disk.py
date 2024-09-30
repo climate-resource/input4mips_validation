@@ -5,7 +5,7 @@ Validation of datasets that we are writing to disk
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Union
+from typing import Callable, Union
 
 import xarray as xr
 
@@ -59,6 +59,30 @@ class InvalidDatasetToWriteToDiskError(ValueError):
         super().__init__(error_msg)
 
 
+def validate_attribute(
+    ds: xr.Dataset, attribute: str, validation_function: Callable[[str], None]
+) -> None:
+    """
+    Validate an attribute of the dataset
+
+    A convenience function so we get sensible error messages,
+    even if the attribute isn't provided by the dataset.
+
+    Parameters
+    ----------
+    ds
+        Dataset to validate
+
+    attribute
+        Attribute of `ds` to validate
+
+    validation_function
+        Functino to use to validate the value of `attribute`
+    """
+    attribute_value = str(ds.attrs[attribute])
+    validation_function(attribute_value)
+
+
 def get_ds_to_write_to_disk_validation_result(
     ds: xr.Dataset,
     out_path: Path,
@@ -95,14 +119,14 @@ def get_ds_to_write_to_disk_validation_result(
     if vrs is None:
         vrs = ValidationResultsStore()
 
-    vrs.wrap(
-        validate_creation_date,
-        func_description="Validate the creation_date attribute",
-    )(ds.attrs["creation_date"])
-    vrs.wrap(
-        validate_tracking_id,
-        func_description="Validate the tracking_id attribute",
-    )(ds.attrs["tracking_id"])
+    for attribute, validation_function in (
+        ("creation_date", validate_creation_date),
+        ("tracking_id", validate_tracking_id),
+    ):
+        vrs.wrap(
+            validate_attribute,
+            func_description=f"Validate the {attribute!r} attribute",
+        )(ds, attribute, validation_function)
 
     return vrs
 

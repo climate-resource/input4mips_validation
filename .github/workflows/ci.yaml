@@ -33,9 +33,6 @@ jobs:
         run: |
           pixi run --frozen -e docs typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
           pixi run --frozen -e docs mkdocs build --strict
-      - uses: ./.github/actions/setup
-        with:
-          pixi-environments: "all-dev"
       - name: docs-with-changelog
         run: |
           # Check CHANGELOG will build too

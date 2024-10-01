@@ -8,7 +8,6 @@ ci:
   skip: [
     pixi-install,
     environment-docs,
-    pdm-export,
     pdm-lock-check,
     auto-generated-classes,
   ]

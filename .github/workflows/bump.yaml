@@ -5,7 +5,7 @@ on:
     inputs:
       bump_rule:
         type: choice
-        description: How to bump the project's version (see https://python-poetry.org/docs/cli/#version)
+        description: How to bump the project's version (see https://github.com/carstencodes/pdm-bump#usage)
         options:
           - no-pre-release
           # no micro because we always sit on a pre-release in main,
@@ -41,7 +41,6 @@ jobs:
         run: |
           pdm self add pdm-bump
 
-      # Install the package and towncrier with pixi
       - uses: ./.github/actions/setup
         with:
           pixi-environments: "all-dev"
@@ -72,15 +71,13 @@ jobs:
           # version as the tagged commit)
           BASE_VERSION=`sed -ne 's/^version = "\([0-9\.a]*\)"/\1/p' pyproject.toml`
 
-          # Bump (need two commands because of a bug in pdm-bump)
-          # See https://github.com/carstencodes/pdm-bump/issues/326
-          pdm bump micro
+          # Bump to pre-release of next version
           pdm bump pre-release --pre alpha
 
           NEW_VERSION=`sed -ne 's/^version = "\([0-9\.a]*\)"/\1/p' pyproject.toml`
           echo "Bumping version $BASE_VERSION > $NEW_VERSION"
 
-          # Skip pre-commit to avoid pixi install throwing weird errors
           # Commit and push
+          # Skip pre-commit to avoid pixi install throwing weird errors
           git commit -n -a -m "bump(pre-release): version $BASE_VERSION > $NEW_VERSION"
           git push

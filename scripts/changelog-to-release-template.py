@@ -33,14 +33,14 @@ def main() -> None:
             continue
 
         if not grab_notes:
-            if line.startswith("## input4mips-validation"):
+            if line.startswith("## Input4MIPs validation"):
                 grab_notes = True
 
             continue
 
         # We are grabbing notes now
         # If we've reached the next version's notes, break
-        if line.startswith("## input4mips-validation"):
+        if line.startswith("## Input4MIPs validation"):
             break
 
         latest_version_notes.append(line)

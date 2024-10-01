@@ -44,6 +44,10 @@ dev = [
     "pandas-stubs>=2.2.2.240603",
     "tomli>=2.0.1",
     "types-tqdm>=4.66.0.20240417",
+    "liccheck>=0.9.2,<0.10",
+    # Required for liccheck
+    "setuptools>=70.0.0",
+    "pip>=24.2",
 ]
 docs = [
     "mkdocs>=1.6.0",
@@ -262,13 +266,13 @@ package = "input4mips_validation"
 package_dir = "src"
 filename = "docs/changelog.md"
 directory = "changelog/"
-title_format = "## input4mips-validation {version} ({project_date})"
+title_format = "## Input4MIPs validation {version} ({project_date})"
 underlines = [
     "",
     "",
     "",
 ]
-issue_format = "[#{issue}](https://github.com/climate-resource/input4mips_validation/pulls/{issue})"
+issue_format = "[#{issue}](https://github.com/climate-resource/input4mips_validation/pull/{issue})"
 type = [
     { directory = "breaking", name = "⚠️ Breaking Changes", showcontent = true },
     { directory = "deprecation", name = "🗑️ Deprecations", showcontent = true },

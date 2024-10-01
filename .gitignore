@@ -1,34 +1,34 @@
-# Big test data. Not sure whether to add this or just store in a separate
-# test data repo or something (or just download every time...)
-tests/test-data/input4MIPs/CMIP6Plus/CMIP/PCMDI
-
 # Default data download directory
 src/input4mips_validation/cvs_handling/input4MIPs/user_cvs
 src/input4mips_validation/cvs/user_cvs
 src/input4mips_validation/cvs/input4MIPs_CVs_*
 
-# Auto-generated docs and helper files
-docs/api
-docs/cli
+# Auto-generated docs stuff
 docs/how-to-guides/**/*.nc
+
+# pixi stuff
+.pixi
 
 # Notebooks
 *.ipynb
 
-# Lock file
-poetry.lock
+# Auto-generated docs and helper files
+docs/api/*
+!docs/api/.gitkeep
+docs/cli/*
+!docs/cli/.gitkeep
 
 # pdm stuff
 .pdm-python
-
-# pixi stuff
-.pixi
 
 # Databases
 *.db
 
 # Jupyter cache
 .jupyter_cache
+
+# IDE stuff
+.idea/
 
 # Ruff cache
 .ruff_cache

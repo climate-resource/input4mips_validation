@@ -12,7 +12,7 @@ See https://oprypin.github.io/mkdocs-literate-nav/
     - [How to upload to an FTP server](how-to-guides/how-to-upload-to-ftp.py)
     - [How to manage a database of file entries](how-to-guides/how-to-manage-a-database.py)
 - [Tutorials](tutorials.md)
-- [Further background](further-background/explanation.md)
+- [Further background](explanation.md)
 - [Development](development.md)
 - [Command-line interface](cli/index.md)
 - [API reference](api/input4mips_validation/)

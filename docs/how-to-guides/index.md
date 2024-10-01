@@ -63,11 +63,11 @@ As a result, here we provide a guide to configuring logging with input4MIPs vali
 We hope that, one day in the future, such a guide won't be needed
 because logging will be done in a consistent way across the Python ecosystem.
 
-If you are using our [command-line interface][input4mips-validation-cli],
+If you are using our [command-line interface](cli),
 you can specify every aspect of the logging,
 i.e. you have full control.
 Before you dive into this though, we provide much simpler options for basic logging control.
-These are documented in [the command-line interface's docs][input4mips-validation-cli].
+These are documented in [the command-line interface's docs](cli).
 With that mentioned, back to complete logging control.
 Below is a sample `.yaml` logging configuration file.
 

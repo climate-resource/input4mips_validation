@@ -239,7 +239,7 @@ def get_raw_cvs_loader(
         (where the ID can be a branch name, a tag or a commit ID).
 
         Otherwise we simply return the path as provided
-        and use the [validators][https://validators.readthedocs.io/en/stable]
+        and use the [validators](https://validators.readthedocs.io/en/stable)
         package to decide if the source points to a URL or not.
 
     force_download

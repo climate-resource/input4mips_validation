@@ -142,7 +142,7 @@ def setup_logging(
         If a `dict`, passed to :meth:`loguru.logger.configure`.
         If not passed, :const:`DEFAULT_LOGGING_CONFIG` is used.
         Otherwise, we try and load this from disk using
-        [`loguru_config.LoguruConfig`][https://github.com/erezinman/loguru-config].
+        [`loguru_config.LoguruConfig`](https://github.com/erezinman/loguru-config).
 
         This takes precedence over `log_level`.
 

@@ -8,5 +8,5 @@ Some other potential points of interest:
 
 - Installation instructions: [Installation][installation]
 - (How-to guides, just in case you missed it the first time: [How-to...][how-to-guides])
-- The command-line interface's documentation: [CLI][cli]
+- The command-line interface's documentation: [CLI](cli)
 - The full API docs: [API reference][input4mips_validation]

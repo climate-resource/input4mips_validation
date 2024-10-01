@@ -133,9 +133,9 @@ def test_get_raw_cvs_loader(input4mips_cv_source, force_download, exp):
     }
 
     if force_download is not None:
-        environ_patches[
-            "INPUT4MIPS_VALIDATION_CV_SOURCE_force_download_DOWNLOAD"
-        ] = str(force_download)
+        environ_patches["INPUT4MIPS_VALIDATION_CV_SOURCE_FORCE_DOWNLOAD"] = str(
+            force_download
+        )
 
     with patch.dict(os.environ, environ_patches):
         res = get_raw_cvs_loader()

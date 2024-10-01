@@ -2,8 +2,6 @@
 # Read the Docs configuration file
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 
-# Thank you also https://browniebroke.com/blog/specify-docs-dependency-groups-with-poetry-and-read-the-docs/
-
 # Required
 version: 2
 
@@ -15,9 +13,8 @@ build:
   jobs:
     pre_build:
       - pip install --no-deps .
-      - typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation-cli
-      - ls
       - input4mips-validation --help
+      - typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
       # Can add other checks in here if things blow up confusingly
     post_install:
       - mamba list

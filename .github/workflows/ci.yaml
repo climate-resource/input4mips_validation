@@ -35,10 +35,6 @@ jobs:
           pixi run --frozen -e docs mkdocs build --strict
       - uses: ./.github/actions/setup
         with:
-          python-version: "3.11"
-          pdm-dependency-install-flags: "-G docs -G :all -G dev"
-      - uses: ./.github/actions/setup
-        with:
           pixi-environments: "all-dev"
       - name: docs-with-changelog
         run: |

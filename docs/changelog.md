@@ -21,6 +21,18 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## Input4MIPs validation v0.13.2 (2024-10-16)
+
+
+### 🎉 Improvements
+
+- Improved the error message if regexp parsing of paths fails for a given DRS. ([#74](https://github.com/climate-resource/input4mips_validation/pull/74))
+
+### 🔧 Trivial/Internal Changes
+
+- [#72](https://github.com/climate-resource/input4mips_validation/pull/72)
+
+
 ## Input4MIPs validation v0.13.0 (2024-09-30)
 
 

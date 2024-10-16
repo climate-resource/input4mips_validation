@@ -373,7 +373,7 @@ class DataReferenceSyntax:
         )
         match = re.match(directory_regexp, str(directory))
         if match is None:
-            msg = "regexp failed"
+            msg = f"regexp failed. {directory_regexp=}. {directory=}"
             raise AssertionError(msg)
 
         match_groups = match.groupdict()
@@ -451,7 +451,7 @@ class DataReferenceSyntax:
         filename_regexp = self.get_regexp_for_capturing_filename_information()
         match = re.match(filename_regexp, filename)
         if match is None:
-            msg = "regexp failed"
+            msg = f"regexp failed. {filename_regexp=}. {filename=}"
             raise AssertionError(msg)
 
         match_groups = match.groupdict()

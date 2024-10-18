@@ -644,7 +644,12 @@ def get_validate_tree_result(  # noqa: PLR0913
     )
 
     for file in tqdm.tqdm(all_files, desc="Files to validate"):
-        validate_file_result = get_validate_file_result(file, cvs=cvs)
+        validate_file_result = get_validate_file_result(
+            file,
+            cvs=cvs,
+            bnds_coord_indicator=bnds_coord_indicator,
+            allow_cf_checker_warnings=allow_cf_checker_warnings,
+        )
 
         if cvs is None:
             logger.error(

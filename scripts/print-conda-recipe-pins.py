@@ -115,7 +115,7 @@ def main() -> None:
     print("Pins for application")
     for vi in version_info_l:
         print(
-            f"- {{{{ pin_compatible('{vi.name}', min_pin='{vi.min_pin}', max_pin='{vi.max_pin}') }}}}"  # noqa: E501
+            f"- {{{{ pin_compatible('{vi.name}', lower_bound='{vi.min_pin}', upper_bound='{vi.max_pin}') }}}}"  # noqa: E501
         )
 
 

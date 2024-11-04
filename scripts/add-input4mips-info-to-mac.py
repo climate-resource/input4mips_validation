@@ -4,6 +4,7 @@ Add input4MIPs information to the raw MAC-SPv2 file
 
 from __future__ import annotations
 
+from functools import partial
 from pathlib import Path
 
 import cftime
@@ -18,6 +19,9 @@ from input4mips_validation.cvs.cvs import Input4MIPsCVs
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
     Input4MIPsDatasetMetadata,
+)
+from input4mips_validation.dataset.dataset import (
+    add_bounds,
 )
 from input4mips_validation.validation.datasets_to_write_to_disk import (
     get_ds_to_write_to_disk_validation_result,
@@ -211,24 +215,14 @@ def main(  # noqa: PLR0913
     for var in ds_out.data_vars:
         ds_out[var].attrs = variable_attributes[var]
 
-    ds_out = add_time_bounds(ds_out, yearly_time_bounds=True, monthly_time_bounds=False)
-    ds_out = ds_out.cf.add_bounds("plume_number")
-    ds_out = ds_out.cf.add_bounds("plume_feature")
-    ds_out = ds_out.cf.add_bounds("year_fraction")
-
-    # Hmmm, will need to roll my own function
-    # to automatically do this removal from coordinates.
-    # TODO: MR into cf-xarray?
-    ds_out = ds_out.reset_coords(
-        [
-            "time_bounds",
-            "plume_number_bounds",
-            "plume_feature_bounds",
-            "year_fraction_bounds",
-        ]
+    ds_out = add_bounds(
+        ds_out,
+        add_time_bounds=partial(
+            add_time_bounds, yearly_time_bounds=True, monthly_time_bounds=False
+        ),
     )
 
-    # # This adds the wrong axis information for year_fraction
+    # The line below adds the wrong axis information for year_fraction so don't use
     # ds_out = ds_out.cf.guess_coord_axis()
     ds_out = ds_out.cf.add_canonical_attributes()
 
@@ -256,7 +250,7 @@ def main(  # noqa: PLR0913
     cubes = ncdata.iris_xarray.cubes_from_xarray(ds_disk_ready)
 
     # Fix up some bugs from iris' conversion
-    # [TODO: issue]
+    # x-ref: https://github.com/SciTools/iris/issues/6216
     for cube in cubes:
         va = variable_attributes[cube.var_name]
         try:

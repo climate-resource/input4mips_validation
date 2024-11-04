@@ -291,7 +291,7 @@ def get_raw_cvs_loader(
         res: RawCVLoader = RawCVLoaderLocal(cv_source)
 
     elif not validators.url(cv_source):
-        res: RawCVLoader = RawCVLoaderLocal(Path(cv_source))
+        res = RawCVLoaderLocal(Path(cv_source))
 
     else:
         try:

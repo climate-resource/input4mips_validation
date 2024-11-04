@@ -26,7 +26,7 @@ def prepare_out_path_and_cubes(
     ds: xr.Dataset,
     out_path: Path,
     cvs: Input4MIPsCVs,
-) -> list[iris.cube.Cube]:
+) -> iris.cube.CubeList:
     """
     Prepare a path and [iris.cube.Cube][]'s for writing to disk
 

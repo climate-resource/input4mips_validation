@@ -5,6 +5,7 @@ Dataset class definition
 from __future__ import annotations
 
 import datetime as dt
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Optional, Protocol
 
@@ -40,6 +41,48 @@ from input4mips_validation.validation.datasets_to_write_to_disk import (
     get_ds_to_write_to_disk_validation_result,
 )
 from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
+
+CF_XARRAY_BOUNDS_SUFFIX: str = "_bounds"
+"""
+The suffix added by cf-xarray when adding bounds variables.
+
+This is a global variable because this value is currently hard-coded in cf-xarray.
+See https://github.com/xarray-contrib/cf-xarray/blob/22ee634433b988bd101e45e9f9728bbf59915259/cf_xarray/accessor.py#L2507.
+"""
+
+
+class PrepareFuncLike(Protocol):
+    """
+    A callable that is suitable for use when preparing data in the class methods below
+    """
+
+    def __call__(
+        self,
+        ds_raw: xr.Dataset,
+        copy_ds: bool,
+    ) -> tuple[xr.Dataset, str]:
+        """
+        Prepare data
+
+        The function should ensure that:
+
+        - all dimensions have bounds information
+        - all variables have a "long_name" or "standard_name" attribute
+
+        Parameters
+        ----------
+        ds_raw
+            Raw data to prepare
+
+        copy_ds
+            Should we copy `ds_raw` before modifying the metadata
+            or simply modify the existing dataset?
+
+        Returns
+        -------
+        :
+            Prepared data and inferred frequency metadata
+        """
 
 
 class AddTimeBoundsLike(Protocol):
@@ -164,13 +207,10 @@ class Input4MIPsDataset:
         cls,
         data: xr.Dataset,
         metadata_minimum: Input4MIPsDatasetMetadataDataProducerMinimum,
-        dimensions: tuple[str, ...] | None = None,
-        time_dimension: str = "time",
-        add_time_bounds: AddTimeBoundsLike | None = None,
-        copy_ds: bool = True,
         cvs: Input4MIPsCVs | None = None,
+        prepare_func: PrepareFuncLike | None = None,
+        copy_ds: bool = True,
         activity_id: str = "input4MIPs",
-        standard_and_or_long_names: dict[str, dict[str, str]] | None = None,
         dataset_category: str | None = None,
         realm: str | None = None,
     ) -> Input4MIPsDataset:
@@ -189,55 +229,26 @@ class Input4MIPsDataset:
         metadata_minimum
             Minimum metadata required from the data producer
 
-        dimensions
-            Dimensions of the dataset, other than the time dimension.
-            These are checked for appropriate bounds.
-            Bounds are added if they are not present.
-
-            If not supplied, we simply use all the dimensions of ``ds``
-            in the order they appear in the dataset.
-
-        time_dimension
-            Time dimension of the dataset.
-            This is singled out because handling time bounds is often a special case.
-
-        add_time_bounds
-            Function that adds bounds to the time variable.
-            If not supplied,
-            we use
-            [`add_time_bounds`][input4mips_validation.xarray_helpers.add_time_bounds].
-
-        copy_ds
-            Should `ds` be copied before we create the `Input4MIPsDataset`?
-
         cvs
             CVs to use for inference and validation
 
             If not supplied, this will be retrieved with
-            [`load_cvs`][input4mips_validation.cvs.loading.load_cvs]
+            [`load_cvs`][input4mips_validation.cvs.load_cvs]
+
+        prepare_func
+            Function to use to prepare the data, retrieve source ID values from the CVs
+            and infer the frequency metadata.
+
+            If not supplied, we use
+            [`input4mips_validation.dataset.prepare_ds_and_get_frequency`].
+
+        copy_ds
+            Should `ds` be copied before we create the `Input4MIPsDataset`?
 
         activity_id
             Activity ID that applies to the dataset.
 
             Given this is an Input4MIPsDataset, you shouldn't need to change this.
-
-        standard_and_or_long_names
-            Standard/long names to use for the variables in `ds`.
-
-            All variables that are not bounds
-            must have attributes that contain a value for at least one of
-            `standard_name` and `long_name`.
-            Hence this argument is only required
-            if the attributes of the variable do not already have these values.
-
-            Each key should be a variable in `ds`.
-            The value of `standard_and_or_long_name`
-            should itself be a dictionary with keys
-            `"standard_name"` for the variable's standard name
-            and/or `"long_name"` for the variable's long name.
-
-            E.g.
-            `standard_and_or_long_names = {"variable_name": {"standard_name": "flux"}}`
 
         dataset_category
             The category of the data.
@@ -253,54 +264,39 @@ class Input4MIPsDataset:
 
         Returns
         -------
+        :
             Initialised instance
         """
-        if dimensions is None:
-            dimensions_use: tuple[str, ...] = tuple(str(v) for v in data.dims)
-        else:
-            dimensions_use = dimensions
+        variable_id = get_ds_var_assert_single(data)
 
-        if add_time_bounds is None:
-            # Can't make mypy behave, hence type ignore
-            add_time_bounds_use: AddTimeBoundsLike = iv_xr_helpers.add_time_bounds  # type: ignore
-        else:
-            add_time_bounds_use = add_time_bounds
-
+        ### These lines are exactly the same as in
+        # `from_data_producer_minimum_information_multiple_variable`.
+        # This is on purpose, the extra layer of abstraction
+        # and coupling isn't worth it right now.
         if cvs is None:
             cvs = load_cvs()
 
-        # Add bounds to dimensions.
-        # It feels like there should be a better way to do this.
-        bounds_dim = "bounds"
-        for dim in dimensions_use:
-            if dim == time_dimension:
-                data = add_time_bounds_use(data, output_dim_bounds=bounds_dim)
-            else:
-                data = data.cf.add_bounds(dim, output_dim=bounds_dim)
+        if prepare_func is None:
+            prepare_func_use: PrepareFuncLike = prepare_ds_and_get_frequency  # type: ignore # can't get mypy to behave
+        else:
+            prepare_func_use = prepare_func
 
-        # Get other metadata information from cf-xarray.
-        # TODO: check if any of this conflicts with CF-conventions,
-        # given that naming of bounds seems to be wrong.
-        data = data.cf.guess_coord_axis().cf.add_canonical_attributes()
+        if copy_ds:
+            data = data.copy()
 
-        data = handle_ds_standard_long_names(
-            data,
-            standard_and_or_long_names=standard_and_or_long_names,
-            bounds_dim=bounds_dim,
-            # No need to copy here as that is already handled on entry
+        data, frequency = prepare_func_use(
+            ds_raw=data,
+            # Copying handled above
             copy_ds=False,
         )
 
+        # [TODO: remove this once we are confident in our license checks]
         cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]
-        cvs_values = cvs_source_id_entry.values
-        if cvs_values.license_id is None:
+        cvs_source_id_values = cvs_source_id_entry.values
+        if cvs_source_id_values.license_id is None:
             msg = "License ID must be specified in the CVs source ID"
             raise AssertionError(msg)
-
-        variable_id = get_ds_var_assert_single(data)
-
-        # cf-xarray uses suffix bounds, hence hard-code this
-        frequency = infer_frequency(data, time_bounds=f"{time_dimension}_bounds")
+        ### End of identical lines
 
         if dataset_category is None:
             dataset_category = VARIABLE_DATASET_CATEGORY_MAP[variable_id]
@@ -310,28 +306,26 @@ class Input4MIPsDataset:
 
         metadata = Input4MIPsDatasetMetadata(
             activity_id=activity_id,
-            contact=cvs_values.contact,
+            contact=cvs_source_id_values.contact,
             dataset_category=dataset_category,
             frequency=frequency,
-            further_info_url=cvs_values.further_info_url,
+            further_info_url=cvs_source_id_values.further_info_url,
             grid_label=metadata_minimum.grid_label,
             # # TODO: look this up from central CVs
-            # institution=cvs_values.institution,
-            institution_id=cvs_values.institution_id,
-            license=cvs.license_entries[cvs_values.license_id].values.conditions,
-            license_id=cvs_values.license_id,
-            mip_era=cvs_values.mip_era,
+            # institution=cvs_source_id_values.institution,
+            institution_id=cvs_source_id_values.institution_id,
+            license=cvs.license_entries[
+                cvs_source_id_values.license_id
+            ].values.conditions,
+            license_id=cvs_source_id_values.license_id,
+            mip_era=cvs_source_id_values.mip_era,
             nominal_resolution=metadata_minimum.nominal_resolution,
             realm=realm,
             source_id=metadata_minimum.source_id,
-            source_version=cvs_values.source_version,
+            source_version=cvs_source_id_values.source_version,
             target_mip=metadata_minimum.target_mip,
             variable_id=variable_id,
         )
-
-        if time_dimension in data:
-            # Make sure time appears first as this is what CF conventions expect
-            data = data.transpose(time_dimension, ...)
 
         return cls(data=data, metadata=metadata, cvs=cvs)
 
@@ -340,13 +334,10 @@ class Input4MIPsDataset:
         cls,
         data: xr.Dataset,
         metadata_minimum: Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum,
-        dimensions: tuple[str, ...] | None = None,
-        time_dimension: str = "time",
-        add_time_bounds: AddTimeBoundsLike | None = None,
-        copy_ds: bool = True,
         cvs: Input4MIPsCVs | None = None,
+        prepare_func: PrepareFuncLike | None = None,
+        copy_ds: bool = True,
         activity_id: str = "input4MIPs",
-        standard_and_or_long_names: dict[str, dict[str, str]] | None = None,
         variable_id: str = "multiple",
     ) -> Input4MIPsDataset:
         """
@@ -364,55 +355,26 @@ class Input4MIPsDataset:
         metadata_minimum
             Minimum metadata required from the data producer
 
-        dimensions
-            Dimensions of the dataset, other than the time dimension.
-            These are checked for appropriate bounds.
-            Bounds are added if they are not present.
-
-            If not supplied, we simply use all the dimensions of ``ds``
-            in the order they appear in the dataset.
-
-        time_dimension
-            Time dimension of the dataset.
-            This is singled out because handling time bounds is often a special case.
-
-        add_time_bounds
-            Function that adds bounds to the time variable.
-            If not supplied,
-            we use
-            [`add_time_bounds`][input4mips_validation.xarray_helpers.add_time_bounds].
-
-        copy_ds
-            Should `ds` be copied before we create the `Input4MIPsDataset`?
-
         cvs
             CVs to use for inference and validation
 
             If not supplied, this will be retrieved with
             [`load_cvs`][input4mips_validation.cvs.loading.load_cvs].
 
+        prepare_func
+            Function to use to prepare the data, retrieve source ID values from the CVs
+            and infer the frequency metadata.
+
+            If not supplied, we use
+            [`input4mips_validation.dataset.prepare_ds_and_get_frequency`].
+
+        copy_ds
+            Should `ds` be copied before we create the `Input4MIPsDataset`?
+
         activity_id
             Activity ID that applies to the dataset.
 
             Given this is an Input4MIPsDataset, you shouldn't need to change this.
-
-        standard_and_or_long_names
-            Standard/long names to use for the variables in `ds`.
-
-            All variables that are not bounds
-            must have attributes that contain a value for at least one of
-            `standard_name` and `long_name`.
-            Hence this argument is only required
-            if the attributes of the variable do not already have these values.
-
-            Each key should be a variable in `ds`.
-            The value of `standard_and_or_long_name`
-            should itself be a dictionary with keys
-            `"standard_name"` for the variable's standard name
-            and/or `"long_name"` for the variable's long name.
-
-            E.g.
-            `standard_and_or_long_names = {"variable_name": {"standard_name": "flux"}}`
 
         variable_id
             The variable ID to use.
@@ -422,77 +384,60 @@ class Input4MIPsDataset:
 
         Returns
         -------
+        :
             Initialised instance
         """
-        if dimensions is None:
-            dimensions_use: tuple[str, ...] = tuple(str(v) for v in data.dims)
-        else:
-            dimensions_use = dimensions
-
-        if add_time_bounds is None:
-            # Can't make mypy behave, hence type ignore
-            add_time_bounds_use: AddTimeBoundsLike = iv_xr_helpers.add_time_bounds  # type: ignore
-        else:
-            add_time_bounds_use = add_time_bounds
-
+        ### These lines are exactly the same as in
+        # `from_data_producer_minimum_information`.
+        # This is on purpose, the extra layer of abstraction
+        # and coupling isn't worth it right now.
         if cvs is None:
             cvs = load_cvs()
 
-        # Add bounds to dimensions.
-        # It feels like there should be a better way to do this.
-        bounds_dim = "bounds"
-        for dim in dimensions_use:
-            if dim == time_dimension:
-                data = add_time_bounds_use(data, output_dim_bounds=bounds_dim)
-            else:
-                data = data.cf.add_bounds(dim, output_dim=bounds_dim)
+        if prepare_func is None:
+            prepare_func_use: PrepareFuncLike = prepare_ds_and_get_frequency  # type: ignore # can't get mypy to behave
+        else:
+            prepare_func_use = prepare_func
 
-        # Get whatever other metadata information we can for free from cf-xarray.
-        # TODO: check if any of this conflicts with CF-conventions,
-        # given that naming of bounds seems to be wrong.
-        data = data.cf.guess_coord_axis().cf.add_canonical_attributes()
+        if copy_ds:
+            data = data.copy()
 
-        data = handle_ds_standard_long_names(
-            data,
-            standard_and_or_long_names=standard_and_or_long_names,
-            bounds_dim=bounds_dim,
-            # No need to copy here as that is already handled on entry
+        data, frequency = prepare_func_use(
+            ds_raw=data,
+            # Copying handled above
             copy_ds=False,
         )
 
+        # [TODO: remove this once we are confident in our license checks]
         cvs_source_id_entry = cvs.source_id_entries[metadata_minimum.source_id]
-        cvs_values = cvs_source_id_entry.values
-        if cvs_values.license_id is None:
+        cvs_source_id_values = cvs_source_id_entry.values
+        if cvs_source_id_values.license_id is None:
             msg = "License ID must be specified in the CVs source ID"
             raise AssertionError(msg)
-
-        # cf-xarray uses suffix bounds, hence hard-code this
-        frequency = infer_frequency(data, time_bounds=f"{time_dimension}_bounds")
+        ### End of identical lines
 
         metadata = Input4MIPsDatasetMetadata(
             activity_id=activity_id,
-            contact=cvs_values.contact,
+            contact=cvs_source_id_values.contact,
             dataset_category=metadata_minimum.dataset_category,
             frequency=frequency,
-            further_info_url=cvs_values.further_info_url,
+            further_info_url=cvs_source_id_values.further_info_url,
             grid_label=metadata_minimum.grid_label,
             # # TODO: look this up from central CVs
             # institution=cvs_values.institution,
-            institution_id=cvs_values.institution_id,
-            license=cvs.license_entries[cvs_values.license_id].values.conditions,
-            license_id=cvs_values.license_id,
-            mip_era=cvs_values.mip_era,
+            institution_id=cvs_source_id_values.institution_id,
+            license=cvs.license_entries[
+                cvs_source_id_values.license_id
+            ].values.conditions,
+            license_id=cvs_source_id_values.license_id,
+            mip_era=cvs_source_id_values.mip_era,
             nominal_resolution=metadata_minimum.nominal_resolution,
             realm=metadata_minimum.realm,
             source_id=metadata_minimum.source_id,
-            source_version=cvs_values.source_version,
+            source_version=cvs_source_id_values.source_version,
             target_mip=metadata_minimum.target_mip,
             variable_id=variable_id,
         )
-
-        if time_dimension in data:
-            # Make sure time appears first as this is what CF conventions expect
-            data = data.transpose(time_dimension, ...)
 
         return cls(data=data, metadata=metadata, cvs=cvs)
 
@@ -686,10 +631,204 @@ class Input4MIPsDataset:
         return out_path
 
 
+def prepare_ds_and_get_frequency(  # noqa: PLR0913
+    ds_raw: xr.Dataset,
+    dimensions: tuple[str, ...] | None = None,
+    time_dimension: str = "time",
+    add_time_bounds: AddTimeBoundsLike | None = None,
+    time_bounds_name: str = f"time{CF_XARRAY_BOUNDS_SUFFIX}",
+    standard_and_or_long_names: dict[str, dict[str, str]] | None = None,
+    guess_coord_axis: bool = True,
+    copy_ds: bool = False,
+) -> tuple[xr.Dataset, str]:
+    """
+    Prepare a raw dataset for initialising a dataset and return frequency metadata.
+
+    Specifically, this function is for initialising a
+    [`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset].
+    This is a useful function, but is also intended to serve as a template
+    for other implementations
+    (which can then be injected into the relevant class methods).
+
+    Parameters
+    ----------
+    ds_raw
+        Raw data to prepare
+
+    dimensions
+        Dimensions of the dataset, other than the time dimension.
+
+        Passed to [`add_bounds`][input4mips_validation.dataset.dataset.add_bounds].
+
+    time_dimension
+        Time dimension of the dataset.
+
+        This is singled out because handling time bounds is often a special case.
+
+    add_time_bounds
+        Function that adds bounds to the time variable.
+
+        Passed to [`add_bounds`][input4mips_validation.dataset.dataset.add_bounds].
+
+    time_bounds_name
+        The name of the time bounds variable.
+
+        Provided so that users can change this value if they provide custom
+        functionality in `add_time_bounds`
+        or have a non-default for `time_dimension`.
+
+    standard_and_or_long_names
+        Standard/long names to use for the variables in `ds_raw`.
+
+        All variables that are not bounds
+        must have attributes that contain a value for at least one of
+        `standard_name` and `long_name`.
+        Hence this argument is only required
+        if the attributes of the variable do not already have these values.
+
+        Each key should be a variable in `ds_raw`.
+        The value of `standard_and_or_long_name`
+        should itself be a dictionary with keys
+        `"standard_name"` for the variable's standard name
+        and/or `"long_name"` for the variable's long name.
+
+        E.g.
+        `standard_and_or_long_names = {"variable_name": {"standard_name": "flux"}}`
+
+    guess_coord_axis
+        Should we guess the co-ordinate axes of the dataset?
+
+    copy_ds
+        Should we copy `ds_raw` before modifying the metadata
+        or simply modify the existing dataset?
+
+    Returns
+    -------
+    :
+        Prepared data and inferred frequency metadata based on `ds_raw`.
+    """
+    if copy_ds:
+        ds = ds_raw.copy()
+    else:
+        ds = ds_raw
+
+    ds = add_bounds(
+        ds=ds,
+        dimensions=dimensions,
+        time_dimension=time_dimension,
+        add_time_bounds=add_time_bounds,
+        # Copying handled above
+        copy_ds=False,
+    )
+
+    if guess_coord_axis:
+        ds = ds.cf.guess_coord_axis()
+    ds = ds.cf.add_canonical_attributes()
+
+    ds = handle_ds_standard_long_names(
+        ds,
+        standard_and_or_long_names=standard_and_or_long_names,
+        # Can hard-code input value here because
+        # we use cf-xarray to add bounds in `add_bounds`,
+        # and that is hard-coded above.
+        bounds_indicator=CF_XARRAY_BOUNDS_SUFFIX.strip("_"),
+        # No need to copy here as that is already handled on entry
+        copy_ds=False,
+    )
+
+    frequency = infer_frequency(
+        ds,
+        time_bounds=time_bounds_name,
+    )
+
+    if time_dimension in ds:
+        # Make sure time appears first as this is what CF conventions expect
+        ds = ds.transpose(time_dimension, ...)
+
+    return ds, frequency
+
+
+def add_bounds(  # noqa: PLR0913
+    ds: xr.Dataset,
+    dimensions: Iterable[str] | None = None,
+    time_dimension: str = "time",
+    add_time_bounds: AddTimeBoundsLike | None = None,
+    bounds_dim: str = "bounds",
+    copy_ds: bool = False,
+) -> xr.Dataset:
+    """
+    Add bounds to a dataset
+
+    This uses [`cf_xarray`](https://github.com/xarray-contrib/cf-xarray)
+    for adding all bounds except for the time bound.
+    If you want to follow a different pattern, please feel free to use
+    this function as a template.
+
+    Parameters
+    ----------
+    ds
+        Dataset to which to add bounds
+
+    dimensions
+        Dimensions of the dataset, excluding the time dimension.
+
+        If not supplied, we simply use all the dimensions of `ds`
+        in the order they appear in the dataset.
+
+    time_dimension
+        The name of the time dimension
+
+    add_time_bounds
+        Function to use to add time bounds.
+
+        If not supplied, we use
+        [`add_time_bounds`][input4mips_validation.xarray_helpers.add_time_bounds].
+
+    bounds_dim
+        Name of the bounds dimension
+
+        (The dimension used for specifying whether we are at the start or end
+        of the bounds, not the suffix used for identifying bounds variables
+        or the name of bounds variables.)
+
+    copy_ds
+        Should we copy the dataset before modifying it?
+
+    Returns
+    -------
+    :
+        `ds` with added bounds variables.
+    """
+    if copy_ds:
+        ds = ds.copy()
+
+    if dimensions is None:
+        dimensions_use: Iterable[str] = tuple(str(v) for v in ds.dims)
+    else:
+        dimensions_use = dimensions
+
+    if add_time_bounds is None:
+        # Can't make mypy behave, hence type ignore
+        add_time_bounds_use: AddTimeBoundsLike = iv_xr_helpers.add_time_bounds  # type: ignore
+    else:
+        add_time_bounds_use = add_time_bounds
+
+    for dim in dimensions_use:
+        if dim == time_dimension:
+            ds = add_time_bounds_use(ds, output_dim_bounds=bounds_dim)
+        else:
+            ds = ds.cf.add_bounds(dim, output_dim=bounds_dim)
+            # Remove the bounds variable from co-ordinates
+            # to avoid iris screaming about CF-conventions later.
+            ds = ds.reset_coords(f"{dim}{CF_XARRAY_BOUNDS_SUFFIX}")
+
+    return ds
+
+
 def handle_ds_standard_long_names(
     ds: xr.Dataset,
     standard_and_or_long_names: dict[str, dict[str, str]] | None,
-    bounds_dim: str,
+    bounds_indicator: str,
     copy_ds: bool = False,
 ) -> xr.Dataset:
     """
@@ -710,8 +849,9 @@ def handle_ds_standard_long_names(
 
         If not provided, then this function just checks metadata but won't set it.
 
-    bounds_dim
+    bounds_indicator
         String which indicates that the variable is a bounds variable.
+
         These variables don't need standard/long name information.
 
     copy_ds
@@ -719,6 +859,7 @@ def handle_ds_standard_long_names(
 
     Returns
     -------
+    :
         `ds` with standard and/or long name metadata set.
 
     Raises
@@ -737,7 +878,7 @@ def handle_ds_standard_long_names(
         ds = ds.copy()
 
     for ds_variable in [*ds.data_vars, *ds.coords]:
-        if bounds_dim in ds_variable:
+        if bounds_indicator in ds_variable:
             continue
 
         if not any(k in ds[ds_variable].attrs for k in ["standard_name", "long_name"]):
@@ -801,17 +942,16 @@ def convert_input4mips_metadata_to_ds_attrs(
     metadata: Input4MIPsDatasetMetadata,
 ) -> dict[str, str]:
     """
-    Convert [Input4MIPsDatasetMetadata][input4mips_validation.dataset.metadata.Input4MIPsDatasetMetadata] to [xarray.Dataset.attrs][] compatible values
+    Convert metadata to xarray attribute compatible values
+
+    Metadata is of the form
+    [Input4MIPsDatasetMetadata][input4mips_validation.dataset.metadata.Input4MIPsDatasetMetadata]
+    and the attributes are [xarray.Dataset.attrs][].
 
     Returns
     -------
         [xarray.Dataset.attrs][] compatible values
-    """  # noqa: E501
+    """
     res = {k: v for k, v in asdict(metadata).items() if v is not None}
-
-    # Put back in if/when we add non CVs metadata handling back in
-    # if self.metadata_non_cvs is not None:
-    #     # Add other keys in too
-    #     res = self.metadata_non_cvs | res
 
     return res

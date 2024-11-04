@@ -9,6 +9,7 @@ from __future__ import annotations
 import datetime as dt
 import os
 import shutil
+from functools import partial
 from pathlib import Path
 from unittest.mock import patch
 
@@ -23,6 +24,9 @@ from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
+)
+from input4mips_validation.dataset.dataset import (
+    prepare_ds_and_get_frequency,
 )
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
@@ -64,8 +68,13 @@ def test_validate_write_in_drs(tmp_path):
     input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
         data=ds,
         metadata_minimum=metadata_minimum,
-        standard_and_or_long_names={variable_name: {"standard_name": variable_name}},
         cvs=cvs,
+        prepare_func=partial(
+            prepare_ds_and_get_frequency,
+            standard_and_or_long_names={
+                variable_name: {"standard_name": variable_name}
+            },
+        ),
     )
 
     # Write a correct file as a helper

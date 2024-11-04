@@ -240,7 +240,7 @@ class Input4MIPsDataset:
             and infer the frequency metadata.
 
             If not supplied, we use
-            [`input4mips_validation.dataset.prepare_ds_and_get_frequency`].
+            [`input4mips_validation.dataset.dataset.prepare_ds_and_get_frequency`].
 
         copy_ds
             Should `ds` be copied before we create the `Input4MIPsDataset`?
@@ -366,7 +366,7 @@ class Input4MIPsDataset:
             and infer the frequency metadata.
 
             If not supplied, we use
-            [`input4mips_validation.dataset.prepare_ds_and_get_frequency`].
+            [`input4mips_validation.dataset.dataset.prepare_ds_and_get_frequency`].
 
         copy_ds
             Should `ds` be copied before we create the `Input4MIPsDataset`?

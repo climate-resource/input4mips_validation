@@ -4,6 +4,7 @@ Loading of CVs from a given source
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from loguru import logger
@@ -18,7 +19,7 @@ from input4mips_validation.cvs.source_id import load_source_id_entries
 
 
 def load_cvs(
-    cv_source: None | str = None,
+    cv_source: None | str | Path = None,
     **kwargs: Any,
 ) -> Input4MIPsCVs:
     """
@@ -38,6 +39,7 @@ def load_cvs(
 
     Returns
     -------
+    :
         Loaded CVs
     """
     raw_cvs_loader = get_raw_cvs_loader(cv_source=cv_source)

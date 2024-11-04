@@ -488,11 +488,11 @@ class Input4MIPsDataset:
         You will generally not want to write the output of this directly to disk,
         because it will not be CF-compliant.
         To see how to write CF-compliant files,
-        see [`write`][input4mips_validation.Input4MIPsDataset.write].
+        see [`write`][input4mips_validation.dataset.Input4MIPsDataset.write].
 
         See Also
         --------
-        [`write`][input4mips_validation.Input4MIPsDataset.write]
+        [`write`][input4mips_validation.dataset.Input4MIPsDataset.write]
         """
         cvs = self.cvs
 

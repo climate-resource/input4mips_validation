@@ -11,6 +11,8 @@ from typing import Any, Optional, Protocol
 import attr
 import cf_xarray  # noqa: F401
 import cftime
+import iris
+import ncdata
 import numpy as np
 import xarray as xr
 from attrs import asdict, field, fields, frozen
@@ -33,7 +35,9 @@ from input4mips_validation.inference.from_data import (
 from input4mips_validation.io import (
     generate_creation_timestamp,
     generate_tracking_id,
-    write_ds_to_disk,
+)
+from input4mips_validation.validation.datasets_to_write_to_disk import (
+    get_ds_to_write_to_disk_validation_result,
 )
 from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
@@ -492,18 +496,16 @@ class Input4MIPsDataset:
 
         return cls(data=data, metadata=metadata, cvs=cvs)
 
-    def write(  # noqa: PLR0913
+    def get_out_path_and_disk_ready_dataset(  # noqa: PLR0913
         self,
         root_data_dir: Path,
         pint_dequantify_format: str = "cf",
-        unlimited_dimensions: tuple[str, ...] = ("time",),
-        encoding_kwargs: dict[str, Any] | None = None,
         frequency_metadata_key: str = "frequency",
         no_time_axis_frequency: str = "fx",
         time_dimension: str = "time",
-    ) -> Path:
+    ) -> tuple[Path, xr.Dataset]:
         """
-        Write to disk
+        Get path in which to write and a disk-ready dataset
 
         Parameters
         ----------
@@ -514,17 +516,6 @@ class Input4MIPsDataset:
             Format to use when dequantifying variables with Pint.
 
             It is unlikely that you will want to change this.
-
-        unlimited_dimensions
-            Dimensions which should be unlimited in the written file
-
-            This is passed to [iris.save][].
-
-        encoding_kwargs
-            Kwargs to use when encoding to disk.
-
-            These are passed as arguments to
-            [`write_ds_to_disk`][input4mips_validation.io.write_ds_to_disk].
 
         frequency_metadata_key
             The key in the data's metadata
@@ -544,7 +535,19 @@ class Input4MIPsDataset:
         Returns
         -------
         :
-            Path in which the file was written
+            Path in which to write the file
+            and the [iris.cube.Cube][]'s to write in the file.
+
+        Notes
+        -----
+        You will generally not want to write the output of this directly to disk,
+        because it will not be CF-compliant.
+        To see how to write CF-compliant files,
+        see [`write`][input4mips_validation.Input4MIPsDataset.write].
+
+        See Also
+        --------
+        [`write`][input4mips_validation.Input4MIPsDataset.write]
         """
         cvs = self.cvs
 
@@ -585,6 +588,7 @@ class Input4MIPsDataset:
             time_end: cftime.datetime | dt.datetime | np.datetime64 | None = (
                 xr_time_min_max_to_single_value(ds_disk[time_dimension].max())
             )
+
         else:
             time_start = time_end = None
 
@@ -595,15 +599,91 @@ class Input4MIPsDataset:
             time_end=time_end,
         )
 
-        written_path = write_ds_to_disk(
-            ds=ds_disk,
-            out_path=out_path,
-            cvs=cvs,
-            unlimited_dimensions=unlimited_dimensions,
-            **(encoding_kwargs if encoding_kwargs else {}),
+        return out_path, ds_disk
+
+    def write(  # noqa: PLR0913
+        self,
+        root_data_dir: Path,
+        pint_dequantify_format: str = "cf",
+        unlimited_dimensions: tuple[str, ...] = ("time",),
+        frequency_metadata_key: str = "frequency",
+        no_time_axis_frequency: str = "fx",
+        time_dimension: str = "time",
+    ) -> Path:
+        """
+        Write to disk
+
+        This takes a very opionated view of how to write to disk.
+        If you need to alter this, please take the source code of this method
+        as a template then alter as required.
+
+        Parameters
+        ----------
+        root_data_dir
+            Root directory in which to write the file
+
+        pint_dequantify_format
+            Format to use when dequantifying variables with Pint.
+
+            It is unlikely that you will want to change this.
+            If you are not using pint for unit handling, this will be ignored.
+
+        unlimited_dimensions
+            Dimensions which should be unlimited in the written file
+
+            This is passed to [iris.save][].
+
+        frequency_metadata_key
+            The key in the data's metadata
+            which points to information about the data's frequency.
+
+        no_time_axis_frequency
+            The value of "frequency" in the metadata which indicates
+            that the file has no time axis i.e. is fixed in time.
+
+        time_dimension
+            The time dimension of the data.
+
+            Required so that we know
+            what information to pass to the path generating algorithm,
+            in case the path generating algorithm requires time axis information.
+
+        Returns
+        -------
+        :
+            Path in which the file was written
+        """
+        out_path, ds_disk_ready = self.get_out_path_and_disk_ready_dataset(
+            root_data_dir=root_data_dir,
+            pint_dequantify_format=pint_dequantify_format,
+            frequency_metadata_key=frequency_metadata_key,
+            no_time_axis_frequency=no_time_axis_frequency,
+            time_dimension=time_dimension,
         )
 
-        return written_path
+        # Validate
+        # As part of https://github.com/climate-resource/input4mips_validation/issues/14
+        # add final validation here for bullet proofness
+        # - tracking ID, creation date, comparison with DRS from cvs etc.
+        validation_result = get_ds_to_write_to_disk_validation_result(
+            ds=ds_disk_ready, out_path=out_path, cvs=self.cvs
+        )
+        validation_result.raise_if_errors()
+
+        # Convert to cubes with ncdata
+        cubes = ncdata.iris_xarray.cubes_from_xarray(ds_disk_ready)
+
+        # Having validated and converted to cubes, make the target directory.
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Write the file to disk
+        iris.save(
+            cubes,
+            out_path,
+            unlimited_dimensions=unlimited_dimensions,
+        )
+
+        return out_path
 
 
 def handle_ds_standard_long_names(

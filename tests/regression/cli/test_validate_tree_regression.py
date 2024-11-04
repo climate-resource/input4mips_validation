@@ -37,9 +37,9 @@ except pint.errors.RedefinitionError:
 
 runner = CliRunner()
 
-DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
-    (Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default").absolute()
-)
+DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
+    Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default"
+).absolute()
 
 
 @pytest.mark.parametrize(

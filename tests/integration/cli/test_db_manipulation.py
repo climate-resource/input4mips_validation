@@ -38,14 +38,12 @@ except pint.errors.RedefinitionError:
 
 runner = CliRunner()
 
-DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
-    (Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default").absolute()
-)
-DIFFERENT_DRS_CV_SOURCE = str(
-    (
-        Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "different-drs"
-    ).absolute()
-)
+DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
+    Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default"
+).absolute()
+DIFFERENT_DRS_CV_SOURCE = (
+    Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "different-drs"
+).absolute()
 
 
 def create_db_entries_exp(

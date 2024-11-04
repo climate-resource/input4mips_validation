@@ -25,9 +25,9 @@ from input4mips_validation.xarray_helpers import add_time_bounds
 
 UR = pint.get_application_registry()
 
-DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
-    (Path(__file__).parent / ".." / "test-data" / "cvs" / "default").absolute()
-)
+DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
+    Path(__file__).parent / ".." / "test-data" / "cvs" / "default"
+).absolute()
 
 
 @pytest.mark.parametrize(

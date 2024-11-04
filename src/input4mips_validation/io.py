@@ -77,7 +77,6 @@ def prepare_out_path_and_cubes(
     return cubes
 
 
-# TODO: make this more opinionated
 def write_ds_to_disk(
     ds: xr.Dataset, out_path: Path, cvs: Input4MIPsCVs, **kwargs: Any
 ) -> Path:

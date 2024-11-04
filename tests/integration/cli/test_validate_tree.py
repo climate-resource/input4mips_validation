@@ -85,7 +85,7 @@ def test_basic(tmp_path):
     # Then test the CLI
     with patch.dict(
         os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     ):
         result = runner.invoke(app, ["validate-tree", str(tmp_path)])
 

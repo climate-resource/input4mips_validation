@@ -58,7 +58,7 @@ def test_validate_written_single_variable_file(tmp_path):
 
     with patch.dict(
         os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     ):
         input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
             data=ds,
@@ -103,7 +103,7 @@ def test_validate_written_single_variable_file(tmp_path):
     # Then test the CLI
     with patch.dict(
         os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     ):
         result = runner.invoke(
             app, ["validate-file", str(written_file), "--allow-cf-checker-warnings"]

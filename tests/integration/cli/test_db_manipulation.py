@@ -164,7 +164,7 @@ def test_add_flow(tmp_path):
     result = runner.invoke(
         app,
         args,
-        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     )
 
     assert result.exit_code == 0, result.exc_info
@@ -205,7 +205,7 @@ def test_add_flow(tmp_path):
     result = runner.invoke(
         app,
         args,
-        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     )
 
     assert result.exit_code == 0, result.exc_info

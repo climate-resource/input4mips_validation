@@ -137,7 +137,7 @@ def test_errors_html(tmp_path, file_regression, python_version):
     html_output_path = tmp_path / "html-errors-dump.html"
     with patch.dict(
         os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     ):
         result = runner.invoke(
             app,

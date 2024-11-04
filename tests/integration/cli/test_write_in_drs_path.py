@@ -91,7 +91,7 @@ def test_validate_write_in_drs(tmp_path):
 
     with patch.dict(
         os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     ):
         result = runner.invoke(
             app,

@@ -7,6 +7,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+from functools import partial
 from pathlib import Path
 from unittest.mock import patch
 
@@ -22,6 +23,9 @@ from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
+from input4mips_validation.dataset.dataset import (
+    prepare_ds_and_get_frequency,
+)
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
 from input4mips_validation.validation.tree import get_validate_tree_result
 
@@ -33,9 +37,9 @@ except pint.errors.RedefinitionError:
 
 runner = CliRunner()
 
-DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
-    (Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default").absolute()
-)
+DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
+    Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default"
+).absolute()
 
 
 @pytest.mark.parametrize(
@@ -76,8 +80,13 @@ def test_errors_html(tmp_path, file_regression, python_version):
         input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
             data=ds,
             metadata_minimum=metadata_minimum,
-            standard_and_or_long_names={variable_id: {"standard_name": variable_id}},
             cvs=cvs,
+            prepare_func=partial(
+                prepare_ds_and_get_frequency,
+                standard_and_or_long_names={
+                    variable_id: {"standard_name": variable_id}
+                },
+            ),
         )
 
         written_file = input4mips_ds.write(root_data_dir=root_dir_tree)
@@ -128,7 +137,7 @@ def test_errors_html(tmp_path, file_regression, python_version):
     html_output_path = tmp_path / "html-errors-dump.html"
     with patch.dict(
         os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     ):
         result = runner.invoke(
             app,

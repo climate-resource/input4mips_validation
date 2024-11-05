@@ -38,14 +38,12 @@ except pint.errors.RedefinitionError:
 
 runner = CliRunner()
 
-DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
-    (Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default").absolute()
-)
-DIFFERENT_DRS_CV_SOURCE = str(
-    (
-        Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "different-drs"
-    ).absolute()
-)
+DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
+    Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default"
+).absolute()
+DIFFERENT_DRS_CV_SOURCE = (
+    Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "different-drs"
+).absolute()
 
 
 def create_db_entries_exp(
@@ -166,7 +164,7 @@ def test_add_flow(tmp_path):
     result = runner.invoke(
         app,
         args,
-        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     )
 
     assert result.exit_code == 0, result.exc_info
@@ -207,7 +205,7 @@ def test_add_flow(tmp_path):
     result = runner.invoke(
         app,
         args,
-        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     )
 
     assert result.exit_code == 0, result.exc_info

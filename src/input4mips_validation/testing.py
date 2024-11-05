@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Collection
+from functools import partial
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -21,6 +22,9 @@ from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
     Input4MIPsDatasetMetadataDataProducerMinimum,
+)
+from input4mips_validation.dataset.dataset import (
+    prepare_ds_and_get_frequency,
 )
 from input4mips_validation.hashing import get_file_hash_sha256
 
@@ -172,8 +176,13 @@ def create_files_in_tree(  # noqa: PLR0913
         input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
             data=ds,
             metadata_minimum=metadata_minimum,
-            standard_and_or_long_names={variable_id: {"standard_name": variable_id}},
             cvs=cvs,
+            prepare_func=partial(
+                prepare_ds_and_get_frequency,
+                standard_and_or_long_names={
+                    variable_id: {"standard_name": variable_id}
+                },
+            ),
             dataset_category=dataset_category,
         )
 

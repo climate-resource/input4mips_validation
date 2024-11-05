@@ -247,11 +247,11 @@ def add_time_bounds(
     else:
         raise NotImplementedError(monthly_time_bounds)
 
-    ds.coords[bname] = bounds
+    ds[bname] = bounds
     ds[variable].attrs["bounds"] = bname
     # Ensure that bounds has the same encoding as the variable.
     # Very important for any file that is eventually written to disk.
-    ds.coords[bname].encoding = ds[variable].encoding
+    ds[bname].encoding = ds[variable].encoding
 
     return ds
 

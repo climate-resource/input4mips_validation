@@ -22,21 +22,71 @@ from input4mips_validation.validation.datasets_to_write_to_disk import (
 iris.FUTURE.save_split_attrs = True
 
 
+def prepare_out_path_and_cubes(
+    ds: xr.Dataset,
+    out_path: Path,
+    cvs: Input4MIPsCVs,
+) -> iris.cube.CubeList:
+    """
+    Prepare a path and [iris.cube.Cube][]'s for writing to disk
+
+    A note for users of this function.
+    We convert the dataset to a list of [iris.cube.Cube][]
+    with [ncdata.iris_xarray.cubes_from_xarray][]
+    because [iris][] adds CF-conventions upon writing,
+    which is needed for input4MIPs data.
+    This works smoothly in our experience,
+    but the conversion can be tricky to debug.
+    If you are having issues, this may be the reason.
+
+    Parameters
+    ----------
+    ds
+        Dataset to write to disk.
+        May contain one or more variables.
+
+    out_path
+        Path in which to write the dataset
+
+    cvs
+        CVs to use to validate the dataset before writing
+
+    Returns
+    -------
+    :
+        [iris.cube.Cube][]'s which can be written to disk.
+
+    See Also
+    --------
+    [input4mips_validation.io.write_ds_to_disk][].
+    """
+    # As part of https://github.com/climate-resource/input4mips_validation/issues/14
+    # add final validation here for bullet proofness
+    # - tracking ID, creation date, comparison with DRS from cvs etc.
+    validation_result = get_ds_to_write_to_disk_validation_result(
+        ds=ds, out_path=out_path, cvs=cvs
+    )
+    validation_result.raise_if_errors()
+
+    # Having validated, make the target directory and write
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Convert to cubes with ncdata
+    cubes = ncdata.iris_xarray.cubes_from_xarray(ds)
+
+    return cubes
+
+
 def write_ds_to_disk(
     ds: xr.Dataset, out_path: Path, cvs: Input4MIPsCVs, **kwargs: Any
 ) -> Path:
     """
     Write a dataset to disk
 
-    A note for users of this function.
-    We convert the dataset to a list of [iris.cube.Cube][]
-    with [ncdata.iris_xarray.cubes_from_xarray][]
-    and then write the file to disk with [iris][]
-    because [iris][] adds CF-conventions upon writing,
-    which is needed for input4MIPs data.
-    This works smoothly in our experience,
-    but the conversion can be tricky to debug.
-    If you are having issues, this may be the reason.
+    This function is just a thin wrapper around
+    [input4mips_validation.io.prepare_out_path_and_cubes][]
+    and [iris.save][].
+    For details, see these functions.
 
     Parameters
     ----------
@@ -57,23 +107,13 @@ def write_ds_to_disk(
     -------
     :
         Path in which the dataset was written
+
+    See Also
+    --------
+    [input4mips_validation.io.prepare_out_path_and_cubes][].
+    [iris.save][].
     """
-    # As part of https://github.com/climate-resource/input4mips_validation/issues/14
-    # add final validation here for bullet proofness
-    # - tracking ID, creation date, comparison with DRS from cvs etc.
-    validation_result = get_ds_to_write_to_disk_validation_result(
-        ds=ds, out_path=out_path, cvs=cvs
-    )
-    validation_result.raise_if_errors()
-
-    # Having validated, make the target directory and write
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # This raises a warning,
-    # because xarray uses a coordinates attribute
-    # and iris says this is not allowed.
-    # TODO: MR into ncdata to fix/discuss fixing this.
-    cubes = ncdata.iris_xarray.cubes_from_xarray(ds)
+    cubes = prepare_out_path_and_cubes(ds=ds, out_path=out_path, cvs=cvs)
     iris.save(cubes, out_path, **kwargs)
 
     return out_path

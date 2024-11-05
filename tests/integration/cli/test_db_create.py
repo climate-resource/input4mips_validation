@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import datetime as dt
 import os
+from functools import partial
 from pathlib import Path
 from unittest.mock import patch
 
@@ -25,6 +26,9 @@ from input4mips_validation.database.creation import create_db_file_entries
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
 )
+from input4mips_validation.dataset.dataset import (
+    prepare_ds_and_get_frequency,
+)
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.testing import (
     get_valid_ds_min_metadata_example,
@@ -38,9 +42,9 @@ except pint.errors.RedefinitionError:
 
 runner = CliRunner()
 
-DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
-    (Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default").absolute()
-)
+DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
+    Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default"
+).absolute()
 
 
 def test_basic(tmp_path):
@@ -72,8 +76,13 @@ def test_basic(tmp_path):
         input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
             data=ds,
             metadata_minimum=metadata_minimum,
-            standard_and_or_long_names={variable_id: {"standard_name": variable_id}},
             cvs=cvs,
+            prepare_func=partial(
+                prepare_ds_and_get_frequency,
+                standard_and_or_long_names={
+                    variable_id: {"standard_name": variable_id}
+                },
+            ),
         )
 
         written_file = input4mips_ds.write(root_data_dir=tree_root)
@@ -161,7 +170,7 @@ def test_basic(tmp_path):
     # Then test the CLI
     with patch.dict(
         os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     ):
         args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
         result = runner.invoke(app, args)

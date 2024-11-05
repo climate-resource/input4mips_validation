@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import datetime as dt
 import os
+from functools import partial
 from pathlib import Path
 from unittest.mock import patch
 
@@ -21,6 +22,9 @@ from input4mips_validation.dataset import (
     Input4MIPsDataset,
     Input4MIPsDatasetMetadataDataProducerMultipleVariableMinimum,
 )
+from input4mips_validation.dataset.dataset import (
+    prepare_ds_and_get_frequency,
+)
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
 from input4mips_validation.validation.file import get_validate_file_result
@@ -33,9 +37,9 @@ except pint.errors.RedefinitionError:
 
 runner = CliRunner()
 
-DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = str(
-    (Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default").absolute()
-)
+DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
+    Path(__file__).parent / ".." / ".." / "test-data" / "cvs" / "default"
+).absolute()
 
 
 def test_validate_written_single_variable_file(tmp_path):
@@ -55,14 +59,17 @@ def test_validate_written_single_variable_file(tmp_path):
 
     with patch.dict(
         os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     ):
         input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
             data=ds,
             metadata_minimum=metadata_minimum,
-            standard_and_or_long_names={
-                variable_name: {"standard_name": variable_name}
-            },
+            prepare_func=partial(
+                prepare_ds_and_get_frequency,
+                standard_and_or_long_names={
+                    variable_name: {"standard_name": variable_name}
+                },
+            ),
         )
 
     written_file = input4mips_ds.write(root_data_dir=tmp_path)
@@ -75,7 +82,7 @@ def test_validate_written_single_variable_file(tmp_path):
     # Then test the CLI
     with patch.dict(
         os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     ):
         result = runner.invoke(app, ["validate-file", str(written_file)])
 
@@ -171,21 +178,24 @@ def test_validate_written_multi_variable_file(tmp_path):
 
     with patch.dict(
         os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     ):
         input4mips_ds = (
             Input4MIPsDataset.from_data_producer_minimum_information_multiple_variable(
                 data=ds,
                 metadata_minimum=metadata_minimum,
-                dimensions=("time", "lat", "lon"),
-                standard_and_or_long_names={
-                    "mole_fraction_of_carbon_dioxide_in_air": {
-                        "standard_name": "mole_fraction_of_carbon_dioxide_in_air"
+                prepare_func=partial(
+                    prepare_ds_and_get_frequency,
+                    dimensions=("time", "lat", "lon"),
+                    standard_and_or_long_names={
+                        "mole_fraction_of_carbon_dioxide_in_air": {
+                            "standard_name": "mole_fraction_of_carbon_dioxide_in_air"
+                        },
+                        "mole_fraction_of_methane_in_air": {
+                            "standard_name": "mole_fraction_of_methane_in_air"
+                        },
                     },
-                    "mole_fraction_of_methane_in_air": {
-                        "standard_name": "mole_fraction_of_methane_in_air"
-                    },
-                },
+                ),
             )
         )
 
@@ -199,7 +209,7 @@ def test_validate_written_multi_variable_file(tmp_path):
     # Then test the CLI
     with patch.dict(
         os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE},
+        {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     ):
         result = runner.invoke(app, ["validate-file", str(written_file)])
 

@@ -218,7 +218,7 @@ class RawCVLoaderBaseURL:
 
 
 def get_raw_cvs_loader(
-    cv_source: None | str = None, force_download: bool | None = None
+    cv_source: None | str | Path = None, force_download: bool | None = None
 ) -> RawCVLoader:
     """
     Get the raw CVs loader
@@ -254,6 +254,7 @@ def get_raw_cvs_loader(
 
     Returns
     -------
+    :
         Raw CV loader
 
     Raises
@@ -279,15 +280,18 @@ def get_raw_cvs_loader(
             # Nothing provided as environment variable, hence set a default
             force_download = False
 
-    if cv_source.startswith("gh:"):
+    if isinstance(cv_source, str) and cv_source.startswith("gh:"):
         # Expand out the given value
         source = cv_source.split("gh:")[1]
         cv_source = (
             f"https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/{source}/CVs/"
         )
 
-    if not validators.url(cv_source):
-        res: RawCVLoader = RawCVLoaderLocal(Path(cv_source))
+    if isinstance(cv_source, Path):
+        res: RawCVLoader = RawCVLoaderLocal(cv_source)
+
+    elif not validators.url(cv_source):
+        res = RawCVLoaderLocal(Path(cv_source))
 
     else:
         try:

@@ -32,9 +32,9 @@ from the examples given in that link.
     the default value of which is [`input4mips_validation.dataset.dataset.prepare_ds_and_get_frequency`][].
     This makes the API simpler and gives the user more control.
     However, it is a breaking change.
-  - We removed fine-grained control of writing to disk when using [`Dataset.write`][input4mips_validation.dataset.Input4MIPsDataset.write]
+  - We removed fine-grained control of writing to disk when using [`Input4MIPsDataset.write`][input4mips_validation.dataset.Input4MIPsDataset.write]
     and [`input4mips_validation.io.write_ds_to_disk`][].
-    Instead, use [`Dataset.get_out_path_and_disk_ready_dataset`][input4mips_validation.dataset.Input4MIPsDataset.get_out_path_and_disk_ready_dataset]
+    Instead, use [`Input4MIPsDataset.get_out_path_and_disk_ready_dataset`][input4mips_validation.dataset.Input4MIPsDataset.get_out_path_and_disk_ready_dataset]
     or [`input4mips_validation.io.prepare_out_path_and_cubes`][] then write using you own writing function
     (typically [`iris.save`][] instead).
   - Renamed `bounds_dim` to `bounds_indicator` in [`input4mips_validation.dataset.dataset.handle_ds_standard_long_names`][].
@@ -43,7 +43,7 @@ from the examples given in that link.
 
 ### 🆕 Features
 
-- - Added [`Dataset.get_out_path_and_disk_ready_dataset`][input4mips_validation.dataset.Input4MIPsDataset.get_out_path_and_disk_ready_dataset]
+- - Added [`Input4MIPsDataset.get_out_path_and_disk_ready_dataset`][input4mips_validation.dataset.Input4MIPsDataset.get_out_path_and_disk_ready_dataset]
     and [`input4mips_validation.io.prepare_out_path_and_cubes`][]
     to permit finer-grained control of file preparation and writing.
   - Added [`input4mips_validation.dataset.dataset.add_bounds`][].

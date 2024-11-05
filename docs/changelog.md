@@ -21,6 +21,46 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## Input4MIPs validation v0.14.0 (2024-11-05)
+
+
+### ⚠️ Breaking Changes
+
+- - The function signatures for [`input4mips_validation.dataset.Input4MIPsDataset.from_data_producer_minimum_information`][]
+    and [`input4mips_validation.dataset.Input4MIPsDataset.from_data_producer_minimum_information_multiple_variable`][]
+    have now been simplified to use an injectable [`prepare_func`][`input4mips_validation.dataset.dataset.PrepareFuncLike`][],
+    the default value of which is [`input4mips_validation.dataset.dataset.prepare_ds_and_get_frequency`][].
+    This makes the API simpler and gives the user more control.
+    However, it is a breaking change.
+  - We removed fine-grained control of writing to disk when using [`Dataset.write`][input4mips_validation.dataset.Input4MIPsDataset.write]
+    and [`input4mips_validation.io.write_ds_to_disk`][].
+    Instead, use [`Dataset.get_out_path_and_disk_ready_dataset`][input4mips_validation.dataset.Input4MIPsDataset.get_out_path_and_disk_ready_dataset]
+    or [`input4mips_validation.io.prepare_out_path_and_cubes`][] then write using you own writing function
+    (typically [`iris.save`][] instead).
+  - Renamed `bounds_dim` to `bounds_indicator` in [`input4mips_validation.dataset.dataset.handle_ds_standard_long_names`][].
+
+  ([#80](https://github.com/climate-resource/input4mips_validation/pull/80))
+
+### 🆕 Features
+
+- - Added [`Dataset.get_out_path_and_disk_ready_dataset`][input4mips_validation.dataset.Input4MIPsDataset.get_out_path_and_disk_ready_dataset]
+    and [`input4mips_validation.io.prepare_out_path_and_cubes`][]
+    to permit finer-grained control of file preparation and writing.
+  - Added [`input4mips_validation.dataset.dataset.add_bounds`][].
+
+  ([#80](https://github.com/climate-resource/input4mips_validation/pull/80))
+
+### 🐛 Bug Fixes
+
+- Fixed up passing of input arguments to underlying functions in `input4mips-validation validate-tree` ([#75](https://github.com/climate-resource/input4mips_validation/pull/75))
+- [`input4mips_validation.cvs.load_cvs`][] now supports variables of type `Path` for the `cv_source` argument.
+  As part of this fix, [`input4mips_validation.cvs.loading_raw.get_raw_cvs_loader`][] now also supports variables of type `Path` for the `cv_source` argument. ([#80](https://github.com/climate-resource/input4mips_validation/pull/80))
+
+### 🔧 Trivial/Internal Changes
+
+- [#79](https://github.com/climate-resource/input4mips_validation/pull/79)
+
+
 ## Input4MIPs validation v0.13.2 (2024-10-16)
 
 

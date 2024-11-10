@@ -1,5 +1,24 @@
 """
 Data reference syntax data model
+
+This module needs a re-write.
+The rules are not clear enough and the code misrepresents the logic.
+
+For the re-write:
+
+- change to just having a `parse_filepath` and `parse_filename` function for each DRS
+    - introduce a prototype to allow different DRS handlers to be injected as needed
+- then you just do wrappers around this DRS handling
+    - get metadata from filename
+    - get metadata from path
+    - create filename
+    - create path
+    - validate file correctly written according to DRS
+    - etc.
+- remove the ability to inject the DRS via a string
+    - fundamentally, it doesn't make sense and is too hard to get the logic right
+    - it also hides the fact
+      that there is lots of logic that can't be handled in a single string
 """
 
 from __future__ import annotations
@@ -553,7 +572,11 @@ class DataReferenceSyntax:
 
         ds = xr.open_dataset(file, use_cftime=True)
         comparison_metadata = {
-            k: apply_known_replacements(v) for k, v in ds.attrs.items()
+            k: apply_known_replacements(v)
+            for k, v in ds.attrs.items()
+            # Ignore everything that isn't a string
+            # TODO: test this
+            if isinstance(v, str)
         }
 
         # Infer time range information, in case it appears in the DRS.

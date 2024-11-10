@@ -495,8 +495,6 @@ class DataReferenceSyntax:
 
         return capturing_regexp
 
-    # TODO: add test of this to check it correctly handles
-    # the hyphen to underscore debacle
     def validate_file_written_according_to_drs(
         self,
         file: Path,

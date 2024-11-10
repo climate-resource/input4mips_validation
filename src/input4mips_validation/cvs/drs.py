@@ -406,15 +406,16 @@ class DataReferenceSyntax:
 
         Notes
         -----
-        According to [the DRS description](https://docs.google.com/document/d/1h0r8RZr_f3-8egBMMh7aqLwy3snpD6_MrDz1q8n5XUk):
-
-        - only [a-zA-Z0-9-] are allowed in file path names
-          except where underscore is used as a separator.
-
-        We use this to significantly simplify our regular expression.
+        According to
+        [the DRS description](https://docs.google.com/document/d/1h0r8RZr_f3-8egBMMh7aqLwy3snpD6_MrDz1q8n5XUk),
+        there are no restrictions on the directory characters
+        (there are only restrictions on the characters in the filename,
+        see
+        [`get_regexp_for_capturing_filename_information`][input4mips_validation.cvs.drs.DataReferenceSyntax.get_regexp_for_capturing_filename_information]).
         """
         # Hard-code according to the spec
-        allowed_chars = "[a-zA-Z0-9-]"
+        # All characters except the path separator
+        allowed_chars = "[^/]"
 
         drs_template = self.directory_path_template
         directory_substitutions = self.parse_drs_template(drs_template=drs_template)
@@ -494,6 +495,8 @@ class DataReferenceSyntax:
 
         return capturing_regexp
 
+    # TODO: add test of this to check it correctly handles
+    # the hyphen to underscore debacle
     def validate_file_written_according_to_drs(
         self,
         file: Path,

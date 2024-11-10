@@ -31,6 +31,24 @@ from input4mips_validation.cvs.drs import DataReferenceSyntax
         ),
         pytest.param(
             "<activity_id>/<mip_era>/<target_mip>/<institution_id>/<source_id>/<realm>/<frequency>/<variable_id>/<grid_label>/v<version>",
+            "/root/input4MIPs/CMIP6Plus/CMIP/PCMDI/PCMDI-AMIP-1-1-9/ocean/mon/co2_em_anthro/gn/v20230512/",
+            does_not_raise(),
+            {
+                "activity_id": "input4MIPs",
+                "frequency": "mon",
+                "grid_label": "gn",
+                "institution_id": "PCMDI",
+                "mip_era": "CMIP6Plus",
+                "realm": "ocean",
+                "source_id": "PCMDI-AMIP-1-1-9",
+                "target_mip": "CMIP",
+                "variable_id": "co2_em_anthro",
+                "version": "20230512",
+            },
+            id="underscore_in_variable_id",
+        ),
+        pytest.param(
+            "<activity_id>/<mip_era>/<target_mip>/<institution_id>/<source_id>/<realm>/<frequency>/<variable_id>/<grid_label>/v<version>",
             "input4MIPs/CMIP/PCMDI/PCMDI-AMIP-1-1-9/ocean/mon/tos/gn/v20230512/",
             pytest.raises(
                 AssertionError,
@@ -73,6 +91,21 @@ def test_extract_metadata_from_path(
                 "time_range": "187001-202212",
                 "variable_id": "tos",
             },
+        ),
+        pytest.param(
+            "<variable_id>_<activity_id>_<dataset_category>_<target_mip>_<source_id>_<grid_label>[_<time_range>].nc",
+            "co2-em-anthro_input4MIPs_SSTsAndSeaIce_CMIP_PCMDI-AMIP-1-1-9_gn_187001-202212.nc",
+            does_not_raise(),
+            {
+                "activity_id": "input4MIPs",
+                "dataset_category": "SSTsAndSeaIce",
+                "grid_label": "gn",
+                "source_id": "PCMDI-AMIP-1-1-9",
+                "target_mip": "CMIP",
+                "time_range": "187001-202212",
+                "variable_id": "co2-em-anthro",
+            },
+            id="underscore_in_variable_id_correctly_replaced_by_hyphen",
         ),
         pytest.param(
             "<variable_id>_<activity_id>_<dataset_category>_<target_mip>_<source_id>_<grid_label>[_<time_range>].nc",

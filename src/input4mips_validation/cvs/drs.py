@@ -34,6 +34,10 @@ DataReferenceSyntaxUnstructured: TypeAlias = dict[str, str]
 """Form into which the DRS is serialised for the CVs"""
 
 
+DEFAULT_REPLACEMENTS: dict[str, str] = {".": "-"}
+"""Default replacements for characters in directories and file names"""
+
+
 @frozen
 class DataReferenceSyntax:
     """
@@ -581,10 +585,18 @@ class DataReferenceSyntax:
 
         for k, v in file_metadata.items():
             if v is None:
-                # No info in directory, presumably because key was optional
+                # No info in filename, presumably because key was optional
                 continue
 
-            if comparison_metadata[k] != v:
+            # In the filename, underscore
+            # can be swapped for hyphen to avoid delimiter issues.
+            # Burying this here feels too deep,
+            # but I don't know how to express this in a more obvious way.
+            valid_filename_values = {
+                comparison_metadata[k],
+                apply_known_replacements(comparison_metadata[k], {"_": "-"}),
+            }
+            if v not in valid_filename_values:
                 mismatches.append(
                     [k, "filename", file_metadata[k], comparison_metadata[k]]
                 )
@@ -802,14 +814,16 @@ def apply_known_replacements(
     known_replacements
         Known replacements to apply.
 
-        If `None`, a default set is used.
+        If `None`, we use
+        [`DEFAULT_REPLACEMENTS`][input4mips_validation.cvs.drs.DEFAULT_REPLACEMENTS].
 
     Result
     ------
+    :
         `inp` with known replacements applied.
     """  # noqa: E501
     if known_replacements is None:
-        known_replacements = {"_": "-", ".": "-"}
+        known_replacements = DEFAULT_REPLACEMENTS
 
     res = inp
     for old, new in known_replacements.items():

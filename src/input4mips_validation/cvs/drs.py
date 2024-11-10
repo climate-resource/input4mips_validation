@@ -19,6 +19,9 @@ For the re-write:
     - fundamentally, it doesn't make sense and is too hard to get the logic right
     - it also hides the fact
       that there is lots of logic that can't be handled in a single string
+- as a result of the above, remove the DRS from the CVs entirely
+    - maybe use a string as a key
+- put the DRS in a separate package to allow better re-use
 """
 
 from __future__ import annotations

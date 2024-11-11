@@ -21,6 +21,34 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## Input4MIPs validation v0.15.0 (2024-11-11)
+
+
+### ⚠️ Breaking Changes
+
+- Updated to better be in line with [the DRS description](https://docs.google.com/document/d/1h0r8RZr_f3-8egBMMh7aqLwy3snpD6_MrDz1q8n5XUk).
+  The DRS makes no comment on the values in the directory names,
+  hence we now make no assumptions and put no requirements on characters used in directory names.
+  The restriction to only a-z, A-Z, 0-9 and the hyphen plus special use of the underscore
+  is now only applied to file names.
+  As a result, files with variables that have underscores in their names
+  are now written with underscores in their directories, but not in their file name.
+  For example,
+  `.../mon/mole-fraction-of-methane-in-air/gn/.../mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc`
+  is now written as
+  `.../mon/mole_fraction_of_methane_in_air/gn/.../mole-fraction-of-methane-in-air_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-0-2-0_gn_200001-201012.nc`. ([#83](https://github.com/climate-resource/input4mips_validation/pull/83))
+
+### 🐛 Bug Fixes
+
+- Fixed a bug in
+  [`validate_file_written_according_to_drs`][input4mips_validation.cvs.drs.DataReferenceSyntax.validate_file_written_according_to_drs]
+  which caused it to break if the file contained metadata which was not a string. ([#83](https://github.com/climate-resource/input4mips_validation/pull/83))
+
+### 🔧 Trivial/Internal Changes
+
+- [#81](https://github.com/climate-resource/input4mips_validation/pull/81), [#83](https://github.com/climate-resource/input4mips_validation/pull/83)
+
+
 ## Input4MIPs validation v0.14.0 (2024-11-05)
 
 

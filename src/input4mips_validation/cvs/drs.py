@@ -1,5 +1,29 @@
 """
 Data reference syntax data model
+
+This module needs a re-write.
+The rules are not clear enough and the code misrepresents the logic.
+
+For the re-write:
+
+- change to just having a `parse_filepath` and `parse_filename` function for each DRS
+    - introduce a prototype to allow different DRS handlers to be injected as needed
+- then you just do wrappers around this DRS handling
+    - get metadata from filename
+    - get metadata from path
+    - create filename
+    - create path
+    - validate file correctly written according to DRS
+    - etc.
+- remove the ability to inject the DRS via a string
+    - fundamentally, it doesn't make sense and is too hard to get the logic right
+    - it also hides the fact
+      that there is lots of logic that can't be handled in a single string
+- as a result of the above, remove the DRS from the CVs entirely
+    - maybe use a string as a key
+- maybe put the DRS in a separate package to allow better re-use
+    - maybe, because there are some couplings here
+      that might mean you can't do a clean split from the CVs/other logic that easily
 """
 
 from __future__ import annotations
@@ -32,6 +56,10 @@ DATA_REFERENCE_SYNTAX_FILENAME: str = "input4MIPs_DRS.json"
 
 DataReferenceSyntaxUnstructured: TypeAlias = dict[str, str]
 """Form into which the DRS is serialised for the CVs"""
+
+
+DEFAULT_REPLACEMENTS: dict[str, str] = {".": "-"}
+"""Default replacements for characters in directories and file names"""
 
 
 @frozen
@@ -145,7 +173,7 @@ class DataReferenceSyntax:
             Time range information is required by the DRS,
             but `time_start` and `time_end` are not supplied.
         """
-        # First step: apply a number of known replacements
+        # First step: apply a number of known replacements globally
         all_available_metadata = {
             k: apply_known_replacements(v) for k, v in available_attributes.items()
         }
@@ -190,19 +218,29 @@ class DataReferenceSyntax:
 
         apply_subs = functools.partial(
             apply_substitutions,
-            metadata=all_available_metadata,
             validate_substituted_metadata=True,
         )
         # Cast to path to ensure windows compatibility
         directory = Path(
             apply_subs(
                 self.directory_path_template,
+                metadata=all_available_metadata,
                 substitutions=directory_substitutions,
+                to_directory_path=True,
             )
         )
+        # In the filename, underscore is swapped for hyphen to avoid delimiter issues.
+        # Burying this here feels too deep,
+        # but I don't know how to express this in a more obvious way.
+        all_available_metadata_for_filename = {
+            k: apply_known_replacements(v, {"_": "-"})
+            for k, v in all_available_metadata.items()
+        }
         filename = apply_subs(
             self.filename_template,
+            metadata=all_available_metadata_for_filename,
             substitutions=filename_substitutions,
+            to_directory_path=False,
         )
 
         generated_path = directory / filename
@@ -406,15 +444,16 @@ class DataReferenceSyntax:
 
         Notes
         -----
-        According to [the DRS description](https://docs.google.com/document/d/1h0r8RZr_f3-8egBMMh7aqLwy3snpD6_MrDz1q8n5XUk):
-
-        - only [a-zA-Z0-9-] are allowed in file path names
-          except where underscore is used as a separator.
-
-        We use this to significantly simplify our regular expression.
+        According to
+        [the DRS description](https://docs.google.com/document/d/1h0r8RZr_f3-8egBMMh7aqLwy3snpD6_MrDz1q8n5XUk),
+        there are no restrictions on the directory characters
+        (there are only restrictions on the characters in the filename,
+        see
+        [`get_regexp_for_capturing_filename_information`][input4mips_validation.cvs.drs.DataReferenceSyntax.get_regexp_for_capturing_filename_information]).
         """
         # Hard-code according to the spec
-        allowed_chars = "[a-zA-Z0-9-]"
+        # All characters except the path separator
+        allowed_chars = "[^/]"
 
         drs_template = self.directory_path_template
         directory_substitutions = self.parse_drs_template(drs_template=drs_template)
@@ -538,7 +577,10 @@ class DataReferenceSyntax:
 
         ds = xr.open_dataset(file, use_cftime=True)
         comparison_metadata = {
-            k: apply_known_replacements(v) for k, v in ds.attrs.items()
+            k: apply_known_replacements(v)
+            for k, v in ds.attrs.items()
+            # Ignore everything that isn't a string for comparisons
+            if isinstance(v, str)
         }
 
         # Infer time range information, in case it appears in the DRS.
@@ -580,10 +622,18 @@ class DataReferenceSyntax:
 
         for k, v in file_metadata.items():
             if v is None:
-                # No info in directory, presumably because key was optional
+                # No info in filename, presumably because key was optional
                 continue
 
-            if comparison_metadata[k] != v:
+            # In the filename, underscore
+            # can be swapped for hyphen to avoid delimiter issues.
+            # Burying this here feels too deep,
+            # but I don't know how to express this in a more obvious way.
+            valid_filename_values = {
+                comparison_metadata[k],
+                apply_known_replacements(comparison_metadata[k], {"_": "-"}),
+            }
+            if v not in valid_filename_values:
                 mismatches.append(
                     [k, "filename", file_metadata[k], comparison_metadata[k]]
                 )
@@ -735,6 +785,7 @@ class DRSSubstitution:
         self,
         start: str,
         metadata: dict[str, str],
+        to_directory_path: bool,
         validate_substituted_metadata: bool = True,
     ) -> str:
         """
@@ -748,12 +799,18 @@ class DRSSubstitution:
         metadata
             Metadata from which the substitution values can be retrieved
 
+        to_directory_path
+            Are the substitutions being applied to create a directory path?
+
+            If `False`, we assume that we are creating a file name.
+
         validate_substituted_metadata
             If `True`, the substituted metadata is validated to ensure that its values
             only contain allowed characters before being applied.
 
         Returns
         -------
+        :
             `start` with the substitution defined by `self` applied
         """
         missing_metadata = [k for k in self.required_metadata if k not in metadata]
@@ -771,7 +828,8 @@ class DRSSubstitution:
             metadata_to_substitute = {k: metadata[k] for k in self.required_metadata}
             if validate_substituted_metadata:
                 assert_all_metadata_substitutions_only_contain_valid_characters(
-                    metadata_to_substitute
+                    metadata_to_substitute,
+                    to_directory_path=to_directory_path,
                 )
 
             res = start.replace(
@@ -801,14 +859,16 @@ def apply_known_replacements(
     known_replacements
         Known replacements to apply.
 
-        If `None`, a default set is used.
+        If `None`, we use
+        [`DEFAULT_REPLACEMENTS`][input4mips_validation.cvs.drs.DEFAULT_REPLACEMENTS].
 
     Result
     ------
+    :
         `inp` with known replacements applied.
     """  # noqa: E501
     if known_replacements is None:
-        known_replacements = {"_": "-", ".": "-"}
+        known_replacements = DEFAULT_REPLACEMENTS
 
     res = inp
     for old, new in known_replacements.items():
@@ -847,6 +907,7 @@ def assert_only_valid_chars(inp: str | Path, valid_chars: set[str]) -> None:
 
 def assert_all_metadata_substitutions_only_contain_valid_characters(
     metadata: dict[str, str],
+    to_directory_path: bool,
 ) -> None:
     """
     Assert that all the metadata substitutions only contain valid characters
@@ -855,20 +916,32 @@ def assert_all_metadata_substitutions_only_contain_valid_characters(
 
     According to [the DRS description](https://docs.google.com/document/d/1h0r8RZr_f3-8egBMMh7aqLwy3snpD6_MrDz1q8n5XUk):
 
-    - only [a-zA-Z0-9-] are allowed in file path names
-      except where underscore is used as a separator.
-      This is enforced here.
+    > All strings appearing in the file name
+    > are constructed using only the following characters:
+    > a-z, A-Z, 0-9, and the hyphen ("-"),
+    > except the hyphen must not appear in variable_id.
+    > Underscores are prohibited throughout except as shown in the template.
 
-    - we're meant to use the CMIP data request variable names, not CF standards,
-      so that there aren't hyphens in the values for the "variable_id" key.
-      We've clearly not done that in input4MIPs,
-      so we are ignoring that rule here
-      (but it would be important for other CV implementations!).
+    We prohibit the use of underscores in the filenames, following the DRS description.
+    However, we've clearly ignored the rule
+    about no hyphens in variable IDs in input4MIPs,
+    so we allow hyphens to appear in the variable ID part of the file name.
+    Hyphens will only appear in the variable ID part of the file name
+    when the original variable had underscores,
+    and these underscores have been replaced with hyphens to avoid breaking the DRS.
+
+    Nothing is said about the directory names,
+    so all values are allowed for directory names.
 
     Parameters
     ----------
     metadata
         Metadata substitutions to check
+
+    to_directory_path
+        Are the substitutions being applied to create a directory path?
+
+        If `False`, we assume that we are creating a file name.
 
     Raises
     ------
@@ -880,7 +953,13 @@ def assert_all_metadata_substitutions_only_contain_valid_characters(
     [`assert_full_filepath_only_contains_valid_characters`][input4mips_validation.cvs.drs.assert_full_filepath_only_contains_valid_characters]
     """
     # Hard-code according to the spec
-    valid_chars = set(string.ascii_letters + string.digits + "-")
+    if to_directory_path:
+        # Truth is that this is probably even wider than this, but ok
+        valid_chars = set(string.ascii_letters + string.digits + "-" + "_")
+
+    else:
+        valid_chars = set(string.ascii_letters + string.digits + "-")
+
     for k, v in metadata.items():
         # Special case for variable_id would go here if we applied it
         try:
@@ -924,6 +1003,7 @@ def apply_substitutions(
     drs_template: str,
     substitutions: Iterable[DRSSubstitution],
     metadata: dict[str, str],
+    to_directory_path: bool,
     validate_substituted_metadata: bool = True,
 ) -> str:
     """
@@ -940,12 +1020,18 @@ def apply_substitutions(
     metadata
         Metadata from which the substitution values can be retrieved
 
+    to_directory_path
+        Are the substitutions being applied to create a directory path?
+
+        If `False`, we assume that we are creating a file name.
+
     validate_substituted_metadata
         Passed to
         [`DRSSubstitution.apply_substitution`][input4mips_validation.cvs.drs.DRSSubstitution.apply_substitution].
 
     Returns
     -------
+    :
         DRS template, with all substitutions in `substitutions` applied
     """
     res = drs_template
@@ -953,6 +1039,7 @@ def apply_substitutions(
         res = substitution.apply_substitution(
             res,
             metadata=metadata,
+            to_directory_path=to_directory_path,
             validate_substituted_metadata=validate_substituted_metadata,
         )
         # # TODO: swap to the below

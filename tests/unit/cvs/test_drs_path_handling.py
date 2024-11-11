@@ -207,6 +207,28 @@ def test_extract_metadata_from_filename(
             does_not_raise(),
             id="hyphen_in_variable_id",
         ),
+        pytest.param(
+            "<activity_id>/<source_id>/<variable_id>",
+            "<variable_id>_<source_id>[_<time_range>].nc",
+            (
+                Path("input4MIPs")
+                / "CR-CMIP-1-0-0"
+                / "co2_em_anthro"
+                / "co2-em-anthro_CR-CMIP-1-0-0_2015-2020.nc"
+            ),
+            {
+                "activity_id": "input4MIPs",
+                "variable_id": "co2_em_anthro",
+                "source_id": "CR-CMIP-1-0-0",
+                "time_range": "2015-2020",
+                "frequency": "yr",
+                "molecular_weight": 45.3,
+                "age": 83,
+            },
+            [cftime.datetime(y, 7, 1) for y in range(2015, 2020 + 1)],
+            does_not_raise(),
+            id="non_string_global_attributes",
+        ),
     ),
 )
 def test_validate_file_written_according_to_drs(  # noqa: PLR0913

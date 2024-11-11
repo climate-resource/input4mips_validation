@@ -579,8 +579,7 @@ class DataReferenceSyntax:
         comparison_metadata = {
             k: apply_known_replacements(v)
             for k, v in ds.attrs.items()
-            # Ignore everything that isn't a string
-            # TODO: test this
+            # Ignore everything that isn't a string for comparisons
             if isinstance(v, str)
         }
 

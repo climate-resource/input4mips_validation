@@ -21,7 +21,9 @@ For the re-write:
       that there is lots of logic that can't be handled in a single string
 - as a result of the above, remove the DRS from the CVs entirely
     - maybe use a string as a key
-- put the DRS in a separate package to allow better re-use
+- maybe put the DRS in a separate package to allow better re-use
+    - maybe, because there are some couplings here
+      that might mean you can't do a clean split from the CVs/other logic that easily
 """
 
 from __future__ import annotations

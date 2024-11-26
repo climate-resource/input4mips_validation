@@ -21,8 +21,7 @@ from attrs import field, frozen
 HERE = Path(__file__).parent
 
 KNOWN_REGISTRIES: dict[str, pooch.Pooch] = {
-    "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v1.0.0": pooch.create(
-        # Use the default cache folder for the operating system
+    "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v6.6.0/CVs/": pooch.create(
         path=HERE / "input4MIPs_CVs_v6.6.0",
         base_url="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v6.6.0/CVs",
         registry={
@@ -45,6 +44,11 @@ KNOWN_REGISTRIES: dict[str, pooch.Pooch] = {
         },
     ),
 }
+
+DEFAULT_DOWNLOADER = pooch.HTTPDownloader(
+    # https://github.com/readthedocs/readthedocs.org/issues/11763
+    headers={"User-Agent": "input4mips-validation"}
+)
 
 
 class RawCVLoader(Protocol):
@@ -125,7 +129,7 @@ class RawCVLoaderKnownRemoteRegistry:
             Filename from which to load raw CV data
 
         downloader
-            Downloader to use when fetching.
+            Downloader to use when fetching data with pooch.
 
             If not supplied, we use a basic default HTTP downloader.
 
@@ -139,10 +143,7 @@ class RawCVLoaderKnownRemoteRegistry:
                 expected_out_file.unlink()
 
         if downloader is None:
-            downloader = pooch.HTTPDownloader(
-                # https://github.com/readthedocs/readthedocs.org/issues/11763
-                headers={"User-Agent": "input4mips-validation"}
-            )
+            downloader = DEFAULT_DOWNLOADER
 
         with open(Path(self.registry.fetch(filename, downloader=downloader))) as fh:
             raw = fh.read()
@@ -192,7 +193,9 @@ class RawCVLoaderBaseURL:
             msg = f"{attribute.name} must end with a '/', received: {value=!r}"
             raise ValueError(msg)
 
-    def load_raw(self, filename: str) -> str:
+    def load_raw(
+        self, filename: str, downloader: pooch.HTTPDownloader | None = None
+    ) -> str:
         """
         Load raw CV data
 
@@ -200,6 +203,9 @@ class RawCVLoaderBaseURL:
         ----------
         filename
             Filename from which to load raw CV data
+
+        downloader
+            Downloader to use when retrieving data with pooch.
 
         Returns
         -------
@@ -213,6 +219,9 @@ class RawCVLoaderBaseURL:
             if expected_out_file.exists():
                 expected_out_file.unlink()
 
+        if downloader is None:
+            downloader = DEFAULT_DOWNLOADER
+
         with open(
             Path(
                 pooch.retrieve(
@@ -220,6 +229,7 @@ class RawCVLoaderBaseURL:
                     fname=fname_pooch,
                     path=self.download_path,
                     known_hash=None,
+                    downloader=downloader,
                 )
             )
         ) as fh:

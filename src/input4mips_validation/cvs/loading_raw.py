@@ -113,7 +113,9 @@ class RawCVLoaderKnownRemoteRegistry:
     Whether to force a new download of the file if it already exists
     """
 
-    def load_raw(self, filename: str) -> str:
+    def load_raw(
+        self, filename: str, downloader: pooch.HTTPDownloader | None = None
+    ) -> str:
         """
         Load raw CV data
 
@@ -121,6 +123,11 @@ class RawCVLoaderKnownRemoteRegistry:
         ----------
         filename
             Filename from which to load raw CV data
+
+        downloader
+            Downloader to use when fetching.
+
+            If not supplied, we use a basic default HTTP downloader.
 
         Returns
         -------
@@ -131,7 +138,13 @@ class RawCVLoaderKnownRemoteRegistry:
             if expected_out_file.exists():
                 expected_out_file.unlink()
 
-        with open(Path(self.registry.fetch(filename))) as fh:
+        if downloader is None:
+            downloader = pooch.HTTPDownloader(
+                # https://github.com/readthedocs/readthedocs.org/issues/11763
+                headers={"User-Agent": "input4mips-validation"}
+            )
+
+        with open(Path(self.registry.fetch(filename, downloader=downloader))) as fh:
             raw = fh.read()
 
         return raw

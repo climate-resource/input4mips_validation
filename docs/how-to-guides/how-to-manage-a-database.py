@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.3
+#       jupytext_version: 1.16.4
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -57,10 +57,8 @@ FILE_TREE_ROOT = Path(tempfile.mkdtemp())
 FILE_TREE_ROOT
 
 # %%
-cv_version = "52841b0117474efd2705a083c21b3760531974f3"
-cvs = load_cvs(
-    f"https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/{cv_version}/CVs/"
-)
+cv_version = "v6.6.0"
+cvs = load_cvs(f"gh:{cv_version}")
 cvs.source_id_entries.source_ids
 
 

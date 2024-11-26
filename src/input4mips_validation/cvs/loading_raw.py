@@ -21,20 +21,17 @@ from attrs import field, frozen
 HERE = Path(__file__).parent
 
 KNOWN_REGISTRIES: dict[str, pooch.Pooch] = {
-    # Empty for now
-    # # The idea would be to do something like
-    # "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v1.0.0": pooch.create(
-    #     # Use the default cache folder for the operating system
-    #     path=HERE / "input4MIPs_CVs_v1.0.0",
-    #     base_url="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/main",
-    #     registry={
-    #         "input4MIPs_source_id.json": "sha256:19uheidhlkjdwhoiwuhc0uhcwljchw9ochwochw89dcgw9dcgwc",  # noqa: E501
-    #         "input4MIPs_activity_id.json": "sha256:1upodh2ioduhw9celdjhlfvhksgdwikdgcowjhcwoduchowjg8w",  # noqa: E501
-    #         "input4MIPs_institution_id.json": "sha256:1upodh2ioduhw9celdjhlfvhksgdwikdgcowjhcwoduchowjg8w",  # noqa: E501
-    #         "input4MIPs_license.json": "sha256:1upodh2ioduhw9celdjhlfvhksgdwikdgcowjhcwoduchowjg8w",  # noqa: E501
-    #         "input4MIPs_mip_era.json": "sha256:1upodh2ioduhw9celdjhlfvhksgdwikdgcowjhcwoduchowjg8w",  # noqa: E501
-    #     },
-    # )
+    "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v6.6.0/CVs/": pooch.create(
+        path=HERE / "input4MIPs_CVs_v6.6.0",
+        base_url="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v6.6.0/CVs",
+        registry={
+            "input4MIPs_activity_id.json": "sha256:a2fef6e6ea9eb9787288b080d6696d74fd490b7a3c9e0d3d1dd48b9fb5584e6e",  # noqa: E501
+            "input4MIPs_DRS.json": "sha256:e9fa7bd692be6054c405a7381654b84df4565800c0b21e2c5c62e61fb3e8f046",  # noqa: E501
+            "input4MIPs_institution_id.json": "sha256:db2a6364347aa4848a21416a41f4d1ad24d036e80897c80af6d132b274d562d7",  # noqa: E501
+            "input4MIPs_license.json": "sha256:ba771256d7148187675d5f27f17a2b79e5a42db6b620f19120808065c84e5deb",  # noqa: E501
+            "input4MIPs_source_id.json": "sha256:07527dc459b670abbc7be13d24b8dceea4554e1e53f482907079a0e0c6b42001",  # noqa: E501
+        },
+    ),
     "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/52841b0117474efd2705a083c21b3760531974f3/CVs/": pooch.create(  # noqa: E501
         path=HERE / "input4MIPs_CVs_52841b0117474efd2705a083c21b3760531974f3",
         base_url="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/52841b0117474efd2705a083c21b3760531974f3/CVs",
@@ -45,8 +42,13 @@ KNOWN_REGISTRIES: dict[str, pooch.Pooch] = {
             "input4MIPs_license.json": "sha256:ba771256d7148187675d5f27f17a2b79e5a42db6b620f19120808065c84e5deb",  # noqa: E501
             "input4MIPs_source_id.json": "sha256:cf0c77aa38c456b86f3f37d81137c2703699abe3355a6577440f63e000feec01",  # noqa: E501
         },
-    )
+    ),
 }
+
+DEFAULT_DOWNLOADER = pooch.HTTPDownloader(
+    # https://github.com/readthedocs/readthedocs.org/issues/11763
+    headers={"User-Agent": "input4mips-validation"}
+)
 
 
 class RawCVLoader(Protocol):
@@ -115,7 +117,9 @@ class RawCVLoaderKnownRemoteRegistry:
     Whether to force a new download of the file if it already exists
     """
 
-    def load_raw(self, filename: str) -> str:
+    def load_raw(
+        self, filename: str, downloader: pooch.HTTPDownloader | None = None
+    ) -> str:
         """
         Load raw CV data
 
@@ -123,6 +127,11 @@ class RawCVLoaderKnownRemoteRegistry:
         ----------
         filename
             Filename from which to load raw CV data
+
+        downloader
+            Downloader to use when fetching data with pooch.
+
+            If not supplied, we use a basic default HTTP downloader.
 
         Returns
         -------
@@ -133,7 +142,10 @@ class RawCVLoaderKnownRemoteRegistry:
             if expected_out_file.exists():
                 expected_out_file.unlink()
 
-        with open(Path(self.registry.fetch(filename))) as fh:
+        if downloader is None:
+            downloader = DEFAULT_DOWNLOADER
+
+        with open(Path(self.registry.fetch(filename, downloader=downloader))) as fh:
             raw = fh.read()
 
         return raw
@@ -181,7 +193,9 @@ class RawCVLoaderBaseURL:
             msg = f"{attribute.name} must end with a '/', received: {value=!r}"
             raise ValueError(msg)
 
-    def load_raw(self, filename: str) -> str:
+    def load_raw(
+        self, filename: str, downloader: pooch.HTTPDownloader | None = None
+    ) -> str:
         """
         Load raw CV data
 
@@ -189,6 +203,9 @@ class RawCVLoaderBaseURL:
         ----------
         filename
             Filename from which to load raw CV data
+
+        downloader
+            Downloader to use when retrieving data with pooch.
 
         Returns
         -------
@@ -202,6 +219,9 @@ class RawCVLoaderBaseURL:
             if expected_out_file.exists():
                 expected_out_file.unlink()
 
+        if downloader is None:
+            downloader = DEFAULT_DOWNLOADER
+
         with open(
             Path(
                 pooch.retrieve(
@@ -209,6 +229,7 @@ class RawCVLoaderBaseURL:
                     fname=fname_pooch,
                     path=self.download_path,
                     known_hash=None,
+                    downloader=downloader,
                 )
             )
         ) as fh:

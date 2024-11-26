@@ -15,6 +15,7 @@ import pooch
 import pytest
 
 from input4mips_validation.cvs.loading_raw import (
+    DEFAULT_DOWNLOADER,
     RawCVLoaderBaseURL,
     RawCVLoaderKnownRemoteRegistry,
     # KNOWN_REGISTRIES,
@@ -251,6 +252,7 @@ def test_load_raw_base_url(
         fname=filename_pooch,
         path=download_path,
         known_hash=None,
+        downloader=DEFAULT_DOWNLOADER,
     )
     # Check the filepath that would have been opened
     mock_open_func.assert_called_once_with(Path(mock_pooch_retrieve.return_value))

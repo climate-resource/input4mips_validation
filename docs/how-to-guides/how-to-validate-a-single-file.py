@@ -134,7 +134,7 @@ start_iris
 # # !input4mips-validation validate-file --help
 # !input4mips-validation \
 #     validate-file \
-#     --cv-source "gh:52841b0117474efd2705a083c21b3760531974f3" \
+#     --cv-source "gh:v6.6.0" \
 #     {starting_file}
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
@@ -149,12 +149,12 @@ start_iris
 # To find out exactly why this failed,
 # we can re-run the validation with a more detailed log level.
 #
-# **Note:** This produces **a lot** more output.
+# **Note:** This produces more output.
 
 # %% editable=true slideshow={"slide_type": ""}
 # !input4mips-validation --logging-level "DEBUG" \
 #     validate-file \
-#     --cv-source "gh:52841b0117474efd2705a083c21b3760531974f3" \
+#     --cv-source "gh:v6.6.0" \
 #     {starting_file}
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
@@ -242,7 +242,7 @@ print(f"New tracking_id: {fixed.attrs['tracking_id']!r}")
 # To make sure we have actually fixed the issues, let's run the validation again.
 
 # %% editable=true slideshow={"slide_type": ""}
-# !input4mips-validation validate-file --cv-source "gh:main" {fixed_file}
+# !input4mips-validation validate-file --cv-source "gh:v6.6.0" {fixed_file}
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # Now the file passes all of the validation.

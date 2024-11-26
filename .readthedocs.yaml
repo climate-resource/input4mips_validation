@@ -15,6 +15,7 @@ build:
       - pip install --no-deps .
       - input4mips-validation --help
       - typer input4mips_validation.cli utils docs --output docs/cli/index.md --name input4mips-validation
+      - python scripts/download-cf-standard-name-table.py
       # Can add other checks in here if things blow up confusingly
     post_install:
       - mamba list

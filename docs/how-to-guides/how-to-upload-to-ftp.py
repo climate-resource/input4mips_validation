@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.3
+#       jupytext_version: 1.16.4
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -117,7 +117,7 @@ if not list(tree_root.rglob("*.nc")):
 #     --logging-level DEBUG \
 #     upload-ftp . \
 #     --password "your-email-goes-here@invalid.com" \
-#     --cv-source "gh:52841b0117474efd2705a083c21b3760531974f3" \
+#     --cv-source "gh:v6.6.0" \
 #     --ftp-dir-rel-to-root "dir-to-upload-in-goes-here-eg-your-institute-name" \
 #     --n-threads 10 \
 #     --dry-run

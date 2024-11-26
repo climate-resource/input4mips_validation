@@ -118,7 +118,7 @@ TMP_DIR = Path(tempfile.mkdtemp())
 tree_to_write_in = TMP_DIR / "how-to-write-a-single-file-in-drs"
 # !input4mips-validation \
 #     validate-file \
-#     --cv-source "gh:52841b0117474efd2705a083c21b3760531974f3" \
+#     --cv-source "gh:v6.6.0" \
 #     {starting_file} \
 #     --write-in-drs {tree_to_write_in}
 

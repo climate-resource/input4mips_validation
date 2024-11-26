@@ -177,7 +177,7 @@ metadata_minimum
 # %% editable=true slideshow={"slide_type": ""}
 # The object which can load our raw CVs files
 raw_cvs_loader = get_raw_cvs_loader(
-    "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/52841b0117474efd2705a083c21b3760531974f3/CVs/"
+    "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v6.6.0/CVs/"
 )
 
 # # Other examples
@@ -191,6 +191,8 @@ raw_cvs_loader = get_raw_cvs_loader(
 # raw_cvs_loader = get_raw_cvs_loader(f"https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/{version_tag}/CVs/")
 # Load from input4MIPs CVs main
 # raw_cvs_loader = get_raw_cvs_loader("https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/main/CVs/")
+# Load from specific commit
+# raw_cvs_loader = get_raw_cvs_loader("https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/{commit_sha}/CVs/")
 raw_cvs_loader
 
 # %% editable=true slideshow={"slide_type": ""}

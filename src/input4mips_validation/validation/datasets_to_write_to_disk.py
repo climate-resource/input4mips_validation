@@ -13,6 +13,7 @@ from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.deprecation import raise_deprecation_warning
 from input4mips_validation.validation.creation_date import validate_creation_date
 from input4mips_validation.validation.error_catching import (
+    MissingAttributeError,
     ValidationResultsStore,
     get_catch_error_decorator,
 )
@@ -79,6 +80,9 @@ def validate_attribute(
     validation_function
         Functino to use to validate the value of `attribute`
     """
+    if attribute not in ds.attrs:
+        raise MissingAttributeError(attribute)
+
     attribute_value = str(ds.attrs[attribute])
     validation_function(attribute_value)
 

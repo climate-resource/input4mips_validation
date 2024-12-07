@@ -122,6 +122,30 @@ def get_valid_out_path_and_disk_ready_ds(
     cv_source: str | Input4MIPsCVs = "gh:v6.6.0",
     root_data_dir: Path = Path("/to/somewhere"),
 ) -> tuple[Path, xr.Dataset]:
+    """
+    Get a valid ouput path and disk-ready dataset
+
+    Parameters
+    ----------
+    variable_name
+        Variable to write in the dataset
+
+    time_encoding
+        Encoding to use with the time axis
+
+        If not supplied, we use basic defaults.
+
+    cv_source
+        Source for the CVs.
+
+    root_data_dir
+        Root data directory to use when generating the output path.
+
+    Returns
+    -------
+    :
+        Valid output path and disk-ready dataset
+    """
     ds, metadata_minimum = get_valid_ds_min_metadata_example(variable_id=variable_name)
 
     if time_encoding is None:

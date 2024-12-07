@@ -17,14 +17,22 @@ EXP_ERROR_MSG_MISMATCH = "".join(
         r"\('.*'\) exactly. Received variable_id='.*'\.",
     ]
 )
-EXP_ERROR_MSG_INVALID_CHARS = "".join(
+EXP_ERROR_MSG_INVALID_CHARS_SINGLE_VAR = "".join(
     [
         re.escape(
-            "The `variable_id` attribute must only contain "
-            "alphanumeric characters and underscores. "
+            "The `variable_id` attribute contains invalid characters. "
+            "Only Alphanumeric characters and underscores are allowed. "
         ),
-        r"Received variable_id='.*', ",
-        r"which contains the following invalid characters \{.*\}.",
+        r".*invalid_chars=.*",
+    ]
+)
+EXP_ERROR_MSG_INVALID_CHARS_MULTIPLE_VAR = "".join(
+    [
+        re.escape(
+            "The `variable_id` attribute contains invalid characters. "
+            "Only Alphanumeric characters and underscores are allowed. "
+        ),
+        r".*invalid_chars=.*",
     ]
 )
 
@@ -53,17 +61,29 @@ EXP_ERROR_MSG_INVALID_CHARS = "".join(
         pytest.param(
             "mole-fraction-of-carbon-dioxide-in-air",
             "mole-fraction-of-carbon-dioxide-in-air",
-            pytest.raises(ValueError, match=EXP_ERROR_MSG_INVALID_CHARS),
+            pytest.raises(ValueError, match=EXP_ERROR_MSG_INVALID_CHARS_SINGLE_VAR),
             id="hyphen_in_variable_name",
         ),
         pytest.param(
             "co2 mass",
             "co2 mass",
-            pytest.raises(ValueError, match=EXP_ERROR_MSG_INVALID_CHARS),
+            pytest.raises(ValueError, match=EXP_ERROR_MSG_INVALID_CHARS_SINGLE_VAR),
             id="space_in_variable_name",
+        ),
+        pytest.param(
+            ["rss", "sdt"],
+            "multiple-volcanic",
+            does_not_raise(),
+            id="valid_multiple_hyphen",
+        ),
+        pytest.param(
+            ["rss", "sdt"],
+            "multiple_volcanic",
+            does_not_raise(),
+            id="valid_multiple_underscore",
         ),
     ),
 )
 def test_valid_passes(variable_name, variable_id, expectation):
     with expectation:
-        validate_variable_id(variable_id, ds_variable=variable_name)
+        validate_variable_id(variable_id, ds_variables=variable_name)

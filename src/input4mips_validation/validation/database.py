@@ -5,6 +5,7 @@ Database validation
 from __future__ import annotations
 
 import concurrent.futures
+from collections.abc import Collection
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -69,7 +70,7 @@ def get_validate_database_file_entry_result(  # noqa: PLR0913
     entry: Input4MIPsDatabaseEntryFile,
     cv_source: str | None = None,
     cvs: Input4MIPsCVs | None = None,
-    bnds_coord_indicator: str = "bnds",
+    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
@@ -98,8 +99,8 @@ def get_validate_database_file_entry_result(  # noqa: PLR0913
 
         If these are passed, then `cv_source` is ignored.
 
-    bnds_coord_indicator
-        String that indicates that a variable is a bounds co-ordinate
+    bnds_coord_indicators
+        Strings that indicate that a variable is a bounds variable
 
         This helps us with identifying `infile`'s variables correctly
         in the absence of an agreed convention for doing this
@@ -181,7 +182,7 @@ def get_validate_database_file_entry_result(  # noqa: PLR0913
     vrs.wrap(get_validate_file_result, func_description="Validate individual file")(
         entry.filepath,
         cvs=cvs,
-        bnds_coord_indicator=bnds_coord_indicator,
+        bnds_coord_indicators=bnds_coord_indicators,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
         vrs=vrs,
     )
@@ -210,7 +211,7 @@ def validate_database_file_entry(  # noqa: PLR0913
     entry: Input4MIPsDatabaseEntryFile,
     cv_source: str | None = None,
     cvs: Input4MIPsCVs | None = None,
-    bnds_coord_indicator: str = "bnds",
+    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
@@ -245,8 +246,8 @@ def validate_database_file_entry(  # noqa: PLR0913
 
         If these are passed, then `cv_source` is ignored.
 
-    bnds_coord_indicator
-        String that indicates that a variable is a bounds co-ordinate
+    bnds_coord_indicators
+        Strings that indicate that a variable is a bounds variable
 
         This helps us with identifying `infile`'s variables correctly
         in the absence of an agreed convention for doing this
@@ -317,7 +318,7 @@ def validate_database_file_entry(  # noqa: PLR0913
     catch_error(validate_file, call_purpose="Validate individual file")(
         entry.filepath,
         cvs=cvs,
-        bnds_coord_indicator=bnds_coord_indicator,
+        bnds_coord_indicators=bnds_coord_indicators,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
     )
 
@@ -424,7 +425,7 @@ def validate_database_entries(  # noqa: PLR0913
     entries_to_validate: tuple[Input4MIPsDatabaseEntryFile, ...],
     cv_source: str | None = None,
     cvs: Input4MIPsCVs | None = None,
-    bnds_coord_indicator: str = "bnds",
+    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
@@ -453,8 +454,8 @@ def validate_database_entries(  # noqa: PLR0913
 
         If these are passed, then `cv_source` is ignored.
 
-    bnds_coord_indicator
-        String that indicates that a variable is a bounds co-ordinate
+    bnds_coord_indicators
+        Strings that indicate that a variable is a bounds variable
 
         This helps us with identifying `infile`'s variables correctly
         in the absence of an agreed convention for doing this
@@ -509,7 +510,7 @@ def validate_database_entries(  # noqa: PLR0913
                 logging_config_serialised,
                 entry,
                 cvs=cvs,
-                bnds_coord_indicator=bnds_coord_indicator,
+                bnds_coord_indicators=bnds_coord_indicators,
                 frequency_metadata_key=frequency_metadata_key,
                 no_time_axis_frequency=no_time_axis_frequency,
                 time_dimension=time_dimension,

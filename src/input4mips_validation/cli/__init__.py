@@ -16,7 +16,8 @@ from loguru import logger
 import input4mips_validation
 from input4mips_validation.cli.common_arguments_and_options import (
     ALLOW_CF_CHECKER_WARNINGS_TYPE,
-    BNDS_COORD_INDICATOR_TYPE,
+    BNDS_COORD_INDICATORS_SEPARATOR,
+    BNDS_COORD_INDICATORS_TYPE,
     CV_SOURCE_OPTION,
     FREQUENCY_METADATA_KEY_OPTION,
     NO_TIME_AXIS_FREQUENCY_OPTION,
@@ -140,7 +141,7 @@ def validate_file_command(  # noqa: PLR0913
             show_default=False,
         ),
     ] = None,
-    bnds_coord_indicator: BNDS_COORD_INDICATOR_TYPE = "bnds",
+    bnds_coord_indicators: BNDS_COORD_INDICATORS_TYPE = "bnds;bounds",
     frequency_metadata_key: FREQUENCY_METADATA_KEY_OPTION = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
     time_dimension: TIME_DIMENSION_OPTION = "time",
@@ -153,9 +154,13 @@ def validate_file_command(  # noqa: PLR0913
     because some validation can only be performed if we have the entire file tree.
     See the ``validate-tree`` command for this validation.
     """
+    bnds_coord_indicators_set = set(
+        bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
+    )
     get_validate_file_result(
         file,
         cv_source=cv_source,
+        bnds_coord_indicators=bnds_coord_indicators_set,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
     ).raise_if_errors()
 
@@ -163,7 +168,7 @@ def validate_file_command(  # noqa: PLR0913
         cvs = load_cvs(cv_source=cv_source)
 
         ds = ds_from_iris_cubes(
-            iris.load(file), bnds_coord_indicator=bnds_coord_indicator
+            iris.load(file), bnds_coord_indicators=bnds_coord_indicators_set
         )
 
         time_start, time_end = infer_time_start_time_end(
@@ -193,6 +198,7 @@ def validate_file_command(  # noqa: PLR0913
                 frequency_metadata_key=frequency_metadata_key,
                 no_time_axis_frequency=no_time_axis_frequency,
                 time_dimension=time_dimension,
+                bnds_coord_indicators=bnds_coord_indicators_set,
             )
 
         else:
@@ -214,7 +220,7 @@ def validate_tree_command(  # noqa: PLR0913
         ),
     ],
     cv_source: CV_SOURCE_OPTION = None,
-    bnds_coord_indicator: BNDS_COORD_INDICATOR_TYPE = "bnds",
+    bnds_coord_indicators: BNDS_COORD_INDICATORS_TYPE = "bnds;bounds",
     frequency_metadata_key: FREQUENCY_METADATA_KEY_OPTION = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
     time_dimension: TIME_DIMENSION_OPTION = "time",
@@ -233,9 +239,13 @@ def validate_tree_command(  # noqa: PLR0913
     This checks things like whether all external variables are also provided
     and all tracking IDs are unique.
     """
+    bnds_coord_indicators_set = set(
+        bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
+    )
     vtrs = get_validate_tree_result(
         root=tree_root,
         cv_source=cv_source,
+        bnds_coord_indicators=bnds_coord_indicators_set,
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
         time_dimension=time_dimension,

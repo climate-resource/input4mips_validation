@@ -58,7 +58,7 @@ def validate_tree(  # noqa: PLR0913
     root: Path,
     cv_source: str | None,
     cvs: Input4MIPsCVs | None = None,
-    bnds_coord_indicator: str = "bnds",
+    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
@@ -103,8 +103,8 @@ def validate_tree(  # noqa: PLR0913
 
         If these are passed, then `cv_source` is ignored.
 
-    bnds_coord_indicator
-        String that indicates that a variable is a bounds co-ordinate
+    bnds_coord_indicators
+        Strings that indicate that a variable is a bounds variable
 
         This helps us with identifying `infile`'s variables correctly
         in the absence of an agreed convention for doing this
@@ -170,7 +170,7 @@ def validate_tree(  # noqa: PLR0913
             validate_file(
                 file,
                 cvs=cvs,
-                bnds_coord_indicator=bnds_coord_indicator,
+                bnds_coord_indicators=bnds_coord_indicators,
                 allow_cf_checker_warnings=allow_cf_checker_warnings,
             )
         except InvalidFileError:
@@ -540,7 +540,7 @@ def get_validate_tree_result(  # noqa: PLR0913
     root: Path,
     cv_source: str | None,
     cvs: Input4MIPsCVs | None = None,
-    bnds_coord_indicator: str = "bnds",
+    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
@@ -578,8 +578,8 @@ def get_validate_tree_result(  # noqa: PLR0913
 
         If these are passed, then `cv_source` is ignored.
 
-    bnds_coord_indicator
-        String that indicates that a variable is a bounds co-ordinate
+    bnds_coord_indicators
+        Strings that indicate that a variable is a bounds variable
 
         This helps us with identifying `infile`'s variables correctly
         in the absence of an agreed convention for doing this
@@ -647,7 +647,7 @@ def get_validate_tree_result(  # noqa: PLR0913
         validate_file_result = get_validate_file_result(
             file,
             cvs=cvs,
-            bnds_coord_indicator=bnds_coord_indicator,
+            bnds_coord_indicators=bnds_coord_indicators,
             allow_cf_checker_warnings=allow_cf_checker_warnings,
         )
 

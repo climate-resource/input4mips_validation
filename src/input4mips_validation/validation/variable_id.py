@@ -5,7 +5,7 @@ Validation of the `variable_id` attribute
 from __future__ import annotations
 
 import string
-from collections.abc import Sized
+from collections.abc import Sequence
 
 from attrs import define
 
@@ -67,7 +67,7 @@ def check_only_allowed_characters(
         raise ValueError(msg)
 
 
-def validate_variable_id(variable_id: str, ds_variables: str | Sized[str]) -> None:
+def validate_variable_id(variable_id: str, ds_variables: str | Sequence[str]) -> None:
     """
     Validate the variable ID value
 

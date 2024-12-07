@@ -34,7 +34,9 @@ def get_ds_bounds_variables(
         Bounds variables in the dataset.
     """
     return tuple(
-        v for v in ds.data_vars if any(bci in str(v) for bci in bnds_coord_indicators)
+        str(v)
+        for v in ds.data_vars
+        if any(bci in str(v) for bci in bnds_coord_indicators)
     )
 
 
@@ -64,4 +66,4 @@ def get_ds_variables(
     """
     bounds_vars = get_ds_bounds_variables(ds, bnds_coord_indicators)
 
-    return tuple(v for v in ds.data_vars if v not in bounds_vars)
+    return tuple(str(v) for v in ds.data_vars if v not in bounds_vars)

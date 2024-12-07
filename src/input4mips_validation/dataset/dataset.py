@@ -597,6 +597,11 @@ class Input4MIPsDataset:
         bnds_coord_indicators
             Strings that indicate that a variable is a bounds variable
 
+            This helps us with identifying `infile`'s variables correctly
+            in the absence of an agreed convention for doing this
+            (xarray has a way, but it conflicts with the CF-conventions,
+            so here we are).
+
         Returns
         -------
         :

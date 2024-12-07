@@ -218,6 +218,11 @@ def get_validate_file_result(  # noqa: PLR0913
     bnds_coord_indicators
         Strings that indicate that a variable is a bounds variable
 
+        This helps us with identifying `infile`'s variables correctly
+        in the absence of an agreed convention for doing this
+        (xarray has a way, but it conflicts with the CF-conventions,
+        so here we are).
+
     allow_cf_checker_warnings
         Should warnings from the CF-checker be allowed?
 

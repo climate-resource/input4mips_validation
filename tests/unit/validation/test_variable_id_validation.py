@@ -11,10 +11,19 @@ import pytest
 
 from input4mips_validation.validation.variable_id import validate_variable_id
 
-EXP_ERROR_MSG_MISMATCH = "".join(
+EXP_ERROR_MSG_SINGLE_VAR_MISMATCH = "".join(
     [
         re.escape("The `variable_id` attribute must match the variable name "),
         r"\('.*'\) exactly. Received variable_id='.*'\.",
+    ]
+)
+EXP_ERROR_MSG_MULTIPLE_VAR_INVALID = "".join(
+    [
+        re.escape(
+            "There is more than one variable in the dataset, "
+            "hence the `variable_id` attribute must start with 'multiple'. "
+        ),
+        r"Received variable_id='.*'\.",
     ]
 )
 EXP_ERROR_MSG_INVALID_CHARS_SINGLE_VAR = "".join(
@@ -30,7 +39,7 @@ EXP_ERROR_MSG_INVALID_CHARS_MULTIPLE_VAR = "".join(
     [
         re.escape(
             "The `variable_id` attribute contains invalid characters. "
-            "Only Alphanumeric characters and underscores are allowed. "
+            "Only Alphanumeric characters, underscores or hyphens are allowed. "
         ),
         r".*invalid_chars=.*",
     ]
@@ -49,7 +58,7 @@ EXP_ERROR_MSG_INVALID_CHARS_MULTIPLE_VAR = "".join(
         pytest.param(
             "co2",
             "ch4",
-            pytest.raises(ValueError, match=EXP_ERROR_MSG_MISMATCH),
+            pytest.raises(ValueError, match=EXP_ERROR_MSG_SINGLE_VAR_MISMATCH),
             id="mismatch",
         ),
         pytest.param(
@@ -81,6 +90,18 @@ EXP_ERROR_MSG_INVALID_CHARS_MULTIPLE_VAR = "".join(
             "multiple_volcanic",
             does_not_raise(),
             id="valid_multiple_underscore",
+        ),
+        pytest.param(
+            ["rss", "sdt"],
+            "multiple volcanic",
+            pytest.raises(ValueError, match=EXP_ERROR_MSG_INVALID_CHARS_MULTIPLE_VAR),
+            id="invalid_multiple_whitespace",
+        ),
+        pytest.param(
+            ["rss", "sdt"],
+            "volcanic",
+            pytest.raises(ValueError, match=EXP_ERROR_MSG_MULTIPLE_VAR_INVALID),
+            id="invalid_multiple_underscore",
         ),
     ),
 )

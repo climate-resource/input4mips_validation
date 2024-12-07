@@ -11,10 +11,20 @@ import pytest
 
 from input4mips_validation.validation.variable_id import validate_variable_id
 
-EXP_ERROR_MSG = "".join(
+EXP_ERROR_MSG_MISMATCH = "".join(
     [
         re.escape("The `variable_id` attribute must match the variable name "),
-        r"('.*') exactly. Received variable_id='.*'\. ",
+        r"\('.*'\) exactly. Received variable_id='.*'\.",
+    ]
+)
+EXP_ERROR_MSG_INVALID_CHARS = "".join(
+    [
+        re.escape(
+            "The `variable_id` attribute must only contain "
+            "alphanumeric characters and underscores. "
+        ),
+        r"Received variable_id='.*', ",
+        r"which contains the following invalid characters \{.*\}.",
     ]
 )
 
@@ -31,7 +41,7 @@ EXP_ERROR_MSG = "".join(
         pytest.param(
             "co2",
             "ch4",
-            pytest.raises(ValueError, match=EXP_ERROR_MSG),
+            pytest.raises(ValueError, match=EXP_ERROR_MSG_MISMATCH),
             id="mismatch",
         ),
         pytest.param(
@@ -41,16 +51,16 @@ EXP_ERROR_MSG = "".join(
             id="valid_value_with_hyphens",
         ),
         pytest.param(
-            "mole_fraction_of_carbon_dioxide_in_air",
             "mole-fraction-of-carbon-dioxide-in-air",
-            pytest.raises(ValueError, match=EXP_ERROR_MSG),
-            id="hyphens_rather_than_underscores",
+            "mole-fraction-of-carbon-dioxide-in-air",
+            pytest.raises(ValueError, match=EXP_ERROR_MSG_INVALID_CHARS),
+            id="hyphen_in_variable_name",
         ),
         pytest.param(
-            "mole-fraction-of-carbon-dioxide-in-air",
-            "mole-fraction-of-carbon-dioxide-in-air",
-            pytest.raises(ValueError, match=EXP_ERROR_MSG),
-            id="hyphen_in_variable_name",
+            "co2 mass",
+            "co2 mass",
+            pytest.raises(ValueError, match=EXP_ERROR_MSG_INVALID_CHARS),
+            id="space_in_variable_name",
         ),
     ),
 )

@@ -18,7 +18,7 @@ import numpy as np
 import pint
 import xarray as xr
 
-from input4mips_validation.cvs import Input4MIPsCVs
+from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
 from input4mips_validation.dataset import (
     Input4MIPsDataset,
     Input4MIPsDatasetMetadataDataProducerMinimum,
@@ -114,6 +114,49 @@ def get_valid_ds_min_metadata_example(
     )
 
     return ds, metadata_minimum
+
+
+def get_valid_out_path_and_disk_ready_ds(
+    variable_name: str = "mole_fraction_of_carbon_dioxide_in_air",
+    time_encoding: dict[str, Any] | None = None,
+    cv_source: str | Input4MIPsCVs = "gh:v6.6.0",
+    root_data_dir: Path = Path("/to/somewhere"),
+) -> tuple[Path, xr.Dataset]:
+    ds, metadata_minimum = get_valid_ds_min_metadata_example(variable_id=variable_name)
+
+    if time_encoding is None:
+        time_encoding = {
+            "calendar": "proleptic_gregorian",
+            "units": "days since 1850-01-01 00:00:00",
+            # Time has to be encoded as float
+            # to ensure that half-days etc. are handled.
+            "dtype": np.dtypes.Float32DType,
+        }
+
+    ds["time"].encoding = time_encoding
+
+    if isinstance(cv_source, Input4MIPsCVs):
+        cvs = cv_source
+    else:
+        cvs = load_cvs(cv_source)
+
+    input4mips_ds = Input4MIPsDataset.from_data_producer_minimum_information(
+        data=ds,
+        metadata_minimum=metadata_minimum,
+        cvs=cvs,
+        prepare_func=partial(
+            prepare_ds_and_get_frequency,
+            standard_and_or_long_names={
+                variable_name: {"standard_name": variable_name}
+            },
+        ),
+    )
+
+    out_path, valid_disk_ready_ds = input4mips_ds.get_out_path_and_disk_ready_dataset(
+        root_data_dir=root_data_dir
+    )
+
+    return out_path, valid_disk_ready_ds
 
 
 def create_files_in_tree(  # noqa: PLR0913

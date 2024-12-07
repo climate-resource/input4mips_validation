@@ -366,3 +366,22 @@ def get_catch_error_decorator(
         return decorated
 
     return catch_error_decorator
+
+
+class MissingAttributeError(KeyError):
+    """
+    Raised to signal that an attribute is missing
+
+    Obviously, this is only raised when the attribute should be there, but isn't.
+    """
+
+    def __init__(self, missing_attribute: str) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        missing_attribute
+            The attribute which is missing.
+        """
+        super().__init__(missing_attribute)

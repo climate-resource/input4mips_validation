@@ -5,7 +5,7 @@ Dataset class definition
 from __future__ import annotations
 
 import datetime as dt
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 from pathlib import Path
 from typing import Any, Optional, Protocol
 
@@ -554,6 +554,7 @@ class Input4MIPsDataset:
         frequency_metadata_key: str = "frequency",
         no_time_axis_frequency: str = "fx",
         time_dimension: str = "time",
+        bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
     ) -> Path:
         """
         Write to disk
@@ -593,6 +594,14 @@ class Input4MIPsDataset:
             what information to pass to the path generating algorithm,
             in case the path generating algorithm requires time axis information.
 
+        bnds_coord_indicators
+            Strings that indicate that a variable is a bounds variable
+
+            This helps us with identifying `infile`'s variables correctly
+            in the absence of an agreed convention for doing this
+            (xarray has a way, but it conflicts with the CF-conventions,
+            so here we are).
+
         Returns
         -------
         :
@@ -611,7 +620,10 @@ class Input4MIPsDataset:
         # add final validation here for bullet proofness
         # - tracking ID, creation date, comparison with DRS from cvs etc.
         validation_result = get_ds_to_write_to_disk_validation_result(
-            ds=ds_disk_ready, out_path=out_path, cvs=self.cvs
+            ds=ds_disk_ready,
+            out_path=out_path,
+            cvs=self.cvs,
+            bnds_coord_indicators=bnds_coord_indicators,
         )
         validation_result.raise_if_errors()
 

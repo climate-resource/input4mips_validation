@@ -13,7 +13,8 @@ from loguru import logger
 
 from input4mips_validation.cli.common_arguments_and_options import (
     ALLOW_CF_CHECKER_WARNINGS_TYPE,
-    BNDS_COORD_INDICATOR_TYPE,
+    BNDS_COORD_INDICATORS_SEPARATOR,
+    BNDS_COORD_INDICATORS_TYPE,
     CV_SOURCE_OPTION,
     FREQUENCY_METADATA_KEY_OPTION,
     N_PROCESSES_OPTION,
@@ -164,7 +165,7 @@ def db_validate_command(  # noqa: PLR0913
         ),
     ],
     cv_source: CV_SOURCE_OPTION = None,
-    bnds_coord_indicator: BNDS_COORD_INDICATOR_TYPE = "bnds",
+    bnds_coord_indicators: BNDS_COORD_INDICATORS_TYPE = "bnds;bounds",
     frequency_metadata_key: FREQUENCY_METADATA_KEY_OPTION = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
     time_dimension: TIME_DIMENSION_OPTION = "time",
@@ -184,6 +185,9 @@ def db_validate_command(  # noqa: PLR0913
     """
     Validate the entries in the database
     """
+    bnds_coord_indicators_set = set(
+        bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
+    )
     db_existing_entries = load_database_file_entries(db_dir)
 
     # If tracking IDs aren't unique, we can fail immediately,
@@ -206,7 +210,7 @@ def db_validate_command(  # noqa: PLR0913
     validated_entries = validate_database_entries(
         entries_to_validate,
         cv_source=cv_source,
-        bnds_coord_indicator=bnds_coord_indicator,
+        bnds_coord_indicators=bnds_coord_indicators_set,
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
         time_dimension=time_dimension,

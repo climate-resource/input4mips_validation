@@ -17,11 +17,16 @@ ALLOW_CF_CHECKER_WARNINGS_TYPE = Annotated[
     ),
 ]
 
-BNDS_COORD_INDICATOR_TYPE = Annotated[
+BNDS_COORD_INDICATORS_SEPARATOR: str = ";"
+"""Separator to use when providing multiple bounds co-ordinate indicators."""
+
+BNDS_COORD_INDICATORS_TYPE = Annotated[
     str,
     typer.Option(
         help=(
-            "String that indicates that a variable is a bounds co-ordinate. "
+            f"A semi-colon ({BNDS_COORD_INDICATORS_SEPARATOR!r}) "
+            "separated list of strings "
+            "that indicate that a variable is a bounds co-ordinate. "
             "This helps us with identifying `infile`'s variables correctly "
             "in the absence of an agreed convention for doing this "
             "(xarray has a way, "

@@ -4,6 +4,8 @@ Validation of datasets that we are writing to disk
 
 from __future__ import annotations
 
+from collections.abc import Collection
+from functools import partial
 from pathlib import Path
 from typing import Callable, Union
 
@@ -18,6 +20,8 @@ from input4mips_validation.validation.error_catching import (
     get_catch_error_decorator,
 )
 from input4mips_validation.validation.tracking_id import validate_tracking_id
+from input4mips_validation.validation.variable_id import validate_variable_id
+from input4mips_validation.xarray_helpers.variables import get_ds_variables
 
 
 class InvalidDatasetToWriteToDiskError(ValueError):
@@ -92,6 +96,7 @@ def get_ds_to_write_to_disk_validation_result(
     out_path: Path,
     cvs: Input4MIPsCVs,
     vrs: Union[ValidationResultsStore, None] = None,
+    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
 ) -> ValidationResultsStore:
     """
     Get the result of validating a dataset that is going to be written to disk
@@ -115,6 +120,15 @@ def get_ds_to_write_to_disk_validation_result(
         [`ValidationResultsStore`][input4mips_validation.validation.error_catching.ValidationResultsStore]
         instance.
 
+    bnds_coord_indicators
+        Strings that indicate that a variable is a bounds variable
+
+        This helps us with identifying `infile`'s variables correctly
+        in the absence of an agreed convention for doing this
+        (xarray has a way, but it conflicts with the CF-conventions,
+        so here we are).
+
+
     Returns
     -------
     :
@@ -123,9 +137,20 @@ def get_ds_to_write_to_disk_validation_result(
     if vrs is None:
         vrs = ValidationResultsStore()
 
+    ds_variables = get_ds_variables(
+        ds=ds,
+        bnds_coord_indicators=bnds_coord_indicators,
+    )
     for attribute, validation_function in (
         ("creation_date", validate_creation_date),
         ("tracking_id", validate_tracking_id),
+        (
+            "variable_id",
+            partial(
+                validate_variable_id,
+                ds_variables=ds_variables,
+            ),
+        ),
     ):
         vrs.wrap(
             validate_attribute,

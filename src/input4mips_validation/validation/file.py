@@ -4,6 +4,7 @@ Validation of an individual file in isolation
 
 from __future__ import annotations
 
+from collections.abc import Collection
 from pathlib import Path
 from typing import Union
 
@@ -37,7 +38,7 @@ def validate_file(
     infile: Path | str,
     cv_source: str | None = None,
     cvs: Input4MIPsCVs | None = None,
-    bnds_coord_indicator: str = "bnds",
+    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
     allow_cf_checker_warnings: bool = False,
 ) -> None:
     """
@@ -72,8 +73,8 @@ def validate_file(
 
         If these are passed, then `cv_source` is ignored.
 
-    bnds_coord_indicator
-        String that indicates that a variable is a bounds co-ordinate
+    bnds_coord_indicators
+        Strings that indicate that a variable is a bounds variable
 
         This helps us with identifying `infile`'s variables correctly
         in the absence of an agreed convention for doing this
@@ -159,7 +160,7 @@ def validate_file(
         # Check that the filename and metadata are consistent
         # Checking of the directory and metadata is only done in validate_tree
         ds_careful_load = ds_from_iris_cubes(
-            cubes, bnds_coord_indicator=bnds_coord_indicator
+            cubes, bnds_coord_indicators=bnds_coord_indicators
         )
         catch_error(
             validate_ds_to_write_to_disk,
@@ -185,7 +186,7 @@ def get_validate_file_result(  # noqa: PLR0913
     infile: Path | str,
     cv_source: str | None = None,
     cvs: Input4MIPsCVs | None = None,
-    bnds_coord_indicator: str = "bnds",
+    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
     allow_cf_checker_warnings: bool = False,
     vrs: Union[ValidationResultsStore, None] = None,
 ) -> ValidationResultsStore:
@@ -214,8 +215,8 @@ def get_validate_file_result(  # noqa: PLR0913
 
         If these are passed, then `cv_source` is ignored.
 
-    bnds_coord_indicator
-        String that indicates that a variable is a bounds co-ordinate
+    bnds_coord_indicators
+        Strings that indicate that a variable is a bounds variable
 
         This helps us with identifying `infile`'s variables correctly
         in the absence of an agreed convention for doing this
@@ -309,13 +310,14 @@ def get_validate_file_result(  # noqa: PLR0913
         # can only be done in validate_tree.
 
         ds_careful_load = ds_from_iris_cubes(
-            cubes, bnds_coord_indicator=bnds_coord_indicator
+            cubes, bnds_coord_indicators=bnds_coord_indicators
         )
         vrs = get_ds_to_write_to_disk_validation_result(
             ds=ds_careful_load,
             out_path=Path(infile),
             cvs=cvs,
             vrs=vrs,
+            bnds_coord_indicators=bnds_coord_indicators,
         )
 
     logger.log(

@@ -32,6 +32,7 @@ from input4mips_validation.validation.database import (
     validate_database_entries,
     validate_tracking_ids_are_unique,
 )
+from input4mips_validation.xarray_helpers.variables import XRVariableHelper
 
 app = typer.Typer()
 
@@ -185,8 +186,10 @@ def db_validate_command(  # noqa: PLR0913
     """
     Validate the entries in the database
     """
-    bnds_coord_indicators_set = set(
-        bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
+    xr_variable_processor = XRVariableHelper(
+        bounds_coord_indicators=tuple(
+            bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
+        )
     )
     db_existing_entries = load_database_file_entries(db_dir)
 
@@ -210,7 +213,7 @@ def db_validate_command(  # noqa: PLR0913
     validated_entries = validate_database_entries(
         entries_to_validate,
         cv_source=cv_source,
-        bnds_coord_indicators=bnds_coord_indicators_set,
+        xr_variable_processor=xr_variable_processor,
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
         time_dimension=time_dimension,

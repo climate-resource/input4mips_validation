@@ -4,7 +4,6 @@ Validation of an individual file in isolation
 
 from __future__ import annotations
 
-from collections.abc import Collection
 from pathlib import Path
 from typing import Union
 
@@ -25,13 +24,17 @@ from input4mips_validation.validation.error_catching import (
     ValidationResultsStore,
 )
 from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
+)
 
 
 def get_validate_file_result(  # noqa: PLR0913
     infile: Path | str,
     cv_source: str | None = None,
     cvs: Input4MIPsCVs | None = None,
-    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
+    xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     allow_cf_checker_warnings: bool = False,
     vrs: Union[ValidationResultsStore, None] = None,
 ) -> ValidationResultsStore:
@@ -60,13 +63,8 @@ def get_validate_file_result(  # noqa: PLR0913
 
         If these are passed, then `cv_source` is ignored.
 
-    bnds_coord_indicators
-        Strings that indicate that a variable is a bounds variable
-
-        This helps us with identifying `infile`'s variables correctly
-        in the absence of an agreed convention for doing this
-        (xarray has a way, but it conflicts with the CF-conventions,
-        so here we are).
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
 
     allow_cf_checker_warnings
         Should warnings from the CF-checker be allowed?
@@ -155,14 +153,15 @@ def get_validate_file_result(  # noqa: PLR0913
         # can only be done in validate_tree.
 
         ds_careful_load = ds_from_iris_cubes(
-            cubes, bnds_coord_indicators=bnds_coord_indicators
+            cubes,
+            xr_variable_processor=xr_variable_processor,
         )
         vrs = get_ds_to_write_to_disk_validation_result(
             ds=ds_careful_load,
             out_path=Path(infile),
             cvs=cvs,
             vrs=vrs,
-            bnds_coord_indicators=bnds_coord_indicators,
+            xr_variable_processor=xr_variable_processor,
         )
 
     logger.log(

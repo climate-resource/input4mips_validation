@@ -29,9 +29,10 @@ BNDS_COORD_INDICATORS_TYPE = Annotated[
             "that indicate that a variable is a bounds co-ordinate. "
             "This helps us with identifying `infile`'s variables correctly "
             "in the absence of an agreed convention for doing this "
-            "(xarray has a way, "
-            "but it conflicts with the CF-conventions hence iris, "
-            "so here we are)."
+            "(xarray has a way, but it conflicts with the CF-conventions hence iris, "
+            "so here we are). "
+            "This interface gives limited control over this. "
+            "For more complex control, use the Python API directly."
         )
     ),
 ]

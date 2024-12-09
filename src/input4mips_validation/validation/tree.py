@@ -21,6 +21,10 @@ from input4mips_validation.validation.error_catching import (
 from input4mips_validation.validation.file import (
     get_validate_file_result,
 )
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
+)
 
 
 def validate_tracking_ids_are_unique(files: Collection[Path]) -> None:
@@ -354,7 +358,7 @@ def get_validate_tree_result(  # noqa: PLR0913
     root: Path,
     cv_source: str | None,
     cvs: Input4MIPsCVs | None = None,
-    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
+    xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
@@ -392,13 +396,8 @@ def get_validate_tree_result(  # noqa: PLR0913
 
         If these are passed, then `cv_source` is ignored.
 
-    bnds_coord_indicators
-        Strings that indicate that a variable is a bounds variable
-
-        This helps us with identifying `infile`'s variables correctly
-        in the absence of an agreed convention for doing this
-        (xarray has a way, but it conflicts with the CF-conventions,
-        so here we are).
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
 
     frequency_metadata_key
         The key in the data's metadata
@@ -461,7 +460,7 @@ def get_validate_tree_result(  # noqa: PLR0913
         validate_file_result = get_validate_file_result(
             file,
             cvs=cvs,
-            bnds_coord_indicators=bnds_coord_indicators,
+            xr_variable_processor=xr_variable_processor,
             allow_cf_checker_warnings=allow_cf_checker_warnings,
         )
 

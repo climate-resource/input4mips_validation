@@ -5,7 +5,7 @@ Dataset class definition
 from __future__ import annotations
 
 import datetime as dt
-from collections.abc import Collection, Iterable
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Optional, Protocol
 
@@ -41,6 +41,10 @@ from input4mips_validation.validation.datasets_to_write_to_disk import (
     get_ds_to_write_to_disk_validation_result,
 )
 from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
+)
 
 CF_XARRAY_BOUNDS_SUFFIX: str = "_bounds"
 """
@@ -554,7 +558,7 @@ class Input4MIPsDataset:
         frequency_metadata_key: str = "frequency",
         no_time_axis_frequency: str = "fx",
         time_dimension: str = "time",
-        bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
+        xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     ) -> Path:
         """
         Write to disk
@@ -594,13 +598,8 @@ class Input4MIPsDataset:
             what information to pass to the path generating algorithm,
             in case the path generating algorithm requires time axis information.
 
-        bnds_coord_indicators
-            Strings that indicate that a variable is a bounds variable
-
-            This helps us with identifying `infile`'s variables correctly
-            in the absence of an agreed convention for doing this
-            (xarray has a way, but it conflicts with the CF-conventions,
-            so here we are).
+        xr_variable_processor
+            Helper to use for processing the variables in xarray objects.
 
         Returns
         -------
@@ -623,7 +622,7 @@ class Input4MIPsDataset:
             ds=ds_disk_ready,
             out_path=out_path,
             cvs=self.cvs,
-            bnds_coord_indicators=bnds_coord_indicators,
+            xr_variable_processor=xr_variable_processor,
         )
         validation_result.raise_if_errors()
 

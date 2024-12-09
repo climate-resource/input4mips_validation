@@ -5,7 +5,6 @@ Database validation
 from __future__ import annotations
 
 import concurrent.futures
-from collections.abc import Collection
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -33,6 +32,10 @@ from input4mips_validation.validation.error_catching import (
 )
 from input4mips_validation.validation.file import (
     get_validate_file_result,
+)
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
 )
 
 
@@ -64,7 +67,7 @@ def get_validate_database_file_entry_result(  # noqa: PLR0913
     entry: Input4MIPsDatabaseEntryFile,
     cv_source: str | None = None,
     cvs: Input4MIPsCVs | None = None,
-    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
+    xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
@@ -93,13 +96,8 @@ def get_validate_database_file_entry_result(  # noqa: PLR0913
 
         If these are passed, then `cv_source` is ignored.
 
-    bnds_coord_indicators
-        Strings that indicate that a variable is a bounds variable
-
-        This helps us with identifying `infile`'s variables correctly
-        in the absence of an agreed convention for doing this
-        (xarray has a way, but it conflicts with the CF-conventions,
-        so here we are).
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
 
     frequency_metadata_key
         The key in the data's metadata
@@ -176,7 +174,7 @@ def get_validate_database_file_entry_result(  # noqa: PLR0913
     vrs.wrap(get_validate_file_result, func_description="Validate individual file")(
         entry.filepath,
         cvs=cvs,
-        bnds_coord_indicators=bnds_coord_indicators,
+        xr_variable_processor=xr_variable_processor,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
         vrs=vrs,
     )
@@ -277,7 +275,7 @@ def validate_database_entries(  # noqa: PLR0913
     entries_to_validate: tuple[Input4MIPsDatabaseEntryFile, ...],
     cv_source: str | None = None,
     cvs: Input4MIPsCVs | None = None,
-    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
+    xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     frequency_metadata_key: str = "frequency",
     no_time_axis_frequency: str = "fx",
     time_dimension: str = "time",
@@ -306,13 +304,8 @@ def validate_database_entries(  # noqa: PLR0913
 
         If these are passed, then `cv_source` is ignored.
 
-    bnds_coord_indicators
-        Strings that indicate that a variable is a bounds variable
-
-        This helps us with identifying `infile`'s variables correctly
-        in the absence of an agreed convention for doing this
-        (xarray has a way, but it conflicts with the CF-conventions,
-        so here we are).
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
 
     frequency_metadata_key
         The key in the data's metadata
@@ -362,7 +355,7 @@ def validate_database_entries(  # noqa: PLR0913
                 logging_config_serialised,
                 entry,
                 cvs=cvs,
-                bnds_coord_indicators=bnds_coord_indicators,
+                xr_variable_processor=xr_variable_processor,
                 frequency_metadata_key=frequency_metadata_key,
                 no_time_axis_frequency=no_time_axis_frequency,
                 time_dimension=time_dimension,

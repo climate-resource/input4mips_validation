@@ -230,7 +230,7 @@ def database_file_entry_is_valid(
 
     This is really a helper to avoid the parallel processes
     exploding if we use
-    [`validate_database_file_entry`][input4mips_validation.validation.database.validate_database_file_entry]
+    [`get_validate_database_file_entry_result`][input4mips_validation.validation.database.get_validate_database_file_entry_result]
     directly.
 
     Parameters
@@ -243,7 +243,7 @@ def database_file_entry_is_valid(
 
     **kwargs
         Passed to
-        [`validate_database_file_entry`][input4mips_validation.validation.database.validate_database_file_entry]
+        [`get_validate_database_file_entry_result`][input4mips_validation.validation.database.get_validate_database_file_entry_result]
 
     Returns
     -------

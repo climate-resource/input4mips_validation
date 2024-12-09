@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import traceback
 from functools import wraps
-from typing import Any, Callable, Protocol, TypeVar, Union
+from typing import Any, Callable, TypeVar, Union
 
 import attr
 from attrs import define, field
@@ -264,21 +264,6 @@ class ValidationResultsStore:
 
         pct = numerator / denominator * 100
         return f"{pct:.2f}% ({numerator} / {denominator})"
-
-
-class CatchErrorDecoratorLike(Protocol):
-    """
-    A callable like what we return from `get_catch_error_decorator`
-
-    See [`get_catch_error_decorator`][input4mips_validation.validation.error_catching.get_catch_error_decorator]
-    """  # noqa: E501
-
-    def __call__(
-        self, func_to_call: Callable[P, T], call_purpose: str
-    ) -> Callable[P, T | None]:
-        """
-        Get wrapped version of a function
-        """
 
 
 class MissingAttributeError(KeyError):

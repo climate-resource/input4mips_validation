@@ -123,11 +123,7 @@ from the examples given in that link.
 
 ### 🗑️ Deprecations
 
-- Deprecated
-  [`validate_database_file_entry`][input4mips_validation.validation.database.validate_database_file_entry],
-  [`validate_ds_to_write_to_disk`][input4mips_validation.validation.datasets_to_write_to_disk.validate_ds_to_write_to_disk],
-  [`validate_file`][input4mips_validation.validation.file.validate_file]
-  and [`validate_tree`][input4mips_validation.validation.tree.validate_tree].
+- Deprecated [`validate_database_file_entry`], [`validate_ds_to_write_to_disk`], [`validate_file`] and [`validate_tree`].
   See the docs for each function and deprecation warnings for recommended alternatives. ([#66](https://github.com/climate-resource/input4mips_validation/pull/66))
 
 ### 🆕 Features

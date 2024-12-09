@@ -46,6 +46,7 @@ from typing_extensions import TypeAlias
 
 from input4mips_validation.cvs.loading_raw import RawCVLoader
 from input4mips_validation.inference.from_data import (
+    FrequencyMetadataKeys,
     create_time_range,
     infer_time_start_time_end,
 )
@@ -536,8 +537,7 @@ class DataReferenceSyntax:
     def validate_file_written_according_to_drs(
         self,
         file: Path,
-        frequency_metadata_key: str = "frequency",
-        no_time_axis_frequency: str = "fx",
+        frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
         time_dimension: str = "time",
     ) -> None:
         """
@@ -548,13 +548,8 @@ class DataReferenceSyntax:
         file
             File to validate
 
-        frequency_metadata_key
-            The key in the data's metadata
-            which points to information about the data's frequency
-
-        no_time_axis_frequency
-            The value of `frequency_metadata_key` in the metadata which indicates
-            that the file has no time axis i.e. is fixed in time.
+        frequency_metadata_keys
+            Metadata definitions for frequency information
 
         time_dimension
             The time dimension of the data
@@ -587,15 +582,15 @@ class DataReferenceSyntax:
         # Annoying that we have to pass this all the way through to here.
         time_start, time_end = infer_time_start_time_end(
             ds=ds,
-            frequency_metadata_key=frequency_metadata_key,
-            no_time_axis_frequency=no_time_axis_frequency,
+            frequency_metadata_key=frequency_metadata_keys.frequency_metadata_key,
+            no_time_axis_frequency=frequency_metadata_keys.no_time_axis_frequency,
             time_dimension=time_dimension,
         )
         if time_start is not None and time_end is not None:
             time_range = create_time_range(
                 time_start=time_start,
                 time_end=time_end,
-                ds_frequency=ds.attrs[frequency_metadata_key],
+                ds_frequency=ds.attrs[frequency_metadata_keys.frequency_metadata_key],
             )
 
             comparison_metadata["time_range"] = time_range

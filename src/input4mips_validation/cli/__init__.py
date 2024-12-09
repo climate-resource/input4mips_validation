@@ -27,12 +27,16 @@ from input4mips_validation.cli.common_arguments_and_options import (
 from input4mips_validation.cli.db import app as app_db
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.dataset import Input4MIPsDataset
-from input4mips_validation.inference.from_data import infer_time_start_time_end
+from input4mips_validation.inference.from_data import (
+    FrequencyMetadataKeys,
+    infer_time_start_time_end,
+)
 from input4mips_validation.logging import setup_logging
 from input4mips_validation.upload_ftp import upload_ftp
 from input4mips_validation.validation.file import get_validate_file_result
 from input4mips_validation.validation.tree import get_validate_tree_result
 from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
+from input4mips_validation.xarray_helpers.variables import XRVariableHelper
 
 app = typer.Typer()
 
@@ -154,13 +158,20 @@ def validate_file_command(  # noqa: PLR0913
     because some validation can only be performed if we have the entire file tree.
     See the ``validate-tree`` command for this validation.
     """
-    bnds_coord_indicators_set = set(
-        bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
+    xr_variable_processor = XRVariableHelper(
+        bounds_coord_indicators=tuple(
+            bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
+        )
     )
+    frequency_metadata_keys = FrequencyMetadataKeys(
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
+    )
+
     get_validate_file_result(
         file,
         cv_source=cv_source,
-        bnds_coord_indicators=bnds_coord_indicators_set,
+        xr_variable_processor=xr_variable_processor,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
     ).raise_if_errors()
 
@@ -168,13 +179,14 @@ def validate_file_command(  # noqa: PLR0913
         cvs = load_cvs(cv_source=cv_source)
 
         ds = ds_from_iris_cubes(
-            iris.load(file), bnds_coord_indicators=bnds_coord_indicators_set
+            iris.load(file),
+            xr_variable_processor=xr_variable_processor,
         )
 
         time_start, time_end = infer_time_start_time_end(
             ds=ds,
-            frequency_metadata_key=frequency_metadata_key,
-            no_time_axis_frequency=no_time_axis_frequency,
+            frequency_metadata_key=frequency_metadata_keys.frequency_metadata_key,
+            no_time_axis_frequency=frequency_metadata_keys.no_time_axis_frequency,
             time_dimension=time_dimension,
         )
 
@@ -195,10 +207,9 @@ def validate_file_command(  # noqa: PLR0913
             logger.info(f"Re-writing {file} to {full_file_path}")
             Input4MIPsDataset.from_ds(ds, cvs=cvs).write(
                 root_data_dir=write_in_drs,
-                frequency_metadata_key=frequency_metadata_key,
-                no_time_axis_frequency=no_time_axis_frequency,
+                frequency_metadata_keys=frequency_metadata_keys,
                 time_dimension=time_dimension,
-                bnds_coord_indicators=bnds_coord_indicators_set,
+                xr_variable_processor=xr_variable_processor,
             )
 
         else:
@@ -239,15 +250,21 @@ def validate_tree_command(  # noqa: PLR0913
     This checks things like whether all external variables are also provided
     and all tracking IDs are unique.
     """
-    bnds_coord_indicators_set = set(
-        bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
+    frequency_metadata_keys = FrequencyMetadataKeys(
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
     )
+    xr_variable_processor = XRVariableHelper(
+        bounds_coord_indicators=tuple(
+            bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
+        )
+    )
+
     vtrs = get_validate_tree_result(
         root=tree_root,
         cv_source=cv_source,
-        bnds_coord_indicators=bnds_coord_indicators_set,
-        frequency_metadata_key=frequency_metadata_key,
-        no_time_axis_frequency=no_time_axis_frequency,
+        xr_variable_processor=xr_variable_processor,
+        frequency_metadata_keys=frequency_metadata_keys,
         time_dimension=time_dimension,
         rglob_input=rglob_input,
         allow_cf_checker_warnings=allow_cf_checker_warnings,

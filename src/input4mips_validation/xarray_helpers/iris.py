@@ -4,21 +4,22 @@ Helpers for interchanging with iris
 
 from __future__ import annotations
 
-from collections.abc import Collection
-
 import iris
 import ncdata.iris_xarray
 import xarray as xr
 from iris.cube import CubeList
 
-from input4mips_validation.xarray_helpers.variables import get_ds_bounds_variables
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
+)
 
 iris.FUTURE.save_split_attrs = True
 
 
 def ds_from_iris_cubes(
     cubes: CubeList,
-    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
+    xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
 ) -> xr.Dataset:
     """
     Load an [xarray.Dataset][] from [iris.cube.CubeList][]
@@ -33,13 +34,8 @@ def ds_from_iris_cubes(
     cubes
         Cubes from which to create the dataset
 
-    bnds_coord_indicators
-        Strings that indicate that a variable is a bounds variable
-
-        This helps us with identifying `infile`'s variables correctly
-        in the absence of an agreed convention for doing this
-        (xarray has a way, but it conflicts with the CF-conventions,
-        so here we are).
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
 
     Returns
     -------
@@ -47,11 +43,8 @@ def ds_from_iris_cubes(
         Loaded dataset
     """
     ds = ncdata.iris_xarray.cubes_to_xarray(cubes)
-    # Guess that everything which has "bnds" in it is a co-ordinate.
-    # This is definitely a pain point when loading data from a file written with iris.
-    # TBD whether a true expert has any ideas.
-    bnds_guess = get_ds_bounds_variables(
-        ds, bnds_coord_indicators=bnds_coord_indicators
+    bnds_guess = xr_variable_processor.get_ds_bounds_variables(
+        ds,
     )
     ds = ds.set_coords(bnds_guess)
 

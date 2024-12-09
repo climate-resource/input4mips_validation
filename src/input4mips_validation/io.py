@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import datetime as dt
 import uuid
-from collections.abc import Collection
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +18,10 @@ from input4mips_validation.validation.creation_date import CREATION_DATE_FORMAT
 from input4mips_validation.validation.datasets_to_write_to_disk import (
     get_ds_to_write_to_disk_validation_result,
 )
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
+)
 
 iris.FUTURE.save_split_attrs = True
 
@@ -27,7 +30,7 @@ def prepare_out_path_and_cubes(
     ds: xr.Dataset,
     out_path: Path,
     cvs: Input4MIPsCVs,
-    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
+    xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
 ) -> iris.cube.CubeList:
     """
     Prepare a path and [iris.cube.Cube][]'s for writing to disk
@@ -53,13 +56,8 @@ def prepare_out_path_and_cubes(
     cvs
         CVs to use to validate the dataset before writing
 
-    bnds_coord_indicators
-        Strings that indicate that a variable is a bounds variable
-
-        This helps us with identifying `infile`'s variables correctly
-        in the absence of an agreed convention for doing this
-        (xarray has a way, but it conflicts with the CF-conventions,
-        so here we are).
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
 
     Returns
     -------
@@ -74,7 +72,10 @@ def prepare_out_path_and_cubes(
     # add final validation here for bullet proofness
     # - tracking ID, creation date, comparison with DRS from cvs etc.
     validation_result = get_ds_to_write_to_disk_validation_result(
-        ds=ds, out_path=out_path, cvs=cvs, bnds_coord_indicators=bnds_coord_indicators
+        ds=ds,
+        out_path=out_path,
+        cvs=cvs,
+        xr_variable_processor=xr_variable_processor,
     )
     validation_result.raise_if_errors()
 

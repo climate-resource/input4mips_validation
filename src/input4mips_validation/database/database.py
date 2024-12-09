@@ -20,7 +20,10 @@ from loguru import logger
 
 from input4mips_validation.database.raw import Input4MIPsDatabaseEntryFileRaw
 from input4mips_validation.hashing import get_file_hash_sha256
-from input4mips_validation.inference.from_data import create_time_range
+from input4mips_validation.inference.from_data import (
+    FrequencyMetadataKeys,
+    create_time_range,
+)
 from input4mips_validation.logging import LOG_LEVEL_INFO_DB_ENTRY
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
 from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
@@ -36,12 +39,11 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
     """
 
     @classmethod
-    def from_file(  # noqa: PLR0913
+    def from_file(
         cls,
         file: Path,
         cvs: Input4MIPsCVs,
-        frequency_metadata_key: str = "frequency",
-        no_time_axis_frequency: str = "fx",
+        frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
         time_dimension: str = "time",
     ) -> Input4MIPsDatabaseEntryFile:
         """
@@ -55,14 +57,8 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
         cvs
             Controlled vocabularies that were used when writing the file
 
-        frequency_metadata_key
-            The key in the data's metadata
-            which points to information about the data's frequency.
-
-        no_time_axis_frequency
-            The value of "frequency" in the metadata which indicates
-            that the file has no time axis i.e. is fixed in time.
-
+        frequency_metadata_keys
+            Metadata definitions for frequency information
 
         time_dimension
             Time dimension of `ds`
@@ -82,8 +78,11 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
         # would be much simpler if all metadata was just in the file's attributes.
         metadata_data: dict[str, Union[str, None]] = {}
 
-        frequency = metadata_attributes[frequency_metadata_key]
-        if frequency is not None and frequency != no_time_axis_frequency:
+        frequency = metadata_attributes[frequency_metadata_keys.frequency_metadata_key]
+        if (
+            frequency is not None
+            and frequency != frequency_metadata_keys.no_time_axis_frequency
+        ):
             # Technically, this should probably use the bounds...
             time_axis = ds[time_dimension]
             time_start = xr_time_min_max_to_single_value(time_axis.min())

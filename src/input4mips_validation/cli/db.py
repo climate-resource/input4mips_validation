@@ -28,10 +28,12 @@ from input4mips_validation.database import (
     update_database_file_entries,
 )
 from input4mips_validation.database.creation import create_db_file_entries
+from input4mips_validation.inference.from_data import FrequencyMetadataKeys
 from input4mips_validation.validation.database import (
     validate_database_entries,
     validate_tracking_ids_are_unique,
 )
+from input4mips_validation.xarray_helpers.variables import XRVariableHelper
 
 app = typer.Typer()
 
@@ -69,13 +71,17 @@ def db_create_command(  # noqa: PLR0913
         msg = "If using `create`, the database directory must not already exist"
         raise FileExistsError(msg)
 
+    frequency_metadata_keys = FrequencyMetadataKeys(
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
+    )
+
     all_files = [v for v in tree_root.rglob(rglob_input) if v.is_file()]
 
     db_entries = create_db_file_entries(
         files=all_files,
         cv_source=cv_source,
-        frequency_metadata_key=frequency_metadata_key,
-        no_time_axis_frequency=no_time_axis_frequency,
+        frequency_metadata_keys=frequency_metadata_keys,
         time_dimension=time_dimension,
         n_processes=n_processes,
     )
@@ -121,6 +127,11 @@ def db_add_tree_command(  # noqa: PLR0913
     """
     Add files from a tree to the database
     """
+    frequency_metadata_keys = FrequencyMetadataKeys(
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
+    )
+
     all_tree_files = set(tree_root.rglob(rglob_input))
     db_existing_entries = load_database_file_entries(db_dir)
     known_files = set([Path(v.filepath) for v in db_existing_entries])
@@ -138,8 +149,7 @@ def db_add_tree_command(  # noqa: PLR0913
     db_entries_to_add = create_db_file_entries(
         files=files_to_add,
         cv_source=cv_source,
-        frequency_metadata_key=frequency_metadata_key,
-        no_time_axis_frequency=no_time_axis_frequency,
+        frequency_metadata_keys=frequency_metadata_keys,
         time_dimension=time_dimension,
         n_processes=n_processes,
     )
@@ -185,9 +195,16 @@ def db_validate_command(  # noqa: PLR0913
     """
     Validate the entries in the database
     """
-    bnds_coord_indicators_set = set(
-        bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
+    xr_variable_processor = XRVariableHelper(
+        bounds_coord_indicators=tuple(
+            bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
+        )
     )
+    frequency_metadata_keys = FrequencyMetadataKeys(
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
+    )
+
     db_existing_entries = load_database_file_entries(db_dir)
 
     # If tracking IDs aren't unique, we can fail immediately,
@@ -210,9 +227,8 @@ def db_validate_command(  # noqa: PLR0913
     validated_entries = validate_database_entries(
         entries_to_validate,
         cv_source=cv_source,
-        bnds_coord_indicators=bnds_coord_indicators_set,
-        frequency_metadata_key=frequency_metadata_key,
-        no_time_axis_frequency=no_time_axis_frequency,
+        xr_variable_processor=xr_variable_processor,
+        frequency_metadata_keys=frequency_metadata_keys,
         time_dimension=time_dimension,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
         n_processes=n_processes,

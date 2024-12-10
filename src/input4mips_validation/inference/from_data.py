@@ -11,12 +11,38 @@ from typing import Union
 import cftime
 import numpy as np
 import xarray as xr
+from attrs import define
 
 from input4mips_validation.serialisation import format_date_for_time_range
 from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
 
 
-def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
+@define
+class FrequencyMetadataKeys:
+    """
+    Definition of the keys used for frequency metadata
+
+    We put this together for ease of explanation and conciseness.
+    """
+
+    frequency_metadata_key: str = "frequency"
+    """
+    The key in the data's metadata
+    which points to information about the data's frequency
+    """
+
+    no_time_axis_frequency: str = "fx"
+    """
+    The value of `frequency_metadata_key` in the metadata which indicates
+    that the file has no time axis i.e. is fixed in time.
+    """
+
+
+def infer_frequency(
+    ds: xr.Dataset,
+    no_time_axis_frequency: str,
+    time_bounds: str = "time_bounds",
+) -> str:
     """
     Infer frequency from data
 
@@ -27,6 +53,9 @@ def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
     ds
         Dataset
 
+    no_time_axis_frequency
+        Value to return if the data has no time axis i.e. is a fixed frequency
+
     time_bounds
         Variable assumed to contain time bounds information
 
@@ -36,7 +65,7 @@ def infer_frequency(ds: xr.Dataset, time_bounds: str = "time_bounds") -> str:
     """
     if time_bounds not in ds:
         # Fixed field
-        return "fx"
+        return no_time_axis_frequency
 
     # # Urgh this doesn't work because October 5 to October 15 1582
     # # don't exist in the mixed Julian/Gregorian calendar,
@@ -86,7 +115,7 @@ def infer_time_start_time_end(
     Union[cftime.datetime, dt.datetime, np.datetime64, None],
 ]:
     """
-    Infter start and end time of the data in a dataset
+    Infer start and end time of the data in a dataset
 
     Parameters
     ----------
@@ -112,16 +141,13 @@ def infer_time_start_time_end(
     time_end :
         End time of the data
     """
-    if ds.attrs[frequency_metadata_key] != no_time_axis_frequency:
-        time_start: Union[
-            cftime.datetime, dt.datetime, np.datetime64, None
-        ] = xr_time_min_max_to_single_value(ds[time_dimension].min())
-        time_end: Union[
-            cftime.datetime, dt.datetime, np.datetime64, None
-        ] = xr_time_min_max_to_single_value(ds[time_dimension].max())
+    if ds.attrs[frequency_metadata_key] == no_time_axis_frequency:
+        time_start: Union[cftime.datetime, dt.datetime, np.datetime64, None] = None
+        time_end: Union[cftime.datetime, dt.datetime, np.datetime64, None] = None
 
     else:
-        time_start = time_end = None
+        time_start = xr_time_min_max_to_single_value(ds[time_dimension].min())
+        time_end = xr_time_min_max_to_single_value(ds[time_dimension].max())
 
     return time_start, time_end
 

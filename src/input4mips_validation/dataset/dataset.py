@@ -4,17 +4,14 @@ Dataset class definition
 
 from __future__ import annotations
 
-import datetime as dt
-from collections.abc import Collection, Iterable
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Optional, Protocol
 
 import attr
 import cf_xarray  # noqa: F401
-import cftime
 import iris
 import ncdata
-import numpy as np
 import xarray as xr
 from attrs import asdict, field, fields, frozen
 from loguru import logger
@@ -31,7 +28,9 @@ from input4mips_validation.dataset.metadata_data_producer_multiple_variable_mini
 from input4mips_validation.inference.from_data import (
     VARIABLE_DATASET_CATEGORY_MAP,
     VARIABLE_REALM_MAP,
+    FrequencyMetadataKeys,
     infer_frequency,
+    infer_time_start_time_end,
 )
 from input4mips_validation.io import (
     generate_creation_timestamp,
@@ -40,7 +39,10 @@ from input4mips_validation.io import (
 from input4mips_validation.validation.datasets_to_write_to_disk import (
     get_ds_to_write_to_disk_validation_result,
 )
-from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
+)
 
 CF_XARRAY_BOUNDS_SUFFIX: str = "_bounds"
 """
@@ -441,12 +443,11 @@ class Input4MIPsDataset:
 
         return cls(data=data, metadata=metadata, cvs=cvs)
 
-    def get_out_path_and_disk_ready_dataset(  # noqa: PLR0913
+    def get_out_path_and_disk_ready_dataset(
         self,
         root_data_dir: Path,
         pint_dequantify_format: str = "cf",
-        frequency_metadata_key: str = "frequency",
-        no_time_axis_frequency: str = "fx",
+        frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
         time_dimension: str = "time",
     ) -> tuple[Path, xr.Dataset]:
         """
@@ -462,13 +463,8 @@ class Input4MIPsDataset:
 
             It is unlikely that you will want to change this.
 
-        frequency_metadata_key
-            The key in the data's metadata
-            which points to information about the data's frequency.
-
-        no_time_axis_frequency
-            The value of "frequency" in the metadata which indicates
-            that the file has no time axis i.e. is fixed in time.
+        frequency_metadata_keys
+            Metadata definitions for frequency information
 
         time_dimension
             The time dimension of the data.
@@ -526,16 +522,12 @@ class Input4MIPsDataset:
         ds_disk.attrs["tracking_id"] = generate_tracking_id()
         ds_disk.attrs["creation_date"] = generate_creation_timestamp()
 
-        if ds_disk.attrs[frequency_metadata_key] != no_time_axis_frequency:
-            time_start: cftime.datetime | dt.datetime | np.datetime64 | None = (
-                xr_time_min_max_to_single_value(ds_disk[time_dimension].min())
-            )
-            time_end: cftime.datetime | dt.datetime | np.datetime64 | None = (
-                xr_time_min_max_to_single_value(ds_disk[time_dimension].max())
-            )
-
-        else:
-            time_start = time_end = None
+        time_start, time_end = infer_time_start_time_end(
+            ds=ds_disk,
+            frequency_metadata_key=frequency_metadata_keys.frequency_metadata_key,
+            no_time_axis_frequency=frequency_metadata_keys.no_time_axis_frequency,
+            time_dimension=time_dimension,
+        )
 
         out_path = cvs.DRS.get_file_path(
             root_data_dir=root_data_dir,
@@ -551,10 +543,9 @@ class Input4MIPsDataset:
         root_data_dir: Path,
         pint_dequantify_format: str = "cf",
         unlimited_dimensions: tuple[str, ...] = ("time",),
-        frequency_metadata_key: str = "frequency",
-        no_time_axis_frequency: str = "fx",
+        frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
         time_dimension: str = "time",
-        bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
+        xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     ) -> Path:
         """
         Write to disk
@@ -579,13 +570,8 @@ class Input4MIPsDataset:
 
             This is passed to [iris.save][].
 
-        frequency_metadata_key
-            The key in the data's metadata
-            which points to information about the data's frequency.
-
-        no_time_axis_frequency
-            The value of "frequency" in the metadata which indicates
-            that the file has no time axis i.e. is fixed in time.
+        frequency_metadata_keys
+            Metadata definitions for frequency information
 
         time_dimension
             The time dimension of the data.
@@ -594,13 +580,8 @@ class Input4MIPsDataset:
             what information to pass to the path generating algorithm,
             in case the path generating algorithm requires time axis information.
 
-        bnds_coord_indicators
-            Strings that indicate that a variable is a bounds variable
-
-            This helps us with identifying `infile`'s variables correctly
-            in the absence of an agreed convention for doing this
-            (xarray has a way, but it conflicts with the CF-conventions,
-            so here we are).
+        xr_variable_processor
+            Helper to use for processing the variables in xarray objects.
 
         Returns
         -------
@@ -610,8 +591,7 @@ class Input4MIPsDataset:
         out_path, ds_disk_ready = self.get_out_path_and_disk_ready_dataset(
             root_data_dir=root_data_dir,
             pint_dequantify_format=pint_dequantify_format,
-            frequency_metadata_key=frequency_metadata_key,
-            no_time_axis_frequency=no_time_axis_frequency,
+            frequency_metadata_keys=frequency_metadata_keys,
             time_dimension=time_dimension,
         )
 
@@ -623,7 +603,7 @@ class Input4MIPsDataset:
             ds=ds_disk_ready,
             out_path=out_path,
             cvs=self.cvs,
-            bnds_coord_indicators=bnds_coord_indicators,
+            xr_variable_processor=xr_variable_processor,
         )
         validation_result.raise_if_errors()
 
@@ -652,6 +632,7 @@ def prepare_ds_and_get_frequency(  # noqa: PLR0913
     standard_and_or_long_names: dict[str, dict[str, str]] | None = None,
     guess_coord_axis: bool = True,
     copy_ds: bool = False,
+    no_time_axis_frequency: str = "fx",
 ) -> tuple[xr.Dataset, str]:
     """
     Prepare a raw dataset for initialising a dataset and return frequency metadata.
@@ -714,6 +695,10 @@ def prepare_ds_and_get_frequency(  # noqa: PLR0913
         Should we copy `ds_raw` before modifying the metadata
         or simply modify the existing dataset?
 
+    no_time_axis_frequency
+        Value to use for the frequency metadata
+        if the data has no time axis i.e. is a fixed field.
+
     Returns
     -------
     :
@@ -750,6 +735,7 @@ def prepare_ds_and_get_frequency(  # noqa: PLR0913
 
     frequency = infer_frequency(
         ds,
+        no_time_axis_frequency=no_time_axis_frequency,
         time_bounds=time_bounds_name,
     )
 

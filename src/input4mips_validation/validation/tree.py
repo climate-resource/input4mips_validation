@@ -14,12 +14,17 @@ from loguru import logger
 
 from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
 from input4mips_validation.exceptions import NonUniqueError
+from input4mips_validation.inference.from_data import FrequencyMetadataKeys
 from input4mips_validation.validation.error_catching import (
     ValidationResult,
     ValidationResultsStore,
 )
 from input4mips_validation.validation.file import (
     get_validate_file_result,
+)
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
 )
 
 
@@ -354,9 +359,8 @@ def get_validate_tree_result(  # noqa: PLR0913
     root: Path,
     cv_source: str | None,
     cvs: Input4MIPsCVs | None = None,
-    bnds_coord_indicators: Collection[str] = {"bnds", "bounds"},
-    frequency_metadata_key: str = "frequency",
-    no_time_axis_frequency: str = "fx",
+    xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
+    frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
     time_dimension: str = "time",
     rglob_input: str = "*.nc",
     allow_cf_checker_warnings: bool = False,
@@ -392,21 +396,11 @@ def get_validate_tree_result(  # noqa: PLR0913
 
         If these are passed, then `cv_source` is ignored.
 
-    bnds_coord_indicators
-        Strings that indicate that a variable is a bounds variable
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
 
-        This helps us with identifying `infile`'s variables correctly
-        in the absence of an agreed convention for doing this
-        (xarray has a way, but it conflicts with the CF-conventions,
-        so here we are).
-
-    frequency_metadata_key
-        The key in the data's metadata
-        which points to information about the data's frequency
-
-    no_time_axis_frequency
-        The value of `frequency_metadata_key` in the metadata which indicates
-        that the file has no time axis i.e. is fixed in time.
+    frequency_metadata_keys
+        Metadata definitions for frequency information
 
     time_dimension
         The time dimension of the data
@@ -461,7 +455,7 @@ def get_validate_tree_result(  # noqa: PLR0913
         validate_file_result = get_validate_file_result(
             file,
             cvs=cvs,
-            bnds_coord_indicators=bnds_coord_indicators,
+            xr_variable_processor=xr_variable_processor,
             allow_cf_checker_warnings=allow_cf_checker_warnings,
         )
 
@@ -476,8 +470,7 @@ def get_validate_tree_result(  # noqa: PLR0913
                 func_description="Check file is written according to the DRS",
             )(
                 file,
-                frequency_metadata_key=frequency_metadata_key,
-                no_time_axis_frequency=no_time_axis_frequency,
+                frequency_metadata_keys=frequency_metadata_keys,
                 time_dimension=time_dimension,
             )
 

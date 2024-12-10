@@ -7,7 +7,7 @@ Command-line interface
 
 import shutil
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated, Optional, Union
 
 import iris
 import typer
@@ -36,7 +36,10 @@ from input4mips_validation.upload_ftp import upload_ftp
 from input4mips_validation.validation.file import get_validate_file_result
 from input4mips_validation.validation.tree import get_validate_tree_result
 from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
-from input4mips_validation.xarray_helpers.variables import XRVariableHelper
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
+)
 
 app = typer.Typer()
 
@@ -124,6 +127,109 @@ def cli(
         )
 
 
+def validate_file(  # noqa: PLR0913
+    file: Path,
+    cv_source: Union[str, None],
+    write_in_drs: Union[Path, None],
+    xr_variable_processor: XRVariableProcessorLike,
+    frequency_metadata_keys: FrequencyMetadataKeys,
+    time_dimension: str,
+    allow_cf_checker_warnings: bool,
+) -> None:
+    """
+    Validate a file
+
+    Optionally, re-write the file in the DRS.
+
+    This is the direct Python API.
+    We expose this for two reasons:
+
+    1. to make it easier for those who want to use Python rather than the CLI
+    1. to ensure that we're passing all the CLI arguments correctly
+       (this function has no keyword arguments, so if we forget one, the CLI won't work)
+
+    Parameters
+    ----------
+    file
+        File to validate.
+
+    cv_source
+        The source from which to load the CVs.
+
+        For full details, see [`load_cvs`][input4mips_validation.cvs.load_cvs].
+
+    write_in_drs
+        If the file passes validation,
+        the root directory for writing the file in the DRS.
+
+        If `None`, the file is not written in the DRS,
+        irrespective of whether it passes validation or not.
+
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
+
+    frequency_metadata_keys
+        Metadata definitions for frequency information
+
+    time_dimension
+        The time dimension of the data
+
+    allow_cf_checker_warnings
+        Allow validation to pass, even if the CF-checker raises warnings?
+    """
+    get_validate_file_result(
+        file,
+        cv_source=cv_source,
+        xr_variable_processor=xr_variable_processor,
+        allow_cf_checker_warnings=allow_cf_checker_warnings,
+    ).raise_if_errors()
+
+    logger.success(f"File passed validation: {file}")
+
+    if write_in_drs is not None:
+        cvs = load_cvs(cv_source=cv_source)
+
+        ds = ds_from_iris_cubes(
+            iris.load(file),
+            xr_variable_processor=xr_variable_processor,
+        )
+
+        time_start, time_end = infer_time_start_time_end(
+            ds=ds,
+            frequency_metadata_key=frequency_metadata_keys.frequency_metadata_key,
+            no_time_axis_frequency=frequency_metadata_keys.no_time_axis_frequency,
+            time_dimension=time_dimension,
+        )
+
+        full_file_path = cvs.DRS.get_file_path(
+            root_data_dir=write_in_drs,
+            available_attributes=ds.attrs,
+            time_start=time_start,
+            time_end=time_end,
+        )
+
+        if full_file_path.exists():
+            logger.error("We will not overwrite existing files")
+            raise FileExistsError(full_file_path)
+
+        full_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if full_file_path.name != file.name:
+            logger.info(f"Re-writing {file} to {full_file_path}")
+            Input4MIPsDataset.from_ds(ds, cvs=cvs).write(
+                root_data_dir=write_in_drs,
+                frequency_metadata_keys=frequency_metadata_keys,
+                time_dimension=time_dimension,
+                xr_variable_processor=xr_variable_processor,
+            )
+
+        else:
+            logger.info(f"Copying {file} to {full_file_path}")
+            shutil.copy(file, full_file_path)
+
+        logger.success(f"File written according to the DRS in {full_file_path}")
+
+
 @app.command(name="validate-file")
 def validate_file_command(  # noqa: PLR0913
     file: Annotated[
@@ -168,55 +274,83 @@ def validate_file_command(  # noqa: PLR0913
         no_time_axis_frequency=no_time_axis_frequency,
     )
 
-    get_validate_file_result(
-        file,
+    validate_file(
+        file=file,
+        cv_source=cv_source,
+        write_in_drs=write_in_drs,
+        xr_variable_processor=xr_variable_processor,
+        frequency_metadata_keys=frequency_metadata_keys,
+        time_dimension=time_dimension,
+        allow_cf_checker_warnings=allow_cf_checker_warnings,
+    )
+
+
+def validate_tree(  # noqa: PLR0913
+    tree_root: Path,
+    cv_source: Union[str, None],
+    xr_variable_processor: XRVariableProcessorLike,
+    frequency_metadata_keys: FrequencyMetadataKeys,
+    time_dimension: str,
+    rglob_input: str,
+    allow_cf_checker_warnings: bool,
+    output_html: Union[Path, None],
+) -> None:
+    """
+    Validate a tree of files
+
+    Optionally, write the validation output out as HTML.
+
+    This is the direct Python API.
+    We expose this for two reasons:
+
+    1. to make it easier for those who want to use Python rather than the CLI
+    1. to ensure that we're passing all the CLI arguments correctly
+       (this function has no keyword arguments, so if we forget one, the CLI won't work)
+
+    Parameters
+    ----------
+    tree_root
+        The root of the tree of files to validate
+
+    cv_source
+        The source from which to load the CVs.
+
+        For full details, see [`load_cvs`][input4mips_validation.cvs.load_cvs].
+
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
+
+    frequency_metadata_keys
+        Metadata definitions for frequency information
+
+    time_dimension
+        The time dimension of the data
+
+    rglob_input
+        String to use when applying `rglob` to find input files
+
+    allow_cf_checker_warnings
+        Allow validation to pass, even if the CF-checker raises warnings?
+
+    output_html
+        If not `None`,
+        the file in which to dump the HTML version of the validation results.
+    """
+    vtrs = get_validate_tree_result(
+        root=tree_root,
         cv_source=cv_source,
         xr_variable_processor=xr_variable_processor,
+        frequency_metadata_keys=frequency_metadata_keys,
+        time_dimension=time_dimension,
+        rglob_input=rglob_input,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
-    ).raise_if_errors()
+    )
 
-    if write_in_drs:
-        cvs = load_cvs(cv_source=cv_source)
+    if output_html is not None:
+        with open(output_html, "w") as fh:
+            fh.write(vtrs.to_html())
 
-        ds = ds_from_iris_cubes(
-            iris.load(file),
-            xr_variable_processor=xr_variable_processor,
-        )
-
-        time_start, time_end = infer_time_start_time_end(
-            ds=ds,
-            frequency_metadata_key=frequency_metadata_keys.frequency_metadata_key,
-            no_time_axis_frequency=frequency_metadata_keys.no_time_axis_frequency,
-            time_dimension=time_dimension,
-        )
-
-        full_file_path = cvs.DRS.get_file_path(
-            root_data_dir=write_in_drs,
-            available_attributes=ds.attrs,
-            time_start=time_start,
-            time_end=time_end,
-        )
-
-        if full_file_path.exists():
-            logger.error("We will not overwrite existing files")
-            raise FileExistsError(full_file_path)
-
-        full_file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        if full_file_path.name != file.name:
-            logger.info(f"Re-writing {file} to {full_file_path}")
-            Input4MIPsDataset.from_ds(ds, cvs=cvs).write(
-                root_data_dir=write_in_drs,
-                frequency_metadata_keys=frequency_metadata_keys,
-                time_dimension=time_dimension,
-                xr_variable_processor=xr_variable_processor,
-            )
-
-        else:
-            logger.info(f"Copying {file} to {full_file_path}")
-            shutil.copy(file, full_file_path)
-
-        logger.success(f"File written according to the DRS in {full_file_path}")
+    vtrs.raise_if_errors()
 
 
 @app.command(name="validate-tree")
@@ -260,21 +394,16 @@ def validate_tree_command(  # noqa: PLR0913
         )
     )
 
-    vtrs = get_validate_tree_result(
-        root=tree_root,
+    validate_tree(
+        tree_root=tree_root,
         cv_source=cv_source,
         xr_variable_processor=xr_variable_processor,
         frequency_metadata_keys=frequency_metadata_keys,
         time_dimension=time_dimension,
         rglob_input=rglob_input,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
+        output_html=output_html,
     )
-
-    if output_html is not None:
-        with open(output_html, "w") as fh:
-            fh.write(vtrs.to_html())
-
-    vtrs.raise_if_errors()
 
 
 @app.command(name="upload-ftp")

@@ -33,7 +33,10 @@ from input4mips_validation.validation.database import (
     validate_database_entries,
     validate_tracking_ids_are_unique,
 )
-from input4mips_validation.xarray_helpers.variables import XRVariableHelper
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
+)
 
 app = typer.Typer()
 
@@ -157,44 +160,55 @@ def db_create_command(  # noqa: PLR0913
     )
 
 
-@app.command(name="add-tree")
-def db_add_tree_command(  # noqa: PLR0913
-    tree_root: Annotated[
-        Path,
-        typer.Argument(
-            help="The root of the tree from which to add entries to the database",
-            exists=True,
-            dir_okay=True,
-            file_okay=False,
-        ),
-    ],
-    db_dir: Annotated[
-        Path,
-        typer.Option(
-            help="The database's directory.",
-            dir_okay=True,
-            file_okay=False,
-            exists=True,
-        ),
-    ],
-    cv_source: CV_SOURCE_OPTION = None,
-    frequency_metadata_key: FREQUENCY_METADATA_KEY_OPTION = "frequency",
-    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
-    time_dimension: TIME_DIMENSION_OPTION = "time",
-    rglob_input: RGLOB_INPUT_OPTION = "*.nc",
-    n_processes: N_PROCESSES_OPTION = 1,
+def db_add_tree(  # noqa: PLR0913
+    tree_root: Path,
+    db_dir: Path,
+    cv_source: Union[str, None],
+    frequency_metadata_keys: FrequencyMetadataKeys,
+    time_dimension: str,
+    rglob_input: str,
+    n_processes: int,
 ) -> None:
     """
-    Add files from a tree to the database
-    """
-    frequency_metadata_keys = FrequencyMetadataKeys(
-        frequency_metadata_key=frequency_metadata_key,
-        no_time_axis_frequency=no_time_axis_frequency,
-    )
+    Add files from a tree to a database
 
+    This is the direct Python API.
+    We expose this for two reasons:
+
+    1. to make it easier for those who want to use Python rather than the CLI
+    1. to ensure that we're passing all the CLI arguments correctly
+       (this function has no keyword arguments, so if we forget one, the CLI won't work)
+
+    Parameters
+    ----------
+    tree_root
+        The root of the tree for which to create the database
+
+    db_dir
+        The directory in which to write the database entries
+
+    cv_source
+        The source from which to load the CVs.
+
+        For full details, see [`load_cvs`][input4mips_validation.cvs.load_cvs].
+
+    frequency_metadata_keys
+        Metadata definitions for frequency information
+
+    time_dimension
+        The time dimension of the data
+
+    rglob_input
+        String to use when applying `rglob` to find input files
+
+    n_processes
+        Number of parallel processes to use while creating the entries
+    """
     all_tree_files = set(tree_root.rglob(rglob_input))
+
     db_existing_entries = load_database_file_entries(db_dir)
     known_files = set([Path(v.filepath) for v in db_existing_entries])
+
     files_to_add = all_tree_files.difference(known_files)
 
     if not files_to_add:
@@ -223,8 +237,17 @@ def db_add_tree_command(  # noqa: PLR0913
     )
 
 
-@app.command(name="validate")
-def db_validate_command(  # noqa: PLR0913
+@app.command(name="add-tree")
+def db_add_tree_command(  # noqa: PLR0913
+    tree_root: Annotated[
+        Path,
+        typer.Argument(
+            help="The root of the tree from which to add entries to the database",
+            exists=True,
+            dir_okay=True,
+            file_okay=False,
+        ),
+    ],
     db_dir: Annotated[
         Path,
         typer.Option(
@@ -235,36 +258,81 @@ def db_validate_command(  # noqa: PLR0913
         ),
     ],
     cv_source: CV_SOURCE_OPTION = None,
-    bnds_coord_indicators: BNDS_COORD_INDICATORS_TYPE = "bnds;bounds",
     frequency_metadata_key: FREQUENCY_METADATA_KEY_OPTION = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
     time_dimension: TIME_DIMENSION_OPTION = "time",
-    allow_cf_checker_warnings: ALLOW_CF_CHECKER_WARNINGS_TYPE = False,
+    rglob_input: RGLOB_INPUT_OPTION = "*.nc",
     n_processes: N_PROCESSES_OPTION = 1,
-    force: Annotated[
-        bool,
-        typer.Option(
-            "--force",
-            help=(
-                "Force re-validation of all entries. "
-                "This means that any previous validation of the entries is ignored."
-            ),
-        ),
-    ] = False,
 ) -> None:
     """
-    Validate the entries in the database
+    Add files from a tree to a database
     """
-    xr_variable_processor = XRVariableHelper(
-        bounds_coord_indicators=tuple(
-            bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
-        )
-    )
     frequency_metadata_keys = FrequencyMetadataKeys(
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
     )
 
+    db_add_tree(
+        tree_root=tree_root,
+        db_dir=db_dir,
+        cv_source=cv_source,
+        frequency_metadata_keys=frequency_metadata_keys,
+        time_dimension=time_dimension,
+        rglob_input=rglob_input,
+        n_processes=n_processes,
+    )
+
+
+def db_validate(  # noqa: PLR0913
+    db_dir: Path,
+    cv_source: Union[str, None],
+    xr_variable_processor: XRVariableProcessorLike,
+    frequency_metadata_keys: FrequencyMetadataKeys,
+    time_dimension: str,
+    allow_cf_checker_warnings: bool,
+    n_processes: int,
+    force: bool,
+) -> None:
+    """
+    Validate the entries in a database
+
+    This is the direct Python API.
+    We expose this for two reasons:
+
+    1. to make it easier for those who want to use Python rather than the CLI
+    1. to ensure that we're passing all the CLI arguments correctly
+       (this function has no keyword arguments, so if we forget one, the CLI won't work)
+
+    Parameters
+    ----------
+    db_dir
+        The database's directory
+
+    cv_source
+        The source from which to load the CVs.
+
+        For full details, see [`load_cvs`][input4mips_validation.cvs.load_cvs].
+
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
+
+    frequency_metadata_keys
+        Metadata definitions for frequency information
+
+    time_dimension
+        The time dimension of the data
+
+    allow_cf_checker_warnings
+        Allow validation to pass, even if the CF-checker raises warnings?
+
+    n_processes
+        Number of parallel processes to use while creating the entries
+
+    force
+        Force validation to run on all files,
+        even those that have already been validated
+        (i.e. validation may be re-run on some files).
+    """
     db_existing_entries = load_database_file_entries(db_dir)
 
     # If tracking IDs aren't unique, we can fail immediately,
@@ -301,13 +369,69 @@ def db_validate_command(  # noqa: PLR0913
     update_database_file_entries(entries=validated_entries, db_dir=db_dir)
 
     if force:
-        logger.success(f"Re-validated all the entries in the database in {db_dir}")
+        msg = f"Re-validated all the entries in the database in {db_dir}"
 
     else:
-        logger.success(
+        msg = (
             "Validated the entries "
             f"which hadn't been validated in the database in {db_dir}"
         )
+
+    logger.success(msg)
+
+
+@app.command(name="validate")
+def db_validate_command(  # noqa: PLR0913
+    db_dir: Annotated[
+        Path,
+        typer.Option(
+            help="The database's directory.",
+            dir_okay=True,
+            file_okay=False,
+            exists=True,
+        ),
+    ],
+    cv_source: CV_SOURCE_OPTION = None,
+    bnds_coord_indicators: BNDS_COORD_INDICATORS_TYPE = "bnds;bounds",
+    frequency_metadata_key: FREQUENCY_METADATA_KEY_OPTION = "frequency",
+    no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
+    time_dimension: TIME_DIMENSION_OPTION = "time",
+    allow_cf_checker_warnings: ALLOW_CF_CHECKER_WARNINGS_TYPE = False,
+    n_processes: N_PROCESSES_OPTION = 1,
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            help=(
+                "Force re-validation of all entries. "
+                "This means that any previous validation of the entries is ignored."
+            ),
+        ),
+    ] = False,
+) -> None:
+    """
+    Validate the entries in a database
+    """
+    xr_variable_processor = XRVariableHelper(
+        bounds_coord_indicators=tuple(
+            bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
+        )
+    )
+    frequency_metadata_keys = FrequencyMetadataKeys(
+        frequency_metadata_key=frequency_metadata_key,
+        no_time_axis_frequency=no_time_axis_frequency,
+    )
+
+    db_validate(
+        db_dir=db_dir,
+        cv_source=cv_source,
+        xr_variable_processor=xr_variable_processor,
+        frequency_metadata_keys=frequency_metadata_keys,
+        time_dimension=time_dimension,
+        allow_cf_checker_warnings=allow_cf_checker_warnings,
+        n_processes=n_processes,
+        force=force,
+    )
 
 
 if __name__ == "__main__":

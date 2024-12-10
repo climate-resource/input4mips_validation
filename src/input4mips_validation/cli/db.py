@@ -6,7 +6,7 @@ CLI for database handling
 # from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Union
 
 import typer
 from loguru import logger
@@ -36,6 +36,76 @@ from input4mips_validation.validation.database import (
 from input4mips_validation.xarray_helpers.variables import XRVariableHelper
 
 app = typer.Typer()
+
+
+def db_create(  # noqa: PLR0913
+    tree_root: Path,
+    db_dir: Path,
+    cv_source: Union[str, None],
+    frequency_metadata_keys: FrequencyMetadataKeys,
+    time_dimension: str,
+    rglob_input: str,
+    n_processes: int,
+) -> None:
+    """
+    Create a database from a tree of files
+
+    This is the direct Python API.
+    We expose this for two reasons:
+
+    1. to make it easier for those who want to use Python rather than the CLI
+    1. to ensure that we're passing all the CLI arguments correctly
+       (this function has no keyword arguments, so if we forget one, the CLI won't work)
+
+    Parameters
+    ----------
+    tree_root
+        The root of the tree for which to create the database
+
+    db_dir
+        The directory in which to write the database entries
+
+    cv_source
+        The source from which to load the CVs.
+
+        For full details, see [`load_cvs`][input4mips_validation.cvs.load_cvs].
+
+    frequency_metadata_keys
+        Metadata definitions for frequency information
+
+    time_dimension
+        The time dimension of the data
+
+    rglob_input
+        String to use when applying `rglob` to find input files
+
+    n_processes
+        Number of parallel processes to use while creating the entries
+    """
+    if db_dir.exists():
+        msg = "The database directory must not already exist"
+        raise FileExistsError(msg)
+
+    logger.debug(f"Creating {db_dir}")
+    db_dir.mkdir(parents=True, exist_ok=False)
+
+    all_files = tuple(v for v in tree_root.rglob(rglob_input) if v.is_file())
+
+    db_entries = create_db_file_entries(
+        files=all_files,
+        cv_source=cv_source,
+        frequency_metadata_keys=frequency_metadata_keys,
+        time_dimension=time_dimension,
+        n_processes=n_processes,
+    )
+
+    logger.info(
+        f"Dumping the {len(db_entries)} created "
+        f"{'entry' if len(db_entries) == 1 else 'entries'} "
+        f"to the new database in {db_dir}"
+    )
+    dump_database_file_entries(entries=db_entries, db_dir=db_dir)
+    logger.success(f"Created new database in {db_dir}")
 
 
 @app.command(name="create")
@@ -76,25 +146,15 @@ def db_create_command(  # noqa: PLR0913
         no_time_axis_frequency=no_time_axis_frequency,
     )
 
-    all_files = [v for v in tree_root.rglob(rglob_input) if v.is_file()]
-
-    db_entries = create_db_file_entries(
-        files=all_files,
+    db_create(
+        tree_root=tree_root,
+        db_dir=db_dir,
         cv_source=cv_source,
         frequency_metadata_keys=frequency_metadata_keys,
         time_dimension=time_dimension,
+        rglob_input=rglob_input,
         n_processes=n_processes,
     )
-
-    logger.debug(f"Creating {db_dir}")
-    db_dir.mkdir(parents=True, exist_ok=False)
-    logger.info(
-        f"Dumping the {len(db_entries)} created "
-        f"{'entry' if len(db_entries) == 1 else 'entries'} "
-        f"to the new database in {db_dir}"
-    )
-    dump_database_file_entries(entries=db_entries, db_dir=db_dir)
-    logger.success(f"Created new database in {db_dir}")
 
 
 @app.command(name="add-tree")

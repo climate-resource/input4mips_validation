@@ -13,7 +13,10 @@ from input4mips_validation.validation.Conventions import validate_Conventions
 
 EXP_ERROR_MSG = "".join(
     [
-        re.escape("The `Conventions` attribute must be of the form 'CF-X.Y'."),
+        re.escape(
+            "The `Conventions` attribute must be of the form 'CF-X.Y', "
+            r"i.e. match the regular expression 'CF-[0-9]*\\.[0-9]*'. ",
+        ),
         r"Received Conventions='.*'\.",
     ]
 )
@@ -29,6 +32,11 @@ EXP_ERROR_MSG = "".join(
         ),
         pytest.param(
             "CF-1.7",
+            does_not_raise(),
+            id="valid_value",
+        ),
+        pytest.param(
+            "CF-10.70",
             does_not_raise(),
             id="valid_value",
         ),

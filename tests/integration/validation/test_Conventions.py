@@ -6,18 +6,19 @@ from __future__ import annotations
 
 import re
 
+import iris
+import ncdata.iris
+import netCDF4
 import pytest
 
 from input4mips_validation.testing import (
     get_valid_out_path_and_disk_ready_ds,
 )
-from input4mips_validation.validation.datasets_to_write_to_disk import (
-    get_ds_to_write_to_disk_validation_result,
-)
 from input4mips_validation.validation.error_catching import ValidationResultsStoreError
+from input4mips_validation.validation.file import get_validate_file_result
 
 
-def test_invalid_Conventions_raises(test_cvs):
+def test_invalid_Conventions_raises(test_cvs, tmpdir):
     """
     Test that an invalid value raises
 
@@ -30,11 +31,26 @@ def test_invalid_Conventions_raises(test_cvs):
         cv_source=test_cvs
     )
 
-    valid_disk_ready_ds.attrs["Conventions"] = invalid_value
+    cubes = ncdata.iris_xarray.cubes_from_xarray(valid_disk_ready_ds)
 
-    res = get_ds_to_write_to_disk_validation_result(
-        valid_disk_ready_ds,
-        out_path=out_path,
+    # Have to write file to disk as Conventions disappear on load
+    filename = "test.nc"
+    tmp_file = tmpdir / filename
+
+    # Write the file to disk
+    iris.save(
+        cubes,
+        str(tmp_file),
+        unlimited_dimensions=("time",),
+    )
+
+    # Edit the file
+    ds = netCDF4.Dataset(tmp_file, "a")
+    ds.setncattr("Conventions", invalid_value)
+    ds.close()
+
+    res = get_validate_file_result(
+        tmp_file,
         cvs=test_cvs,
     )
 
@@ -43,16 +59,31 @@ def test_invalid_Conventions_raises(test_cvs):
         res.raise_if_errors()
 
 
-def test_no_Conventions_raises(test_cvs):
+def test_no_Conventions_raises(test_cvs, tmpdir):
     out_path, valid_disk_ready_ds = get_valid_out_path_and_disk_ready_ds(
         cv_source=test_cvs
     )
 
-    valid_disk_ready_ds.attrs.pop("Conventions")
+    cubes = ncdata.iris_xarray.cubes_from_xarray(valid_disk_ready_ds)
 
-    res = get_ds_to_write_to_disk_validation_result(
-        valid_disk_ready_ds,
-        out_path=out_path,
+    # Have to write file to disk as Conventions disappear on load
+    filename = "test.nc"
+    tmp_file = tmpdir / filename
+
+    # Write the file to disk
+    iris.save(
+        cubes,
+        str(tmp_file),
+        unlimited_dimensions=("time",),
+    )
+
+    # Edit the file
+    ds = netCDF4.Dataset(tmp_file, "a")
+    ds.delncattr("Conventions")
+    ds.close()
+
+    res = get_validate_file_result(
+        tmp_file,
         cvs=test_cvs,
     )
 

@@ -9,7 +9,7 @@ from input4mips_validation.validation.regexp import (
     validate_matches_regexp,
 )
 
-REGEXP_TO_MATCH: str = r"CF-[0-9]*\.[0-9]*"
+REGEXP_TO_MATCH: str = r"CF-[0-9]+\.[0-9]+"
 """
 Regular expression that the Conventions attribute must match
 

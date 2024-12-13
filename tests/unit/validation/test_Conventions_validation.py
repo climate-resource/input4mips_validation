@@ -15,7 +15,7 @@ EXP_ERROR_MSG = "".join(
     [
         re.escape(
             "The `Conventions` attribute must be of the form 'CF-X.Y', "
-            r"i.e. match the regular expression 'CF-[0-9]*\\.[0-9]*'. ",
+            r"i.e. match the regular expression 'CF-[0-9]+\\.[0-9]+'. ",
         ),
         r"Received Conventions='.*'\.",
     ]

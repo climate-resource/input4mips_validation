@@ -13,6 +13,9 @@ from typing import Union
 import xarray as xr
 from loguru import logger
 
+from input4mips_validation.validation.Conventions import validate_Conventions
+from input4mips_validation.validation.error_catching import MissingAttributeError
+
 
 def only_cf_checker_warnings_raised(cf_checker_output: str) -> bool:
     """
@@ -57,7 +60,10 @@ def only_cf_checker_warnings_raised(cf_checker_output: str) -> bool:
 
 
 def check_with_cf_checker(
-    filepath: Path | str, ds: xr.Dataset, no_raise_if_only_warnings: bool = False
+    filepath: Path | str,
+    ds: xr.Dataset,
+    no_raise_if_only_warnings: bool = False,
+    conventions_attribute: str = "Conventions",
 ) -> None:
     """
     Check a file with the cf-checker
@@ -76,6 +82,12 @@ def check_with_cf_checker(
     no_raise_if_only_warnings
         If `True`, no error is raised if the CF-checker only raises warnings.
 
+    conventions_attribute
+        The attribute which contains the conventions information used by cf-checker.
+
+        We provide this as an argument just in case,
+        it is very likely that you will want to change this.
+
     Raises
     ------
     ValueError
@@ -85,19 +97,20 @@ def check_with_cf_checker(
         If `no_raise_if_only_warnings` is `True`, an error is raised
         if the CF-checker found any errors, excluding warnings.
     """
-    conventions_match = re.match(
-        r"CF-(?P<conventions_id>[0-9\.]+).*", ds.attrs["Conventions"]
-    )
-    if not conventions_match:
-        msg = (
-            "Cannot extract CF conventions from Conventions metadata. "
-            f"{ds.attrs['Conventions']=}"
-        )
-        raise ValueError(msg)
+    if conventions_attribute not in ds.attrs:
+        raise MissingAttributeError(conventions_attribute)
+
+    Conventions = ds.attrs[conventions_attribute]
+    validate_Conventions(Conventions)
+
+    conventions_match = re.match(r"CF-(?P<conventions_id>[0-9]+\.[0-9]+)", Conventions)
 
     cf_conventions = conventions_match.group("conventions_id").strip()
     if cf_conventions is None:  # pragma: no cover
-        msg = f"Somehow failed to get the conventions from {ds.attrs['Conventions']=}"
+        msg = (
+            "Somehow failed to get the conventions from "
+            f"{ds.attrs[conventions_attribute]=}"
+        )
         raise AssertionError(msg)
 
     cf_checks_loc = shutil.which("cfchecks")

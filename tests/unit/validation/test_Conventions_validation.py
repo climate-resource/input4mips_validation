@@ -52,6 +52,6 @@ EXP_ERROR_MSG = "".join(
         ),
     ),
 )
-def test_valid_passes(Conventions, expectation):
+def test_Conventions_validation(Conventions, expectation):
     with expectation:
         validate_Conventions(Conventions)

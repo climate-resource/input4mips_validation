@@ -134,6 +134,10 @@ def get_ds_to_write_to_disk_validation_result(
     ds_variables = xr_variable_processor.get_ds_variables(
         ds=ds,
     )
+
+    # Creation and use in same function.
+    # This is quite a high-level function though,
+    # so we are ok with this (slight anti-pattern) here.
     for attribute, validation_function in (
         ("creation_date", validate_creation_date),
         ("tracking_id", validate_tracking_id),
@@ -149,5 +153,10 @@ def get_ds_to_write_to_disk_validation_result(
             validate_attribute,
             func_description=f"Validate the {attribute!r} attribute",
         )(ds, attribute, validation_function)
+
+    vrs.wrap(
+        validate_filename_metadata_consistency,
+        func_description=f"Validate consistency between the filename and the metadata",
+    )(ds, out_path.name)
 
     return vrs

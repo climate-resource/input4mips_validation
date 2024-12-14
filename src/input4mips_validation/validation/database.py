@@ -175,6 +175,7 @@ def get_validate_database_file_entry_result(  # noqa: PLR0913
     )
 
     vrs.wrap(
+        # Might become redundant
         cvs.DRS.validate_file_written_according_to_drs,
         func_description="Validate file written according to the DRS",
     )(

@@ -466,6 +466,7 @@ def get_validate_tree_result(  # noqa: PLR0913
 
         else:
             validate_file_result.wrap(
+                # Might become redundant as the check is done in get_validate_file_result
                 cvs.DRS.validate_file_written_according_to_drs,
                 func_description="Check file is written according to the DRS",
             )(

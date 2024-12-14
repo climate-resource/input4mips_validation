@@ -534,6 +534,52 @@ class DataReferenceSyntax:
 
         return capturing_regexp
 
+    def validate_filename_is_consistent_with_the_drs(
+        self,
+        ds: xr.Dataset,
+        filename: str,
+        frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
+        time_dimension: str = "time",
+    ) -> None:
+        breakpoint()
+        filename_extracted_values = self.extract_metadata_from_filename(filename)
+
+        expected_values = self.get_filename_substitutions(ds, frequency_metadata_keys)
+
+        mismatches = {}
+        for drs_component, filename_value in filename_extracted_values.items():
+            if filename_value is None:
+                # No info in filename, because e.g. key was optional
+                continue
+
+            expected_value = expected_values[drs_component]
+
+            if filename_value != expected_value:
+                mismatches[drs_component] = {
+                    "filename": filename_value,
+                    "expected_based_on_metadata": expected_value,
+                }
+
+        if mismatches:
+            filename_expected = self.make_filename(substitutions=expected_values)
+            msg_l = [
+                "Filename is not in line with the DRS.",
+                f"{filename=}.",
+                f"{filename_expected=}",
+            ]
+            for component, info in mismatches.items():
+                msg_component = (
+                    f"Mismatch for {component}. "
+                    f"Filename value: {info['filename']=!r}. "
+                    "Value expected based on the metadata: "
+                    f"{info['expected_based_on_metadata']=!r}"
+                )
+                msg_l.append(msg_component)
+
+            msg = "\n".join(msg_l)
+            raise ValueError(msg)
+
+    # TODO: might become redundant
     def validate_file_written_according_to_drs(
         self,
         file: Path,

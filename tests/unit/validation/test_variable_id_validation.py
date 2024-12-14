@@ -105,6 +105,6 @@ EXP_ERROR_MSG_INVALID_CHARS_MULTIPLE_VAR = "".join(
         ),
     ),
 )
-def test_valid_passes(variable_name, variable_id, expectation):
+def test_variable_id_validation(variable_name, variable_id, expectation):
     with expectation:
         validate_variable_id(variable_id, ds_variables=variable_name)

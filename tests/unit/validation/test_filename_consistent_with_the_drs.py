@@ -24,7 +24,7 @@ EXP_ERROR_MSG = "".join(
 
 
 @pytest.mark.parametrize(
-    "filename, ds_attrs_mods, expectation",
+    "filename, metadata_mods, expectation",
     (
         pytest.param(
             "hdl:21.14100/e3385e8c-08d9-4524-8377-49feb3eaa05e",
@@ -40,8 +40,8 @@ EXP_ERROR_MSG = "".join(
         ),
     ),
 )
-def test_filename_consistent_with_drs_validation(filename, ds_attrs_mods, expectation):
-    if ds_attrs_mods is not None:
+def test_filename_consistent_with_drs_validation(filename, metadata_mods, expectation):
+    if metadata_mods is not None:
         raise NotImplementedError()
 
     with expectation:

@@ -50,6 +50,7 @@ from input4mips_validation.inference.from_data import (
     create_time_range,
     infer_time_start_time_end,
 )
+from input4mips_validation.metadata import Input4MIPsDatasetMetadata
 from input4mips_validation.serialisation import converter_json
 
 DATA_REFERENCE_SYNTAX_FILENAME: str = "input4MIPs_DRS.json"
@@ -536,15 +537,27 @@ class DataReferenceSyntax:
 
     def validate_filename_is_consistent_with_the_drs(
         self,
-        ds: xr.Dataset,
         filename: str,
-        frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
-        time_dimension: str = "time",
+        metadata: Input4MIPsDatasetMetadata,
     ) -> None:
+        # Create all metadata entries before coming here.
+        # DRS is just about putting metadata into file paths and filenames.
+        # Remove confusion about where the info that is used by the DRS can come from.
+        # It all comes from 'metadata' (of a form that can be put in a database).
+        # Don't have this confusing thing of some elements coming from metadata
+        # and some coming from attributes.
+        # That will require:
+        # - adding some fields to Input4MIPsDatasetMetadata
+        # - adding a to_metadata method to Input4MIPsDataset
+        # - adding ds_to_metadata function to take an xarray dataset
+        #   and convert it to Input4MIPsDatasetMetadata
+        #   (the need for this function shows the slightly
+        #   confused origins of Input4MIPsDatasetMetadata,
+        #   i.e. the information comes both from data and true metadata)
         breakpoint()
         filename_extracted_values = self.extract_metadata_from_filename(filename)
 
-        expected_values = self.get_filename_substitutions(ds, frequency_metadata_keys)
+        expected_values = self.get_filename_substitutions(metadata)
 
         mismatches = {}
         for drs_component, filename_value in filename_extracted_values.items():

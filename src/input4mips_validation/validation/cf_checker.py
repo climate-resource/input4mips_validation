@@ -104,8 +104,11 @@ def check_with_cf_checker(
     validate_Conventions(Conventions)
 
     conventions_match = re.match(r"CF-(?P<conventions_id>[0-9]+\.[0-9]+)", Conventions)
+    if conventions_match is not None:
+        cf_conventions = conventions_match.group("conventions_id").strip()
+    else:
+        cf_conventions = None
 
-    cf_conventions = conventions_match.group("conventions_id").strip()
     if cf_conventions is None:  # pragma: no cover
         msg = (
             "Somehow failed to get the conventions from "

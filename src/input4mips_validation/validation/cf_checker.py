@@ -86,7 +86,7 @@ def check_with_cf_checker(
         The attribute which contains the conventions information used by cf-checker.
 
         We provide this as an argument just in case,
-        it is very likely that you will want to change this.
+        it is very unlikely that you will want to change this.
 
     Raises
     ------

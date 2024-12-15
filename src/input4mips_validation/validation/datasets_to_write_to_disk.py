@@ -98,6 +98,49 @@ def validate_attribute(
     validation_function(attribute_value)
 
 
+def validate_attribute_that_depends_on_other_attribute(
+    ds: xr.Dataset,
+    attribute: str,
+    attribute_dependent_on: str,
+    validation_function: Callable[[str, str], None],
+) -> None:
+    """
+    Validate an attribute of the dataset that depends on another attribute's value
+
+    A convenience function so we get sensible error messages,
+    even if one of the attributes isn't provided by the dataset.
+
+    Parameters
+    ----------
+    ds
+        Dataset to validate
+
+    attribute
+        Attribute of `ds` to validate
+
+    attribute_dependent_on
+        Attribute of `ds` that the value of `attribute` depends on
+
+    validation_function
+        Function to use to validate the value of `attribute`,
+        given the value of `attribute_dependent_on`
+
+    Raises
+    ------
+    MissingAttributeError
+        `attribute` or `attribute_dependent_on` is not in `ds`'s attributes
+    """
+    if attribute not in ds.attrs:
+        raise MissingAttributeError(attribute)
+
+    if attribute_dependent_on not in ds.attrs:
+        raise MissingAttributeError(attribute_dependent_on)
+
+    attribute_value = str(ds.attrs[attribute])
+    attribute_dependent_on_value = str(ds.attrs[attribute_dependent_on])
+    validation_function(attribute_value, attribute_dependent_on_value)
+
+
 def get_ds_to_write_to_disk_validation_result(
     ds: xr.Dataset,
     out_path: Path,
@@ -167,8 +210,6 @@ def get_ds_to_write_to_disk_validation_result(
         ),
     )
 
-    # Metadata that is defined by the combination of other metadata and the CVs
-
     for attribute, validation_function in (
         *verification_standalone,
         *verification_based_on_data,
@@ -178,5 +219,21 @@ def get_ds_to_write_to_disk_validation_result(
             validate_attribute,
             func_description=f"Validate the {attribute!r} attribute",
         )(ds, attribute, validation_function)
+
+    # Metadata that is defined by the combination of other metadata and the CVs
+    verification_defined_by_cvs_and_other_metadata = (
+        (
+            "source_version",
+            "source_id",
+            cvs.validate_source_version,
+        ),
+    )
+    for attribute, attribute_dependent_on, validation_function_dependents in (
+        *verification_defined_by_cvs_and_other_metadata,
+    ):
+        vrs.wrap(
+            validate_attribute_that_depends_on_other_attribute,
+            func_description=f"Validate the {attribute!r} attribute",
+        )(ds, attribute, attribute_dependent_on, validation_function_dependents)
 
     return vrs

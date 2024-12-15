@@ -8,7 +8,10 @@ from attrs import define
 
 from input4mips_validation.cvs.activity_id import ActivityIDEntries
 from input4mips_validation.cvs.drs import DataReferenceSyntax
-from input4mips_validation.cvs.exceptions import ValueNotAllowedByCVsError
+from input4mips_validation.cvs.exceptions import (
+    ValueInconsistentWithCVsError,
+    ValueNotAllowedByCVsError,
+)
 from input4mips_validation.cvs.license import LicenseEntries
 from input4mips_validation.cvs.loading_raw import RawCVLoader
 from input4mips_validation.cvs.source_id import SourceIDEntries
@@ -97,4 +100,37 @@ class Input4MIPsCVs:
                 cv_component="activity_id",
                 cv_allowed_values=self.activity_id_entries.activity_ids,
                 cv_entries=self.activity_id_entries.entries,
+            )
+
+    def validate_source_version(self, value: str, source_id: str) -> None:
+        """
+        Validate that a value of source version is valid
+
+        Parameters
+        ----------
+        value
+            Value to validate
+
+        source_id
+            Source ID value
+
+            This is required because the source ID defines
+            what the expected value of source_version is.
+
+        Raises
+        ------
+        ValueInconsistentWithCVsError
+            The provided value is not the correct value according to the CVs
+            and the value of `source_id`.
+        """
+        cv_source_id_entry = self.source_id_entries[source_id]
+        expected_value = cv_source_id_entry.values.source_version
+
+        if value != expected_value:
+            raise ValueInconsistentWithCVsError(
+                value=value,
+                expected_value=expected_value,
+                cv_component="source_version",
+                cv_component_dependent_on="source_id",
+                cv_entry_dependenty_component=cv_source_id_entry,
             )

@@ -131,12 +131,21 @@ def get_ds_to_write_to_disk_validation_result(
     if vrs is None:
         vrs = ValidationResultsStore()
 
+    # Metadata that can be validated standalone
+    for attribute, validation_function in (
+        ("creation_date", validate_creation_date),
+        ("tracking_id", validate_tracking_id),
+    ):
+        vrs.wrap(
+            validate_attribute,
+            func_description=f"Validate the {attribute!r} attribute",
+        )(ds, attribute, validation_function)
+
+    # Metadata that depends on the data
     ds_variables = xr_variable_processor.get_ds_variables(
         ds=ds,
     )
     for attribute, validation_function in (
-        ("creation_date", validate_creation_date),
-        ("tracking_id", validate_tracking_id),
         (
             "variable_id",
             partial(
@@ -149,5 +158,10 @@ def get_ds_to_write_to_disk_validation_result(
             validate_attribute,
             func_description=f"Validate the {attribute!r} attribute",
         )(ds, attribute, validation_function)
+
+    # Metadata that has to be consistent with the CVs,
+    # but is not defined by the CVs
+
+    # Metadata that is defined by the combination of other metadata and the CVs
 
     return vrs

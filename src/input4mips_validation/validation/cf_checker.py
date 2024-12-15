@@ -14,7 +14,7 @@ import xarray as xr
 from loguru import logger
 
 from input4mips_validation.validation.Conventions import validate_Conventions
-from input4mips_validation.validation.error_catching import MissingAttributeError
+from input4mips_validation.validation.exceptions import MissingAttributeError
 
 
 def only_cf_checker_warnings_raised(cf_checker_output: str) -> bool:

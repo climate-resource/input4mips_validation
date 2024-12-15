@@ -62,6 +62,6 @@ EXP_ERROR_MSG = "".join(
         ),
     ),
 )
-def test_valid_passes(creation_date, expectation):
+def test_creation_date_validation(creation_date, expectation):
     with expectation:
         validate_creation_date(creation_date)

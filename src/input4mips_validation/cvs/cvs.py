@@ -8,6 +8,7 @@ from attrs import define
 
 from input4mips_validation.cvs.activity_id import ActivityIDEntries
 from input4mips_validation.cvs.drs import DataReferenceSyntax
+from input4mips_validation.cvs.exceptions import ValueNotAllowedByCVsError
 from input4mips_validation.cvs.license import LicenseEntries
 from input4mips_validation.cvs.loading_raw import RawCVLoader
 from input4mips_validation.cvs.source_id import SourceIDEntries
@@ -76,3 +77,24 @@ class Input4MIPsCVs:
 
     # tracking_id_regexp: str | regexp
     # """Regular expression which files' tracking IDs must match"""
+    def validate_activity_id(self, value: str) -> None:
+        """
+        Validate that a value of activity ID is valid
+
+        Parameters
+        ----------
+        value
+            Value to validate
+
+        Raises
+        ------
+        ValueNotAllowedByCVsError
+            The provided value is not allowed by the CVs
+        """
+        if value not in self.activity_id_entries.activity_ids:
+            raise ValueNotAllowedByCVsError(
+                value=value,
+                cv_component="activity_id",
+                cv_allowed_values=self.activity_id_entries.activity_ids,
+                cv_entries=self.activity_id_entries.entries,
+            )

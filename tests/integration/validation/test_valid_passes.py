@@ -1,5 +1,5 @@
 """
-This acts as a canary
+This acts as a canary.
 
 If these tests fail, lots of other things will likely go wrong.
 """

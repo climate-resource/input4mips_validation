@@ -51,6 +51,6 @@ EXP_ERROR_MSG = "".join(
         ),
     ),
 )
-def test_valid_passes(tracking_id, expectation):
+def test_tracking_id_validation(tracking_id, expectation):
     with expectation:
         validate_tracking_id(tracking_id)

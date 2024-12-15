@@ -1,5 +1,5 @@
 """
-Integration tests of the Conventions attribute
+Integration tests of the Conventions attribute validation
 """
 
 from __future__ import annotations

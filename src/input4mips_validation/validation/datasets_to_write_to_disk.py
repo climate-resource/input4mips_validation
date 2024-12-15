@@ -13,8 +13,10 @@ import xarray as xr
 from input4mips_validation.cvs import Input4MIPsCVs
 from input4mips_validation.validation.creation_date import validate_creation_date
 from input4mips_validation.validation.error_catching import (
-    MissingAttributeError,
     ValidationResultsStore,
+)
+from input4mips_validation.validation.exceptions import (
+    MissingAttributeError,
 )
 from input4mips_validation.validation.tracking_id import validate_tracking_id
 from input4mips_validation.validation.variable_id import validate_variable_id
@@ -82,7 +84,12 @@ def validate_attribute(
         Attribute of `ds` to validate
 
     validation_function
-        Functino to use to validate the value of `attribute`
+        Function to use to validate the value of `attribute`
+
+    Raises
+    ------
+    MissingAttributeError
+        `attribute` is not in `ds`'s attributes
     """
     if attribute not in ds.attrs:
         raise MissingAttributeError(attribute)
@@ -131,12 +138,17 @@ def get_ds_to_write_to_disk_validation_result(
     if vrs is None:
         vrs = ValidationResultsStore()
 
+    # Metadata that can be validated standalone
+    verification_standalone = (
+        ("creation_date", validate_creation_date),
+        ("tracking_id", validate_tracking_id),
+    )
+
+    # Metadata that depends on the data
     ds_variables = xr_variable_processor.get_ds_variables(
         ds=ds,
     )
-    for attribute, validation_function in (
-        ("creation_date", validate_creation_date),
-        ("tracking_id", validate_tracking_id),
+    verification_based_on_data = (
         (
             "variable_id",
             partial(
@@ -144,6 +156,23 @@ def get_ds_to_write_to_disk_validation_result(
                 ds_variables=ds_variables,
             ),
         ),
+    )
+
+    # Metadata that has to be consistent with the CVs,
+    # but is not defined by the CVs
+    verification_must_be_in_cvs = (
+        (
+            "activity_id",
+            cvs.validate_activity_id,
+        ),
+    )
+
+    # Metadata that is defined by the combination of other metadata and the CVs
+
+    for attribute, validation_function in (
+        *verification_standalone,
+        *verification_based_on_data,
+        *verification_must_be_in_cvs,
     ):
         vrs.wrap(
             validate_attribute,

@@ -1,5 +1,5 @@
 """
-Integration tests of the creation date
+Integration tests of the creation date validation
 """
 
 from __future__ import annotations

@@ -1,5 +1,5 @@
 """
-Integration tests of the tracking ID
+Integration tests of the tracking ID validation
 """
 
 from __future__ import annotations

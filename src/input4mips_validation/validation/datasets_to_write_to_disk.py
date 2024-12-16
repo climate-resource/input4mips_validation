@@ -183,16 +183,10 @@ def get_ds_to_write_to_disk_validation_result(
         vrs = ValidationResultsStore()
 
     # Metadata that can be validated standalone
-    verification_standalone_l = [
+    verification_standalone = (
         ("creation_date", validate_creation_date),
         ("tracking_id", validate_tracking_id),
-    ]
-    # Optional attributes
-    for optional_attr, verification_func in (("comment", validate_comment),):
-        if optional_attr in ds.attrs:
-            verification_standalone_l.append((optional_attr, verification_func))
-
-    verification_standalone = tuple(verification_standalone_l)
+    )
 
     # Metadata that depends on the data
     ds_variables = xr_variable_processor.get_ds_variables(
@@ -226,6 +220,16 @@ def get_ds_to_write_to_disk_validation_result(
             validate_attribute,
             func_description=f"Validate the {attribute!r} attribute",
         )(ds, attribute, validation_function)
+
+    # Optional attributes
+    for attribute_optional, validation_function_optional in (
+        ("comment", validate_comment),
+    ):
+        if attribute_optional in ds.attrs:
+            vrs.wrap(
+                validate_attribute,
+                func_description=f"Validate the {attribute_optional!r} attribute",
+            )(ds, attribute_optional, validation_function_optional)
 
     # Metadata that is defined by the combination of other metadata and the CVs
     verification_defined_by_cvs_and_other_metadata = (

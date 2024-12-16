@@ -20,5 +20,7 @@ def validate_comment(comment: str) -> None:
         `comment`'s value is not a string
     """
     if not isinstance(comment, str):
-        msg = f"The `comment` attribute must be a string, received {comment=!r}."
+        msg = (  # type: ignore[unreachable]
+            f"The `comment` attribute must be a string, received {comment=!r}."
+        )
         raise TypeError(msg)

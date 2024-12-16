@@ -11,6 +11,7 @@ from typing import Callable, Union
 import xarray as xr
 
 from input4mips_validation.cvs import Input4MIPsCVs
+from input4mips_validation.validation.comment import validate_comment
 from input4mips_validation.validation.creation_date import validate_creation_date
 from input4mips_validation.validation.error_catching import (
     ValidationResultsStore,
@@ -94,7 +95,7 @@ def validate_attribute(
     if attribute not in ds.attrs:
         raise MissingAttributeError(attribute)
 
-    attribute_value = str(ds.attrs[attribute])
+    attribute_value = ds.attrs[attribute]
     validation_function(attribute_value)
 
 
@@ -136,8 +137,8 @@ def validate_attribute_that_depends_on_other_attribute(
     if attribute_dependent_on not in ds.attrs:
         raise MissingAttributeError(attribute_dependent_on)
 
-    attribute_value = str(ds.attrs[attribute])
-    attribute_dependent_on_value = str(ds.attrs[attribute_dependent_on])
+    attribute_value = ds.attrs[attribute]
+    attribute_dependent_on_value = ds.attrs[attribute_dependent_on]
     validation_function(attribute_value, attribute_dependent_on_value)
 
 
@@ -182,10 +183,16 @@ def get_ds_to_write_to_disk_validation_result(
         vrs = ValidationResultsStore()
 
     # Metadata that can be validated standalone
-    verification_standalone = (
+    verification_standalone_l = [
         ("creation_date", validate_creation_date),
         ("tracking_id", validate_tracking_id),
-    )
+    ]
+    # Optional attributes
+    for optional_attr, verification_func in (("comment", validate_comment),):
+        if optional_attr in ds.attrs:
+            verification_standalone_l.append((optional_attr, verification_func))
+
+    verification_standalone = tuple(verification_standalone_l)
 
     # Metadata that depends on the data
     ds_variables = xr_variable_processor.get_ds_variables(

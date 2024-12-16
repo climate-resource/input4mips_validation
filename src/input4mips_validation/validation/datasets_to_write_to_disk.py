@@ -223,6 +223,11 @@ def get_ds_to_write_to_disk_validation_result(
     # Metadata that is defined by the combination of other metadata and the CVs
     verification_defined_by_cvs_and_other_metadata = (
         (
+            "contact",
+            "source_id",
+            cvs.validate_contact,
+        ),
+        (
             "source_version",
             "source_id",
             cvs.validate_source_version,

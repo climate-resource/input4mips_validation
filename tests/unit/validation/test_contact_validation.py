@@ -22,7 +22,7 @@ EXP_ERROR_MSG = "".join(
     "contact, source_id, expectation",
     (
         pytest.param(
-            "0.2.0",
+            "zebedee.nicholls@climate-resource.com;malte.meinshausen@climate-resource.com",
             "CR-CMIP-0-2-0",
             does_not_raise(),
             id="valid_value",

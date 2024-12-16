@@ -141,9 +141,10 @@ start_iris
 # ### Getting more detail
 #
 # In this case, our file has failed validation.
-# We can see that there are two checks which failed:
+# We can see that there are three checks which failed:
 #
 # - the check with the cf-checker
+# - the check of the "contact" attribute
 # - the check of the "tracking_id" attribute
 #
 # To find out exactly why this failed,
@@ -165,6 +166,7 @@ start_iris
 # - the "external_variables" attribute is formatted incorrectly
 # - the "standard_name" assigned to the variable doesn't exist
 # - the "cell_measures" variable appears to be missing
+# - the value of the "contact" attribute is wrong
 # - the "tracking_id" attribute is missing
 #
 # We will go through what these mean in the next paragraph.
@@ -212,6 +214,10 @@ start_iris
 
 # %% editable=true slideshow={"slide_type": ""}
 fixed = xr.open_dataset(starting_file)
+# Fix the contact information
+fixed.attrs[
+    "contact"
+] = "zebedee.nicholls@climate-resource.com;malte.meinshausen@climate-resource.com"
 # Fix the whitespace issue in external_variables
 fixed.attrs["external_variables"] = fixed.attrs["external_variables"].replace(",", " ")
 # Convert long_name to standard_name

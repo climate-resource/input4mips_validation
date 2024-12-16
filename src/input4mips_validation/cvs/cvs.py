@@ -102,6 +102,39 @@ class Input4MIPsCVs:
                 cv_entries=self.activity_id_entries.entries,
             )
 
+    def validate_contact(self, value: str, source_id: str) -> None:
+        """
+        Validate that a value of contact is valid
+
+        Parameters
+        ----------
+        value
+            Value to validate
+
+        source_id
+            Source ID value
+
+            This is required because the source ID defines
+            what the expected value of contact is.
+
+        Raises
+        ------
+        ValueInconsistentWithCVsError
+            The provided value is not the correct value according to the CVs
+            and the value of `source_id`.
+        """
+        cv_source_id_entry = self.source_id_entries[source_id]
+        expected_value = cv_source_id_entry.values.contact
+
+        if value != expected_value:
+            raise ValueInconsistentWithCVsError(
+                value=value,
+                expected_value=expected_value,
+                cv_component="contact",
+                cv_component_dependent_on="source_id",
+                cv_entry_dependenty_component=cv_source_id_entry,
+            )
+
     def validate_source_version(self, value: str, source_id: str) -> None:
         """
         Validate that a value of source version is valid

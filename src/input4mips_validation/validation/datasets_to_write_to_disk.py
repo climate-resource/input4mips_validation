@@ -11,6 +11,7 @@ from typing import Callable, Union
 import xarray as xr
 
 from input4mips_validation.cvs import Input4MIPsCVs
+from input4mips_validation.validation.comment import validate_comment
 from input4mips_validation.validation.creation_date import validate_creation_date
 from input4mips_validation.validation.error_catching import (
     ValidationResultsStore,
@@ -94,7 +95,7 @@ def validate_attribute(
     if attribute not in ds.attrs:
         raise MissingAttributeError(attribute)
 
-    attribute_value = str(ds.attrs[attribute])
+    attribute_value = ds.attrs[attribute]
     validation_function(attribute_value)
 
 
@@ -136,8 +137,8 @@ def validate_attribute_that_depends_on_other_attribute(
     if attribute_dependent_on not in ds.attrs:
         raise MissingAttributeError(attribute_dependent_on)
 
-    attribute_value = str(ds.attrs[attribute])
-    attribute_dependent_on_value = str(ds.attrs[attribute_dependent_on])
+    attribute_value = ds.attrs[attribute]
+    attribute_dependent_on_value = ds.attrs[attribute_dependent_on]
     validation_function(attribute_value, attribute_dependent_on_value)
 
 
@@ -219,6 +220,16 @@ def get_ds_to_write_to_disk_validation_result(
             validate_attribute,
             func_description=f"Validate the {attribute!r} attribute",
         )(ds, attribute, validation_function)
+
+    # Optional attributes
+    for attribute_optional, validation_function_optional in (
+        ("comment", validate_comment),
+    ):
+        if attribute_optional in ds.attrs:
+            vrs.wrap(
+                validate_attribute,
+                func_description=f"Validate the {attribute_optional!r} attribute",
+            )(ds, attribute_optional, validation_function_optional)
 
     # Metadata that is defined by the combination of other metadata and the CVs
     verification_defined_by_cvs_and_other_metadata = (

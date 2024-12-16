@@ -216,30 +216,35 @@ For the comments that were made at the time of writing the file, see `comment`.
         docstring="The file's category",
         comments=["TODO: validation", "Should be in CVs"],
     ),
-    "datetime_end": Attribute(
-        name="datetime_end",
-        type_dec="Union[str, None]",
-        docstring="""The file's end time
-
-If the file has no time axis or is a fixed file, this should be `None`""",
-        comments=[
-            "TODO: validation",
-            "Should have specific form, based on file's frequency or standard",
-            "but unclear right now what the rules are",
-        ],
-    ),
-    "datetime_start": Attribute(
-        name="datetime_start",
-        type_dec="Union[str, None]",
-        docstring="""The file's start time
-
-If the file has no time axis or is a fixed file, this should be `None`""",
-        comments=[
-            "TODO: validation",
-            "Should have specific form, based on file's frequency or standard",
-            "but unclear right now what the rules are",
-        ],
-    ),
+    #     # This would be a more helpful field than file_timestamp_end
+    #     "dataset_timestamp_end": Attribute(
+    #         name="dataset_timestamp_end",
+    #         type_dec="Union[str, None]",
+    #         docstring="""The dataset's end time
+    #
+    # This should be consistent with the data in the dataset.
+    # The value should be formatted based on the frequency of the data in the dataset.
+    # If the dataset file has no time axis or is a fixed file,
+    # this should be `None`.""",
+    #         comments=[
+    #             "TODO: validation following the spec.",
+    #             "[TODO: find the link to the rules.]",
+    #         ],
+    #     ),
+    #     "dataset_timestamp_start": Attribute(
+    #         name="dataset_timestamp_start",
+    #         type_dec="Union[str, None]",
+    #         docstring="""The dataset's start time
+    #
+    # This should be consistent with the data in the dataset.
+    # The value should be formatted based on the frequency of the data in the dataset.
+    # If the dataset file has no time axis or is a fixed file,
+    # this should be `None`.""",
+    #         comments=[
+    #             "TODO: validation following the spec.",
+    #             "[TODO: find the link to the rules.]",
+    #         ],
+    #     ),
     "doi": Attribute(
         name="doi",
         type_dec="Union[str, None] = None",
@@ -260,6 +265,32 @@ However, it is still useful to capture.""",
             "TODO: validation (?)",
             "Should match CVs/drs ?",
             "Unclear what actual rules for this are, if any",
+        ],
+    ),
+    "file_timestamp_end": Attribute(
+        name="file_timestamp_end",
+        type_dec="Union[str, None]",
+        docstring="""The file's end time
+
+This should be consistent with the data in the file.
+The value should be formatted based on the frequency of the data in the file.
+If the file has no time axis or is a fixed file, this should be `None`.""",
+        comments=[
+            "TODO: validation following the spec.",
+            "[TODO: find the link to the rules.]",
+        ],
+    ),
+    "file_timestamp_start": Attribute(
+        name="file_timestamp_start",
+        type_dec="Union[str, None]",
+        docstring="""The file's start time
+
+This should be consistent with the data in the file.
+The value should be formatted based on the frequency of the data in the file.
+If the file has no time axis or is a fixed file, this should be `None`.""",
+        comments=[
+            "TODO: validation following the spec.",
+            "[TODO: find the link to the rules.]",
         ],
     ),
     "filepath": Attribute(
@@ -533,9 +564,9 @@ def get_files_to_write() -> Iterable[FileToWrite]:
         "contact",
         "creation_date",
         "dataset_category",
-        "datetime_end",
-        "datetime_start",
         "esgf_dataset_master_id",
+        "file_timestamp_end",
+        "file_timestamp_start",
         "filepath",
         "frequency",
         "further_info_url",

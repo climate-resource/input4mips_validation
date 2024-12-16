@@ -33,26 +33,30 @@ class Input4MIPsDatabaseEntryFileRaw:
     dataset_category: str
     """The file's category"""
 
-    datetime_end: Union[str, None]
-    """
-    The file's end time
-
-    If the file has no time axis or is a fixed file, this should be `None`
-    """
-
-    datetime_start: Union[str, None]
-    """
-    The file's start time
-
-    If the file has no time axis or is a fixed file, this should be `None`
-    """
-
     esgf_dataset_master_id: str
     """
     Master ID as used by the ESGF
 
     This applies to the dataset level, not the file level.
     However, it is still useful to capture.
+    """
+
+    file_timestamp_end: Union[str, None]
+    """
+    The file's end time
+
+    This should be consistent with the data in the file.
+    The value should be formatted based on the frequency of the data in the file.
+    If the file has no time axis or is a fixed file, this should be `None`.
+    """
+
+    file_timestamp_start: Union[str, None]
+    """
+    The file's start time
+
+    This should be consistent with the data in the file.
+    The value should be formatted based on the frequency of the data in the file.
+    If the file has no time axis or is a fixed file, this should be `None`.
     """
 
     filepath: str

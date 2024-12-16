@@ -36,7 +36,7 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
         pytest.param(
             dict(
                 activity_id="input4MIPs",
-                contact="zebedee.nicholls@climate-resource.com",
+                contact="zebedee.nicholls@climate-resource.com;malte.meinshausen@climate-resource.com",
                 dataset_category="GHGConcentrations",
                 frequency="mon",
                 further_info_url="www.climate-resource.com",

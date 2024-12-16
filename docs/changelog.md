@@ -21,6 +21,78 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## Input4MIPs validation v0.16.0 (2024-12-16)
+
+
+### ⚠️ Breaking Changes
+
+- Renamed `bnds_coord_indicator` to `bnds_coord_indicators` throughout.
+  This breaks the API, albeit it is a rarely used part of the API
+  and the defaults are sensible.
+  Wherever `bnds_coord_indicator` was used, it now needs to be replaced with a set of strings, e.g. `{"bnds"}`.
+  If using the command-line option, then `--bnds-coord-indicator 'bnds'`
+  would be replaced with `--bnds-coord-indicators 'bnds'`
+  and there is now also the possibility to provide multiple values
+  with e.g. `--bnds-coord-indicators 'bnds;bounds'`. ([#87](https://github.com/climate-resource/input4mips_validation/pull/87))
+- - Removed `validate_database_file_entry`, `validate_ds_to_write_to_disk`, `validate_file` and `validate_tree` following scheduled deprecation. ([#88](https://github.com/climate-resource/input4mips_validation/pull/88))
+- Simplified the API in many places.
+  This was an attempt to group things which are passed through
+  and to make the injectable behaviour clearer throughout.
+  Specific changes:
+
+  - Interfaces that now take a [`FrequencyMetadataKeys`][input4mips_validation.inference.from_data.FrequencyMetadataKeys] rather than `frequency_metadata_key` and `no_time_axis_frequency`:
+      - [`DataReferenceSyntax.validate_file_written_according_to_drs`][input4mips_validation.cvs.drs.DataReferenceSyntax.validate_file_written_according_to_drs]
+      - [`Input4MIPsDatabaseEntryFile.from_file`][input4mips_validation.database.database.Input4MIPsDatabaseEntryFile.from_file]
+      - [`create_db_file_entries`][input4mips_validation.database.creation.create_db_file_entries]
+      - [`get_validate_database_file_entry_result`][input4mips_validation.validation.database.get_validate_database_file_entry_result]
+  - Interfaces that now take a [`XRVariableProcessorLike`][input4mips_validation.xarray_helpers.variables.XRVariableProcessorLike] rather than `bnds_coord_indicators`:
+      - [`Input4MIPsDataset.write`][input4mips_validation.dataset.dataset.Input4MIPsDataset.write]
+      - [`ds_from_iris_cubes`][input4mips_validation.xarray_helpers.iris.ds_from_iris_cubes]
+      - [`get_ds_to_write_to_disk_validation_result`][input4mips_validation.validation.datasets_to_write_to_disk.get_ds_to_write_to_disk_validation_result]
+      - [`get_validate_file_result`][input4mips_validation.validation.file.get_validate_file_result]
+  - Interfaces that now take both a [`FrequencyMetadataKeys`][input4mips_validation.inference.from_data.FrequencyMetadataKeys] rather than `frequency_metadata_key` and `no_time_axis_frequency` and a [`XRVariableProcessorLike`][input4mips_validation.xarray_helpers.variables.XRVariableProcessorLike] rather than `bnds_coord_indicators`:
+      - [`get_validate_tree_result`][input4mips_validation.validation.tree.get_validate_tree_result]
+      - [`validate_database_entries`][input4mips_validation.validation.database.validate_database_entries]
+
+  ([#89](https://github.com/climate-resource/input4mips_validation/pull/89))
+
+### 🆕 Features
+
+- Added v6.6.0 of the input4MIPs CVs as a known CV source. ([#84](https://github.com/climate-resource/input4mips_validation/pull/84))
+- Added [`input4mips_validation.testing.get_valid_out_path_and_disk_ready_ds`][input4mips_validation.testing.get_valid_out_path_and_disk_ready_ds]. ([#85](https://github.com/climate-resource/input4mips_validation/pull/85))
+- Added the [`xarray_helpers.variables`][input4mips_validation.xarray_helpers.variables] module
+  to help with extracting the variables from an xarray object. ([#87](https://github.com/climate-resource/input4mips_validation/pull/87))
+- - Added [`FrequencyMetadataKeys`][input4mips_validation.inference.from_data.FrequencyMetadataKeys]
+  - Added [`XRVariableHelper`][input4mips_validation.xarray_helpers.variables.XRVariableHelper]
+
+  ([#89](https://github.com/climate-resource/input4mips_validation/pull/89))
+- Added Python-equivalent APIs for our CLI commands, see
+  [`validate_file`][`input4mips_validation.cli.validate_file`],
+  [`validate_tree`][`input4mips_validation.cli.validate_tree`],
+  [`db_create`][`input4mips_validation.cli.db.db_create`],
+  [`db_add_tree`][`input4mips_validation.cli.db.db_add_tree`]
+  and [`db_validate`][`input4mips_validation.cli.db.db_validate`]. ([#90](https://github.com/climate-resource/input4mips_validation/pull/90))
+- Added validation of the "Conventions" attribute via [`input4mips_validation.validation.Conventions`][input4mips_validation.validation.Conventions] ([#91](https://github.com/climate-resource/input4mips_validation/pull/91))
+- Added [`input4mips_validation.cvs.Input4MIPsCVs.validate_activity_id`][input4mips_validation.cvs.Input4MIPsCVs.validate_activity_id] and [`input4mips_validation.cvs.exceptions`][input4mips_validation.cvs.exceptions]. ([#92](https://github.com/climate-resource/input4mips_validation/pull/92))
+- Added [`input4mips_validation.cvs.Input4MIPsCVs.validate_source_version`][input4mips_validation.cvs.Input4MIPsCVs.validate_source_version] and [`input4mips_validation.cvs.exceptions.ValueInconsistentWithCVsError`][input4mips_validation.cvs.exceptions.ValueInconsistentWithCVsError]. ([#93](https://github.com/climate-resource/input4mips_validation/pull/93))
+- Added [`input4mips_validation.cvs.Input4MIPsCVs.validate_contact`][input4mips_validation.cvs.Input4MIPsCVs.validate_contact]. ([#94](https://github.com/climate-resource/input4mips_validation/pull/94))
+- Added [`input4mips_validation.validation.comment.validate_comment`][input4mips_validation.validation.comment.validate_comment]. ([#95](https://github.com/climate-resource/input4mips_validation/pull/95))
+
+### 🎉 Improvements
+
+- Added headers to the default pooch downloader to workaround https://github.com/readthedocs/readthedocs.org/issues/11763.
+  The downloader is injectable, so this behaviour can be overridden if desired. ([#84](https://github.com/climate-resource/input4mips_validation/pull/84))
+- If a required attribute is missing during validation, we now raise the more explicit [`MissingAttributeError`][input4mips_validation.validation.exceptions.MissingAttributeError], rather than a `KeyError`. ([#86](https://github.com/climate-resource/input4mips_validation/pull/86))
+
+### 📚 Improved Documentation
+
+- Updated the docs to use v6.6.0 of the CVs rather than a specific SHA. ([#84](https://github.com/climate-resource/input4mips_validation/pull/84))
+
+### 🔧 Trivial/Internal Changes
+
+- [#84](https://github.com/climate-resource/input4mips_validation/pull/84), [#85](https://github.com/climate-resource/input4mips_validation/pull/85), [#86](https://github.com/climate-resource/input4mips_validation/pull/86), [#87](https://github.com/climate-resource/input4mips_validation/pull/87), [#89](https://github.com/climate-resource/input4mips_validation/pull/89), [#92](https://github.com/climate-resource/input4mips_validation/pull/92)
+
+
 ## Input4MIPs validation v0.15.0 (2024-11-11)
 
 

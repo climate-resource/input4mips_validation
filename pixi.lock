@@ -11988,9 +11988,9 @@ packages:
   requires_python: '>=3.7'
 - kind: pypi
   name: input4mips-validation
-  version: 0.15.1a1
+  version: 0.16.1a1
   path: .
-  sha256: 9b6d67b159f6ec05ae0960de6a025f07d1b614c35f90bb2e40f80ff1ea1da551
+  sha256: 43a4536d71c29b9e0c5e1ac8d4730aabef4c3bd8676d3ac8437f36132e98ca98
   requires_dist:
   - scitools-iris>=3.0
   - netcdf4>=1.0

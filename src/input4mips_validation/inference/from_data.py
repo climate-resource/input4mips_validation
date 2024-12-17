@@ -127,15 +127,11 @@ def infer_frequency(  # noqa: PLR0913
     #     return "mon"
     # ```
     # # Hence have to use the hack below instead.
+    start_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_lower_val})
+    end_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_upper_val})
 
-    start_years = ds[time_bounds].sel(**{bounds_dim: bounds_dim_lower_val}).dt.year
-    start_months = ds[time_bounds].sel(**{bounds_dim: bounds_dim_lower_val}).dt.month
-
-    end_years = ds[time_bounds].sel(**{bounds_dim: bounds_dim_upper_val}).dt.year
-    end_months = ds[time_bounds].sel(**{bounds_dim: bounds_dim_upper_val}).dt.month
-
-    month_diff = end_months - start_months
-    year_diff = end_years - start_years
+    month_diff = end_bounds.dt.month - start_bounds.dt.month
+    year_diff = end_bounds.dt.year - start_bounds.dt.year
     MONTH_DIFF_IF_END_OF_YEAR = -11
     if (
         (month_diff == 1)
@@ -146,9 +142,9 @@ def infer_frequency(  # noqa: PLR0913
     if ((month_diff == 0) & (year_diff == 1)).all():
         return "yr"
 
-    time_deltas = ds[time_bounds].sel(**{bounds_dim: bounds_dim_upper_val}) - ds[
-        time_bounds
-    ].sel(**{bounds_dim: bounds_dim_lower_val})
+    time_deltas = end_bounds - start_bounds
+    # This would not work across the Julian/Gregorian boundary
+    # (Ideally, move fast paths earlier in the function...)
     if (time_deltas.dt.days == 1).all():
         return "day"
 

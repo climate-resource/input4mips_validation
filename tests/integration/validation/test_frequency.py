@@ -42,7 +42,9 @@ def test_invalid_frequency_raises(test_cvs):
         cvs=test_cvs,
     )
 
-    error_msg = re.escape("ValueError: The `frequency`")
+    error_msg = re.escape(
+        "ValueError: Given the time axis in the data, the frequency attribute must be"
+    )
     with pytest.raises(ValidationResultsStoreError, match=error_msg):
         res.raise_if_errors()
 

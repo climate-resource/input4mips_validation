@@ -197,6 +197,7 @@ DAILY_DATA = create_daily_data()
             ),
             id="yr_data_mon_metadata",
         ),
+        # TODO: add test across Julian/Gregorian boundary of daily data
         # pytest.param(
         #     THREE_HOURLY_DATA,
         #     "to_check",

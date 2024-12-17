@@ -17,10 +17,11 @@ EXP_ERROR_MSG = "".join(
     [
         re.escape(
             "The `external_variables` attribute contains invalid characters. "
-            "Only alphanumeric characters and underscores are allowed. "
-            "The list of variables should be whitespace-separated."
+            "If you are providing multiple variables, "
+            "they should be whitespace-separated. "
+            "Only alphanumeric characters, underscores and whitespaces are allowed. "
         ),
-        r"Received external_variables='.*'\.",
+        r".*invalid_chars=.*",
     ]
 )
 

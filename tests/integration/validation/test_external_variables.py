@@ -48,7 +48,11 @@ def test_no_external_variables_is_fine(test_cvs):
         cv_source=test_cvs
     )
 
-    valid_disk_ready_ds.attrs.pop("external_variables")
+    try:
+        valid_disk_ready_ds.attrs.pop("external_variables")
+    except KeyError:
+        # Already not there
+        pass
 
     res = get_ds_to_write_to_disk_validation_result(
         valid_disk_ready_ds,

@@ -30,7 +30,7 @@ EXP_ERROR_MSG_INVALID_CHARS_SINGLE_VAR = "".join(
     [
         re.escape(
             "The `variable_id` attribute contains invalid characters. "
-            "Only Alphanumeric characters and underscores are allowed. "
+            "Only alphanumeric characters and underscores are allowed. "
         ),
         r".*invalid_chars=.*",
     ]
@@ -39,7 +39,7 @@ EXP_ERROR_MSG_INVALID_CHARS_MULTIPLE_VAR = "".join(
     [
         re.escape(
             "The `variable_id` attribute contains invalid characters. "
-            "Only Alphanumeric characters, underscores or hyphens are allowed. "
+            "Only alphanumeric characters, underscores and hyphens are allowed. "
         ),
         r".*invalid_chars=.*",
     ]

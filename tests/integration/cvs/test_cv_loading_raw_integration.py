@@ -16,6 +16,7 @@ import pytest
 
 from input4mips_validation.cvs.loading_raw import (
     DEFAULT_DOWNLOADER,
+    KNOWN_REGISTRIES,
     RawCVLoaderBaseURL,
     RawCVLoaderKnownRemoteRegistry,
     # KNOWN_REGISTRIES,
@@ -48,6 +49,7 @@ from input4mips_validation.cvs.loading_raw import (
             True,
             RawCVLoaderBaseURL(
                 base_url="https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/main/CVs/",
+                force_download=True,
             ),
             id="github_main_force_download",
         ),
@@ -68,38 +70,38 @@ from input4mips_validation.cvs.loading_raw import (
             id="github_commit",
         ),
         pytest.param(
-            "gh:v1.0.0",
+            "gh:v6.6.0",
             None,
             RawCVLoaderKnownRemoteRegistry(
-                registry="junk",
-                # # In future, this will have something like the below
-                # registry=KNOWN_REGISTRIES["https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v1.0.0/CVs/"],
+                # In future, this will have something like the below
+                registry=KNOWN_REGISTRIES[
+                    "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v6.6.0/CVs/"
+                ],
             ),
             id="github_known_version",
-            marks=pytest.mark.xfail(reason="No known version release on GitHub yet"),
         ),
         pytest.param(
-            "gh:v1.0.0",
+            "gh:v6.6.0",
             False,
             RawCVLoaderKnownRemoteRegistry(
-                registry="junk",
-                # # In future, this will have something like the below
-                # registry=KNOWN_REGISTRIES["https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v1.0.0/CVs/"],
+                # In future, this will have something like the below
+                registry=KNOWN_REGISTRIES[
+                    "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v6.6.0/CVs/"
+                ],
             ),
             id="github_known_version_no_force_download",
-            marks=pytest.mark.xfail(reason="No known version release on GitHub yet"),
         ),
         pytest.param(
-            "gh:v1.0.0",
+            "gh:v6.6.0",
             True,
             RawCVLoaderKnownRemoteRegistry(
-                registry="junk",
-                # # In future, this will have something like the below
-                # registry=KNOWN_REGISTRIES["https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v1.0.0/CVs/"],
+                # In future, this will have something like the below
+                registry=KNOWN_REGISTRIES[
+                    "https://raw.githubusercontent.com/PCMDI/input4MIPs_CVs/v6.6.0/CVs/"
+                ],
                 force_download=True,
             ),
             id="github_known_version_force_download",
-            marks=pytest.mark.xfail(reason="No known version release on GitHub yet"),
         ),
         pytest.param(
             "../path/to/somewhere",

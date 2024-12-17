@@ -28,7 +28,7 @@ from input4mips_validation.database import (
     update_database_file_entries,
 )
 from input4mips_validation.database.creation import create_db_file_entries
-from input4mips_validation.inference.from_data import FrequencyMetadataKeys
+from input4mips_validation.inference.from_data import BoundsInfo, FrequencyMetadataKeys
 from input4mips_validation.validation.database import (
     validate_database_entries,
     validate_tracking_ids_are_unique,
@@ -288,6 +288,7 @@ def db_validate(  # noqa: PLR0913
     cv_source: Union[str, None],
     xr_variable_processor: XRVariableProcessorLike,
     frequency_metadata_keys: FrequencyMetadataKeys,
+    bounds_info: BoundsInfo,
     time_dimension: str,
     allow_cf_checker_warnings: bool,
     n_processes: int,
@@ -318,6 +319,9 @@ def db_validate(  # noqa: PLR0913
 
     frequency_metadata_keys
         Metadata definitions for frequency information
+
+    bounds_info
+        Metadata definitions for bounds handling
 
     time_dimension
         The time dimension of the data
@@ -357,6 +361,7 @@ def db_validate(  # noqa: PLR0913
         cv_source=cv_source,
         xr_variable_processor=xr_variable_processor,
         frequency_metadata_keys=frequency_metadata_keys,
+        bounds_info=bounds_info,
         time_dimension=time_dimension,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
         n_processes=n_processes,
@@ -421,12 +426,31 @@ def db_validate_command(  # noqa: PLR0913
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
     )
+    # TODO: allow this to be passed from CLI
+    # # Could also retrieve the info from the file with something like
+    # # (question would be, where in the stack to do this)
+    # tmp = xr.open_dataset(file)
+    # if time_dimension in tmp:
+    #     # Has to be like this according to CF-convention
+    #     bounds_info_key = "bounds"
+    #     time_bounds = tmp[time_dimension].attrs[bounds_info_key]
+    #     time_bounds_dims = tmp[time_bounds].dims
+    #     bounds_dim_l = [v for v in time_bounds_dims if v != time_dimension]
+    #     if len(bounds_dim_l) != 1:
+    #         raise AssertionError
+    #
+    #     bounds_dim_l = bounds_dim[0]
+    bounds_info = BoundsInfo(
+        time_bounds="time_bnds",
+        bounds_dim="bnds",
+    )
 
     db_validate(
         db_dir=db_dir,
         cv_source=cv_source,
         xr_variable_processor=xr_variable_processor,
         frequency_metadata_keys=frequency_metadata_keys,
+        bounds_info=bounds_info,
         time_dimension=time_dimension,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
         n_processes=n_processes,

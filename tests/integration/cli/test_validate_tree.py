@@ -22,6 +22,7 @@ from input4mips_validation.dataset import (
 from input4mips_validation.dataset.dataset import (
     prepare_ds_and_get_frequency,
 )
+from input4mips_validation.inference.from_data import BoundsInfo
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
 from input4mips_validation.validation.tree import get_validate_tree_result
 
@@ -79,7 +80,12 @@ def test_basic(tmp_path):
 
     # Test the function directly first (helps with debugging)
     get_validate_tree_result(
-        tmp_path, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+        tmp_path,
+        cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        bounds_info=BoundsInfo(
+            time_bounds="time_bnds",
+            bounds_dim="bnds",
+        ),
     ).raise_if_errors()
 
     # Then test the CLI

@@ -38,10 +38,44 @@ class FrequencyMetadataKeys:
     """
 
 
-def infer_frequency(
+@define
+class BoundsInfo:
+    """
+    Definition of the values used for bounds handling
+
+    We put this together for ease of explanation and conciseness.
+    """
+
+    time_bounds: str = "time_bounds"
+    """
+    The key in the data's metadata
+    which points to information about the data's frequency
+    """
+
+    bounds_dim: str = "bounds"
+    """
+    The name of the bounds dimension in the data
+    """
+
+    bounds_dim_lower_val: int = 0
+    """
+    Value of the lower bounds dimension, which allows us to select the lower bounds.
+    """
+
+    bounds_dim_upper_val: int = 1
+    """
+    Value of the upper bounds dimension, which allows us to select the upper bounds.
+    """
+
+
+def infer_frequency(  # noqa: PLR0913
     ds: xr.Dataset,
     no_time_axis_frequency: str,
     time_bounds: str = "time_bounds",
+    # TODO: update API to pass this all the way up/down
+    bounds_dim: str = "bounds",
+    bounds_dim_lower_val: int = 0,
+    bounds_dim_upper_val: int = 1,
 ) -> str:
     """
     Infer frequency from data
@@ -58,6 +92,15 @@ def infer_frequency(
 
     time_bounds
         Variable assumed to contain time bounds information
+
+    bounds_dim
+        The name of the bounds dimension
+
+    bounds_dim_lower_val
+        Value of the lower bounds dimension, which allows us to select the lower bounds.
+
+    bounds_dim_upper_val
+        Value of the upper bounds dimension, which allows us to select the upper bounds.
 
     Returns
     -------
@@ -84,14 +127,11 @@ def infer_frequency(
     #     return "mon"
     # ```
     # # Hence have to use the hack below instead.
+    start_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_lower_val})
+    end_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_upper_val})
 
-    start_years = ds[time_bounds].sel(bounds=0).dt.year
-    start_months = ds[time_bounds].sel(bounds=0).dt.month
-    end_years = ds[time_bounds].sel(bounds=1).dt.year
-    end_months = ds[time_bounds].sel(bounds=1).dt.month
-
-    month_diff = end_months - start_months
-    year_diff = end_years - start_years
+    month_diff = end_bounds.dt.month - start_bounds.dt.month
+    year_diff = end_bounds.dt.year - start_bounds.dt.year
     MONTH_DIFF_IF_END_OF_YEAR = -11
     if (
         (month_diff == 1)
@@ -101,6 +141,12 @@ def infer_frequency(
 
     if ((month_diff == 0) & (year_diff == 1)).all():
         return "yr"
+
+    time_deltas = end_bounds - start_bounds
+    # This would not work across the Julian/Gregorian boundary
+    # (Ideally, move fast paths earlier in the function...)
+    if (time_deltas.dt.days == 1).all():
+        return "day"
 
     raise NotImplementedError(ds)
 

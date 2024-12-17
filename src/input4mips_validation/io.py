@@ -14,6 +14,10 @@ import ncdata.iris_xarray
 import xarray as xr
 
 from input4mips_validation.cvs import Input4MIPsCVs
+from input4mips_validation.inference.from_data import (
+    BoundsInfo,
+    FrequencyMetadataKeys,
+)
 from input4mips_validation.validation.creation_date import CREATION_DATE_FORMAT
 from input4mips_validation.validation.datasets_to_write_to_disk import (
     get_ds_to_write_to_disk_validation_result,
@@ -26,11 +30,13 @@ from input4mips_validation.xarray_helpers.variables import (
 iris.FUTURE.save_split_attrs = True
 
 
-def prepare_out_path_and_cubes(
+def prepare_out_path_and_cubes(  # noqa: PLR0913
     ds: xr.Dataset,
     out_path: Path,
     cvs: Input4MIPsCVs,
     xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
+    frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
+    bounds_info: BoundsInfo = BoundsInfo(),
 ) -> iris.cube.CubeList:
     """
     Prepare a path and [iris.cube.Cube][]'s for writing to disk
@@ -59,6 +65,12 @@ def prepare_out_path_and_cubes(
     xr_variable_processor
         Helper to use for processing the variables in xarray objects.
 
+    frequency_metadata_keys
+        Metadata definitions for frequency information
+
+    bounds_info
+        Metadata definitions for bounds handling
+
     Returns
     -------
     :
@@ -76,6 +88,8 @@ def prepare_out_path_and_cubes(
         out_path=out_path,
         cvs=cvs,
         xr_variable_processor=xr_variable_processor,
+        frequency_metadata_keys=frequency_metadata_keys,
+        bounds_info=bounds_info,
     )
     validation_result.raise_if_errors()
 

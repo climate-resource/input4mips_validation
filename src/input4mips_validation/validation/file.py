@@ -12,6 +12,10 @@ import xarray as xr
 from loguru import logger
 
 from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
+from input4mips_validation.inference.from_data import (
+    BoundsInfo,
+    FrequencyMetadataKeys,
+)
 from input4mips_validation.logging import (
     LOG_LEVEL_INFO_FILE,
     LOG_LEVEL_INFO_INDIVIDUAL_CHECK,
@@ -35,6 +39,8 @@ def get_validate_file_result(  # noqa: PLR0913
     cv_source: str | None = None,
     cvs: Input4MIPsCVs | None = None,
     xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
+    frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
+    bounds_info: BoundsInfo = BoundsInfo(),
     allow_cf_checker_warnings: bool = False,
     vrs: Union[ValidationResultsStore, None] = None,
 ) -> ValidationResultsStore:
@@ -65,6 +71,12 @@ def get_validate_file_result(  # noqa: PLR0913
 
     xr_variable_processor
         Helper to use for processing the variables in xarray objects.
+
+    frequency_metadata_keys
+        Metadata definitions for frequency information
+
+    bounds_info
+        Metadata definitions for bounds handling
 
     allow_cf_checker_warnings
         Should warnings from the CF-checker be allowed?
@@ -162,6 +174,8 @@ def get_validate_file_result(  # noqa: PLR0913
             cvs=cvs,
             vrs=vrs,
             xr_variable_processor=xr_variable_processor,
+            frequency_metadata_keys=frequency_metadata_keys,
+            bounds_info=bounds_info,
         )
 
     logger.log(

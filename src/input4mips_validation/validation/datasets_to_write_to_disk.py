@@ -19,6 +19,9 @@ from input4mips_validation.validation.error_catching import (
 from input4mips_validation.validation.exceptions import (
     MissingAttributeError,
 )
+from input4mips_validation.validation.external_variables import (
+    validate_external_variables,
+)
 from input4mips_validation.validation.tracking_id import validate_tracking_id
 from input4mips_validation.validation.variable_id import validate_variable_id
 from input4mips_validation.xarray_helpers.variables import (
@@ -187,6 +190,12 @@ def get_ds_to_write_to_disk_validation_result(
         ("creation_date", validate_creation_date),
         ("tracking_id", validate_tracking_id),
     )
+    verification_standalone_optional = (
+        ("comment", validate_comment),
+        # TODO: add verification of this to validate-tree.
+        # That's where the real power would come in.
+        ("external_variables", validate_external_variables),
+    )
 
     # Metadata that depends on the data
     ds_variables = xr_variable_processor.get_ds_variables(
@@ -223,7 +232,7 @@ def get_ds_to_write_to_disk_validation_result(
 
     # Optional attributes
     for attribute_optional, validation_function_optional in (
-        ("comment", validate_comment),
+        *verification_standalone_optional,
     ):
         if attribute_optional in ds.attrs:
             vrs.wrap(

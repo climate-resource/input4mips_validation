@@ -216,6 +216,10 @@ def get_ds_to_write_to_disk_validation_result(  # noqa: PLR0913
     )
     verification_based_on_data = (
         (
+            # Can also be validated against CVs,
+            # but the validate_frequency will only use CV values,
+            # so would be duplication and isn't strictly needed right now
+            # (although could be good to add).
             "frequency",
             partial(
                 validate_frequency,

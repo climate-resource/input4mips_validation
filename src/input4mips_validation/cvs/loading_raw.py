@@ -238,6 +238,30 @@ class RawCVLoaderBaseURL:
         return raw
 
 
+def convert_force_download_from_env_to_bool(force_download_from_env: str) -> bool:
+    """
+    Convert the value of force download retrieved from an environment variable to a bool
+
+    Parameters
+    ----------
+    force_download_from_env
+        Force download value retrieved from an environment variable
+
+    Returns
+    -------
+    :
+        Boolean equivalent of `force_download_from_env`
+    """
+    if force_download_from_env.lower() == "true":
+        force_download = True
+    elif force_download_from_env.lower() == "false":
+        force_download = False
+    else:
+        raise NotImplementedError(force_download_from_env)
+
+    return force_download
+
+
 def get_raw_cvs_loader(
     cv_source: None | str | Path = None, force_download: bool | None = None
 ) -> RawCVLoader:
@@ -293,8 +317,11 @@ def get_raw_cvs_loader(
 
     if force_download is None:
         try:
-            force_download = bool(
-                os.environ["INPUT4MIPS_VALIDATION_CV_SOURCE_FORCE_DOWNLOAD"]
+            force_download_from_env = os.environ[
+                "INPUT4MIPS_VALIDATION_CV_SOURCE_FORCE_DOWNLOAD"
+            ]
+            force_download = convert_force_download_from_env_to_bool(
+                force_download_from_env
             )
 
         except KeyError:
@@ -316,8 +343,10 @@ def get_raw_cvs_loader(
 
     else:
         try:
-            res = RawCVLoaderKnownRemoteRegistry(KNOWN_REGISTRIES[cv_source])
+            res = RawCVLoaderKnownRemoteRegistry(
+                KNOWN_REGISTRIES[cv_source], force_download=force_download
+            )
         except KeyError:
-            res = RawCVLoaderBaseURL(base_url=cv_source)
+            res = RawCVLoaderBaseURL(base_url=cv_source, force_download=force_download)
 
     return res

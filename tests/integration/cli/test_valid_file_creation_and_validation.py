@@ -26,6 +26,7 @@ from input4mips_validation.dataset.dataset import (
     prepare_ds_and_get_frequency,
 )
 from input4mips_validation.hashing import get_file_hash_sha256
+from input4mips_validation.inference.from_data import BoundsInfo
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
 from input4mips_validation.validation.file import get_validate_file_result
 
@@ -76,7 +77,12 @@ def test_validate_written_single_variable_file(tmp_path):
 
     # Test the function directly first (helps with debugging)
     get_validate_file_result(
-        written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+        written_file,
+        cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        bounds_info=BoundsInfo(
+            time_bounds="time_bnds",
+            bounds_dim="bnds",
+        ),
     ).raise_if_errors()
 
     # Then test the CLI
@@ -203,7 +209,12 @@ def test_validate_written_multi_variable_file(tmp_path):
 
     # Test the function directly first (helps with debugging)
     get_validate_file_result(
-        written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+        written_file,
+        cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        bounds_info=BoundsInfo(
+            time_bounds="time_bnds",
+            bounds_dim="bnds",
+        ),
     ).raise_if_errors()
 
     # Then test the CLI

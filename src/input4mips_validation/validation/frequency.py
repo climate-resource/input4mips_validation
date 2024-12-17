@@ -59,5 +59,6 @@ def validate_frequency(
             "Given the time axis in the data, "
             f"the frequency attribute must be {expected_frequency!r}. "
             f"Received {frequency=!r}."
+            f"{bounds_info=}. {ds=}"
         )
         raise ValueError(msg)

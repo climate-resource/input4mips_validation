@@ -26,6 +26,7 @@ from input4mips_validation.dataset import (
 from input4mips_validation.dataset.dataset import (
     prepare_ds_and_get_frequency,
 )
+from input4mips_validation.inference.from_data import BoundsInfo
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
 from input4mips_validation.validation.tree import get_validate_tree_result
 
@@ -98,7 +99,12 @@ def test_errors_html(tmp_path, file_regression, python_version):
 
     # Test the function directly first (helps with debugging)
     validate_tree_result = get_validate_tree_result(
-        root_dir_tree, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+        root_dir_tree,
+        cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        bounds_info=BoundsInfo(
+            time_bounds="time_bnds",
+            bounds_dim="bnds",
+        ),
     )
 
     def sanitise_regression_string(inp: str) -> str:

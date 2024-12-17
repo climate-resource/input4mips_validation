@@ -24,6 +24,7 @@ from input4mips_validation.dataset import (
 from input4mips_validation.dataset.dataset import (
     prepare_ds_and_get_frequency,
 )
+from input4mips_validation.inference.from_data import BoundsInfo
 from input4mips_validation.testing import get_valid_ds_min_metadata_example
 from input4mips_validation.validation.error_catching import ValidationResultsStoreError
 from input4mips_validation.validation.file import get_validate_file_result
@@ -47,6 +48,11 @@ def test_validate_written_single_variable_file(tmp_path):
     """
     variable_name = "mole_fraction_of_carbon_dioxide_in_air"
     ds, metadata_minimum = get_valid_ds_min_metadata_example(variable_id=variable_name)
+
+    bounds_info = BoundsInfo(
+        time_bounds="time_bnds",
+        bounds_dim="bnds",
+    )
 
     ds["time"].encoding = {
         "calendar": "proleptic_gregorian",
@@ -75,7 +81,9 @@ def test_validate_written_single_variable_file(tmp_path):
 
     # Make sure that the starting file passes
     get_validate_file_result(
-        written_file, cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+        written_file,
+        cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        bounds_info=bounds_info,
     ).raise_if_errors()
 
     # Add an attribute that shouldn't be there.
@@ -98,6 +106,7 @@ def test_validate_written_single_variable_file(tmp_path):
         written_file,
         cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
         allow_cf_checker_warnings=True,
+        bounds_info=bounds_info,
     ).raise_if_errors()
 
     # Then test the CLI

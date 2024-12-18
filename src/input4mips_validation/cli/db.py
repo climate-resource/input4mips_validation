@@ -427,22 +427,9 @@ def db_validate_command(  # noqa: PLR0913
         no_time_axis_frequency=no_time_axis_frequency,
     )
     # TODO: allow this to be passed from CLI
-    # # Could also retrieve the info from the file with something like
-    # # (question would be, where in the stack to do this)
-    # tmp = xr.open_dataset(file)
-    # if time_dimension in tmp:
-    #     # Has to be like this according to CF-convention
-    #     bounds_info_key = "bounds"
-    #     time_bounds = tmp[time_dimension].attrs[bounds_info_key]
-    #     time_bounds_dims = tmp[time_bounds].dims
-    #     bounds_dim_l = [v for v in time_bounds_dims if v != time_dimension]
-    #     if len(bounds_dim_l) != 1:
-    #         raise AssertionError
-    #
-    #     bounds_dim_l = bounds_dim[0]
-    bounds_info = BoundsInfo(
-        time_bounds="time_bnds",
-        bounds_dim="bnds",
+    bounds_info = BoundsInfo.from_ds(
+        xr.open_dataset(file),
+        time_dimension=time_dimension,
     )
 
     db_validate(

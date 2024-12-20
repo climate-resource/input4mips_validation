@@ -106,9 +106,18 @@ def ds_from_iris_cubes(  # noqa: PLR0913
             raise ValueError(msg)
 
         if time_unit is None or time_calendar is None:
+            if raw_file is None:
+                raise AssertionError
+
             xr_raw = xr.open_dataset(raw_file, decode_cf=False)
             time_calendar = xr_raw[time_dimension].attrs["calendar"]
             time_unit = xr_raw[time_dimension].attrs["units"]
+
+        if time_unit is None:
+            raise AssertionError
+
+        if time_calendar is None:
+            raise AssertionError
 
         for climatology_v in climatology_guess:
             ds[climatology_v] = (

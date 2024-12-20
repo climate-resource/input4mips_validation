@@ -103,6 +103,9 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
                 no_time_axis_frequency=frequency_metadata_keys.no_time_axis_frequency,
                 time_dimension=time_dimension,
             )
+            if time_start is None or (time_end is None):
+                msg = f"{time_start=}, {time_end=}"
+                raise TypeError(msg)
 
             md_datetime_start: Union[str, None] = format_datetime_for_db(time_start)
             md_datetime_end: Union[str, None] = format_datetime_for_db(time_end)

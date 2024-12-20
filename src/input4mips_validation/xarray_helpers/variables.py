@@ -42,6 +42,24 @@ class XRVariableProcessorLike(Protocol):
             Bounds variables in the dataset.
         """
 
+    def get_ds_climatology_bounds_variables(
+        self,
+        ds: xr.Dataset,
+    ) -> tuple[str, ...]:
+        """
+        Get the climatology bounds variables in a dataset
+
+        Parameters
+        ----------
+        ds
+            Dataset to check
+
+        Returns
+        -------
+        :
+            Climatology bounds variables in the dataset.
+        """
+
     def get_ds_variables(
         self,
         ds: xr.Dataset,

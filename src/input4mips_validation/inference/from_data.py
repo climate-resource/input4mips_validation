@@ -393,6 +393,9 @@ def infer_time_start_time_end_for_filename(
 
         time_start = xr_time_min_max_to_single_value(climatology_bounds.min())
         time_end = xr_time_min_max_to_single_value(climatology_bounds.max())
+        if isinstance(time_end, np.datetime64):
+            raise TypeError(time_end)
+
         # If first day of month,
         # roll back one day to reflect the fact that the bound is exclusive
         if time_end.day == 1:

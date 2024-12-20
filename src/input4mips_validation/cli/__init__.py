@@ -303,7 +303,7 @@ def validate_tree(  # noqa: PLR0913
     cv_source: Union[str, None],
     xr_variable_processor: XRVariableProcessorLike,
     frequency_metadata_keys: FrequencyMetadataKeys,
-    bounds_info: BoundsInfo,
+    bounds_info: Union[BoundsInfo, None],
     time_dimension: str,
     rglob_input: str,
     allow_cf_checker_warnings: bool,
@@ -339,6 +339,8 @@ def validate_tree(  # noqa: PLR0913
 
     bounds_info
         Metadata definitions for bounds handling
+
+        If `None`, this will be inferred further down the stack.
 
     time_dimension
         The time dimension of the data
@@ -412,23 +414,7 @@ def validate_tree_command(  # noqa: PLR0913
         )
     )
     # TODO: allow this to be passed from CLI
-    # # Could also retrieve the info from the file with something like
-    # # (question would be, where in the stack to do this)
-    # tmp = xr.open_dataset(file)
-    # if time_dimension in tmp:
-    #     # Has to be like this according to CF-convention
-    #     bounds_info_key = "bounds"
-    #     time_bounds = tmp[time_dimension].attrs[bounds_info_key]
-    #     time_bounds_dims = tmp[time_bounds].dims
-    #     bounds_dim_l = [v for v in time_bounds_dims if v != time_dimension]
-    #     if len(bounds_dim_l) != 1:
-    #         raise AssertionError
-    #
-    #     bounds_dim_l = bounds_dim[0]
-    bounds_info = BoundsInfo(
-        time_bounds="time_bnds",
-        bounds_dim="bnds",
-    )
+    bounds_info = None
 
     validate_tree(
         tree_root=tree_root,

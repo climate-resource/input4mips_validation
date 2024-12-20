@@ -361,7 +361,7 @@ def get_validate_tree_result(  # noqa: PLR0913
     cvs: Input4MIPsCVs | None = None,
     xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
-    bounds_info: BoundsInfo = BoundsInfo(),
+    bounds_info: BoundsInfo | None = None,
     time_dimension: str = "time",
     rglob_input: str = "*.nc",
     allow_cf_checker_warnings: bool = False,
@@ -405,6 +405,8 @@ def get_validate_tree_result(  # noqa: PLR0913
 
     bounds_info
         Metadata definitions for bounds handling
+
+        If `None`, this will be inferred further for each file.
 
     time_dimension
         The time dimension of the data

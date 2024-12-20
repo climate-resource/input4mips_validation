@@ -49,11 +49,6 @@ def test_validate_written_single_variable_file(tmp_path):
     variable_name = "mole_fraction_of_carbon_dioxide_in_air"
     ds, metadata_minimum = get_valid_ds_min_metadata_example(variable_id=variable_name)
 
-    bounds_info = BoundsInfo(
-        time_bounds="time_bnds",
-        bounds_dim="bnds",
-    )
-
     ds["time"].encoding = {
         "calendar": "proleptic_gregorian",
         "units": "days since 1850-01-01 00:00:00",
@@ -78,6 +73,11 @@ def test_validate_written_single_variable_file(tmp_path):
         )
 
     written_file = input4mips_ds.write(root_data_dir=tmp_path)
+
+    bounds_info = BoundsInfo(
+        time_bounds="time_bnds",
+        bounds_dim="bnds",
+    )
 
     # Make sure that the starting file passes
     get_validate_file_result(

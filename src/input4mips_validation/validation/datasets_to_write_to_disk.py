@@ -157,7 +157,8 @@ def get_ds_to_write_to_disk_validation_result(  # noqa: PLR0913
     vrs: Union[ValidationResultsStore, None] = None,
     xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
-    bounds_info: BoundsInfo = BoundsInfo(),
+    bounds_info: BoundsInfo | None = None,
+    time_dimension: str = "time",
 ) -> ValidationResultsStore:
     """
     Get the result of validating a dataset that is going to be written to disk
@@ -190,6 +191,11 @@ def get_ds_to_write_to_disk_validation_result(  # noqa: PLR0913
     bounds_info
         Metadata definitions for bounds handling
 
+        If `None`, this will be inferred from `ds`.
+
+    time_dimension
+        The time dimension of the data
+
     Returns
     -------
     :
@@ -197,6 +203,9 @@ def get_ds_to_write_to_disk_validation_result(  # noqa: PLR0913
     """
     if vrs is None:
         vrs = ValidationResultsStore()
+
+    if bounds_info is None:
+        bounds_info = BoundsInfo.from_ds(ds=ds, time_dimension=time_dimension)
 
     # Metadata that can be validated standalone
     verification_standalone = (
@@ -216,6 +225,10 @@ def get_ds_to_write_to_disk_validation_result(  # noqa: PLR0913
     )
     verification_based_on_data = (
         (
+            # Can also be validated against CVs,
+            # but the validate_frequency will only use CV values,
+            # so would be duplication and isn't strictly needed right now
+            # (although could be good to add).
             "frequency",
             partial(
                 validate_frequency,

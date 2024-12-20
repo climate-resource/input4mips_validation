@@ -427,10 +427,14 @@ def db_validate_command(  # noqa: PLR0913
         no_time_axis_frequency=no_time_axis_frequency,
     )
     # TODO: allow this to be passed from CLI
-    bounds_info = BoundsInfo.from_ds(
-        xr.open_dataset(file),
-        time_dimension=time_dimension,
+    bounds_info = BoundsInfo(
+        time_bounds="time_bnds",
+        bounds_dim="bnds",
     )
+    # bounds_info = BoundsInfo.from_ds(
+    #     xr.open_dataset(file),
+    #     time_dimension=time_dimension,
+    # )
 
     db_validate(
         db_dir=db_dir,

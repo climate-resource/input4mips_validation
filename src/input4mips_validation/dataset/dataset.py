@@ -547,7 +547,7 @@ class Input4MIPsDataset:
         frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
         time_dimension: str = "time",
         xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
-        bounds_info: BoundsInfo = BoundsInfo(),
+        bounds_info: BoundsInfo | None = None,
     ) -> Path:
         """
         Write to disk
@@ -587,6 +587,8 @@ class Input4MIPsDataset:
 
         bounds_info
             Metadata definitions for bounds handling
+
+            If `None`, this will be inferred from `ds`.
 
         Returns
         -------

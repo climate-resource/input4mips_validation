@@ -288,7 +288,7 @@ def db_validate(  # noqa: PLR0913
     cv_source: Union[str, None],
     xr_variable_processor: XRVariableProcessorLike,
     frequency_metadata_keys: FrequencyMetadataKeys,
-    bounds_info: BoundsInfo,
+    bounds_info: Union[BoundsInfo, None],
     time_dimension: str,
     allow_cf_checker_warnings: bool,
     n_processes: int,
@@ -322,6 +322,8 @@ def db_validate(  # noqa: PLR0913
 
     bounds_info
         Metadata definitions for bounds handling
+
+        If `None`, this will be inferred further down the stack.
 
     time_dimension
         The time dimension of the data
@@ -427,10 +429,7 @@ def db_validate_command(  # noqa: PLR0913
         no_time_axis_frequency=no_time_axis_frequency,
     )
     # TODO: allow this to be passed from CLI
-    bounds_info = BoundsInfo(
-        time_bounds="time_bnds",
-        bounds_dim="bnds",
-    )
+    bounds_info = None
     # bounds_info = BoundsInfo.from_ds(
     #     xr.open_dataset(file),
     #     time_dimension=time_dimension,

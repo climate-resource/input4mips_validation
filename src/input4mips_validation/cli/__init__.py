@@ -11,7 +11,6 @@ from typing import Annotated, Optional, Union
 
 import iris
 import typer
-import xarray as xr
 from loguru import logger
 
 import input4mips_validation
@@ -135,7 +134,7 @@ def validate_file(  # noqa: PLR0913
     write_in_drs: Union[Path, None],
     xr_variable_processor: XRVariableProcessorLike,
     frequency_metadata_keys: FrequencyMetadataKeys,
-    bounds_info: BoundsInfo,
+    bounds_info: Union[BoundsInfo, None],
     time_dimension: str,
     allow_cf_checker_warnings: bool,
 ) -> None:
@@ -177,27 +176,20 @@ def validate_file(  # noqa: PLR0913
     bounds_info
         Metadata definitions for bounds handling.
 
+        If `None`, this will be inferred further down the stack.
+
     time_dimension
         The time dimension of the data
 
     allow_cf_checker_warnings
         Allow validation to pass, even if the CF-checker raises warnings?
     """
-    if bounds_info is None:
-        bounds_info_use = BoundsInfo.from_ds(
-            xr.open_dataset(file),
-            time_dimension=time_dimension,
-        )
-
-    else:
-        bounds_info_use = bounds_info
-
     get_validate_file_result(
         file,
         cv_source=cv_source,
         xr_variable_processor=xr_variable_processor,
         frequency_metadata_keys=frequency_metadata_keys,
-        bounds_info=bounds_info_use,
+        bounds_info=bounds_info,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
     ).raise_if_errors()
 
@@ -238,7 +230,7 @@ def validate_file(  # noqa: PLR0913
                 frequency_metadata_keys=frequency_metadata_keys,
                 time_dimension=time_dimension,
                 xr_variable_processor=xr_variable_processor,
-                bounds_info=bounds_info_use,
+                bounds_info=bounds_info,
             )
 
         else:
@@ -292,10 +284,7 @@ def validate_file_command(  # noqa: PLR0913
         no_time_axis_frequency=no_time_axis_frequency,
     )
     # TODO: allow this to be passed from CLI
-    bounds_info = BoundsInfo.from_ds(
-        xr.open_dataset(file),
-        time_dimension=time_dimension,
-    )
+    bounds_info = None
 
     validate_file(
         file=file,

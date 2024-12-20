@@ -140,6 +140,63 @@ def create_daily_data(
 DAILY_DATA = create_daily_data()
 
 
+def create_monthly_climatology_data() -> xr.Dataset:
+    time_axis = [cftime.datetime(1850, m, 1) for m in range(1, 13)]
+    time_bounds = [
+        [
+            cftime.datetime(dt.year, dt.month, 1),
+            cftime.datetime(
+                dt.year if dt.month < 12 else dt.year + 1,
+                dt.month + 1 if dt.month < 12 else 1,
+                1,
+            ),
+        ]
+        for dt in time_axis
+    ]
+
+    climatology_bounds = []
+    for time_point in time_axis:
+        start_year = 1800
+        if time_point.month == 12:
+            start_month = 12
+            end_month = 1
+            end_year = 1901
+
+        else:
+            start_month = time_point.month
+            end_month = start_month + 1
+            end_year = 1900
+
+        climatology_bounds.append(
+            [
+                cftime.datetime(start_year, start_month, 1),
+                cftime.datetime(end_year, end_month, 1),
+            ]
+        )
+
+    res = xr.Dataset(
+        data_vars={
+            "co2": (("time", "lat", "lon"), RNG.random((len(time_axis), 6, 6))),
+        },
+        coords=dict(
+            time=("time", time_axis),
+            time_bounds=(("time_bounds", "bnds"), time_bounds),
+            climatology_bounds=(("time", "bnds"), climatology_bounds),
+            lon=("lon", np.linspace(-180.0 + 15.0, 180.0, 6)),
+            lat=("lat", np.linspace(-90.0 + 15.0, 90.0, 6)),
+        ),
+        attrs={},
+    )
+
+    res["co2"].attrs = {"cell_methods": "time: mean over years"}
+    res["time"].attrs = {"climatology": "climatology_bounds"}
+
+    return res
+
+
+MONTHLY_CLIMATOLOGY_DATA = create_monthly_climatology_data()
+
+
 @pytest.mark.parametrize(
     "ds, frequency, expectation",
     (
@@ -196,6 +253,24 @@ DAILY_DATA = create_daily_data()
                 ),
             ),
             id="yr_data_mon_metadata",
+        ),
+        pytest.param(
+            MONTHLY_CLIMATOLOGY_DATA,
+            "monC",
+            does_not_raise(),
+            id="valid_monC",
+        ),
+        pytest.param(
+            MONTHLY_CLIMATOLOGY_DATA,
+            "mon",
+            pytest.raises(
+                ValueError,
+                match=create_exp_error_msg(
+                    data_frequency="monC",
+                    metadata_frequency="mon",
+                ),
+            ),
+            id="monC_data_mon_metadata",
         ),
         # TODO: add test across Julian/Gregorian boundary of daily data
         # pytest.param(

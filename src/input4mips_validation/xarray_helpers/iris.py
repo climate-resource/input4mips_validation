@@ -46,6 +46,11 @@ def ds_from_iris_cubes(
     bnds_guess = xr_variable_processor.get_ds_bounds_variables(
         ds,
     )
-    ds = ds.set_coords(bnds_guess)
+    climatology_guess = xr_variable_processor.get_ds_climatology_bounds_variables(
+        ds,
+    )
+    set_as_coords = (*bnds_guess, *climatology_guess)
+    if set_as_coords:
+        ds = ds.set_coords(set_as_coords)
 
     return ds

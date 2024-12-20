@@ -170,7 +170,7 @@ def create_monthly_climatology_data() -> xr.Dataset:
         coords=dict(
             time=("time", time_axis),
             # No time_bounds for climatology stuff
-            climatology_bounds=(("time", "bnds"), climatology_bounds),
+            climatology_bounds=(("time", "nv"), climatology_bounds),
             lon=("lon", np.linspace(-180.0 + 15.0, 180.0, 6)),
             lat=("lat", np.linspace(-90.0 + 15.0, 90.0, 6)),
         ),

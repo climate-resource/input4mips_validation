@@ -48,7 +48,7 @@ from input4mips_validation.cvs.loading_raw import RawCVLoader
 from input4mips_validation.inference.from_data import (
     FrequencyMetadataKeys,
     create_time_range,
-    infer_time_start_time_end,
+    infer_time_start_time_end_for_filename,
 )
 from input4mips_validation.serialisation import converter_json
 
@@ -580,7 +580,7 @@ class DataReferenceSyntax:
 
         # Infer time range information, in case it appears in the DRS.
         # Annoying that we have to pass this all the way through to here.
-        time_start, time_end = infer_time_start_time_end(
+        time_start, time_end = infer_time_start_time_end_for_filename(
             ds=ds,
             frequency_metadata_key=frequency_metadata_keys.frequency_metadata_key,
             no_time_axis_frequency=frequency_metadata_keys.no_time_axis_frequency,

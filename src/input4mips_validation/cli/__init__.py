@@ -30,7 +30,7 @@ from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.inference.from_data import (
     BoundsInfo,
     FrequencyMetadataKeys,
-    infer_time_start_time_end,
+    infer_time_start_time_end_for_filename,
 )
 from input4mips_validation.logging import setup_logging
 from input4mips_validation.upload_ftp import upload_ftp
@@ -203,7 +203,7 @@ def validate_file(  # noqa: PLR0913
             xr_variable_processor=xr_variable_processor,
         )
 
-        time_start, time_end = infer_time_start_time_end(
+        time_start, time_end = infer_time_start_time_end_for_filename(
             ds=ds,
             frequency_metadata_key=frequency_metadata_keys.frequency_metadata_key,
             no_time_axis_frequency=frequency_metadata_keys.no_time_axis_frequency,

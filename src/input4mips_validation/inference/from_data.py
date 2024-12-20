@@ -85,6 +85,13 @@ class BoundsInfo:
             Initialised class
         """
         if time_dimension in ds:
+            climatology = "climatology" in ds[time_dimension].attrs
+        else:
+            climatology = False
+
+        should_have_time_bounds = (time_dimension in ds) and (not climatology)
+
+        if should_have_time_bounds:
             # Has to be like this according to CF-convention
             bounds_info_key = "bounds"
             time_bounds = ds[time_dimension].attrs[bounds_info_key]
@@ -101,7 +108,13 @@ class BoundsInfo:
             bounds_dim = bounds_dim_l[0]
 
         else:
-            logger.debug(f"{time_dimension=} not in the dataset, guessing bounds info")
+            if climatology:
+                logger.debug("climatology, guessing bounds info")
+            else:
+                logger.debug(
+                    f"{time_dimension=} not in the dataset, guessing bounds info"
+                )
+
             guesses = ("bounds", "bnds")
             for guess in guesses:
                 if guess in ds.dims:
@@ -331,7 +344,7 @@ def get_frequency_label_stem(  # noqa: PLR0913
     raise NotImplementedError(ds)
 
 
-def infer_time_start_time_end(
+def infer_time_start_time_end_for_filename(
     ds: xr.Dataset,
     frequency_metadata_key: str,
     no_time_axis_frequency: str,
@@ -341,7 +354,7 @@ def infer_time_start_time_end(
     Union[cftime.datetime, dt.datetime, np.datetime64, None],
 ]:
     """
-    Infer start and end time of the data in a dataset
+    Infer start and end time of the data in a dataset for creating file names
 
     Parameters
     ----------
@@ -367,9 +380,20 @@ def infer_time_start_time_end(
     time_end :
         End time of the data
     """
-    if ds.attrs[frequency_metadata_key] == no_time_axis_frequency:
+    climatology_frequencies = {"monC"}
+    frequency = ds.attrs[frequency_metadata_key]
+
+    if frequency == no_time_axis_frequency:
         time_start: Union[cftime.datetime, dt.datetime, np.datetime64, None] = None
         time_end: Union[cftime.datetime, dt.datetime, np.datetime64, None] = None
+
+    elif frequency in climatology_frequencies:
+        climatology_bounds_var = ds[time_dimension].attrs["climatology"]
+
+        time_start = xr_time_min_max_to_single_value(ds[climatology_bounds_var].min())
+        time_end = xr_time_min_max_to_single_value(ds[climatology_bounds_var].max())
+        # Have to be careful with last bound to not muck this up
+        breakpoint()
 
     else:
         time_start = xr_time_min_max_to_single_value(ds[time_dimension].min())

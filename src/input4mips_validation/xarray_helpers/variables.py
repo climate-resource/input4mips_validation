@@ -78,6 +78,14 @@ class XRVariableHelper:
     it is assumed that the variable is a bounds variable.
     """
 
+    climatology_bounds_coord_indicators: tuple[str, ...] = ("climatology",)
+    """
+    Strings that show that the variable represents climatology bounds
+
+    If any of these strings is found in the variable's name,
+    it is assumed that the variable is a climatology bounds variable.
+    """
+
     def get_ds_bounds_variables(
         self,
         ds: xr.Dataset,
@@ -101,6 +109,31 @@ class XRVariableHelper:
             if any(bci in str(v) for bci in self.bounds_coord_indicators)
         )
 
+    def get_ds_climatology_bounds_variables(
+        self,
+        ds: xr.Dataset,
+    ) -> tuple[str, ...]:
+        """
+        Get the climatology bounds variables in a dataset
+
+        Parameters
+        ----------
+        ds
+            Dataset to check
+
+        Returns
+        -------
+        :
+            Climatology bounds variables in the dataset.
+        """
+        return tuple(
+            str(v)
+            for v in ds.data_vars
+            if any(
+                clim_i in str(v) for clim_i in self.climatology_bounds_coord_indicators
+            )
+        )
+
     def get_ds_variables(
         self,
         ds: xr.Dataset,
@@ -119,5 +152,10 @@ class XRVariableHelper:
             Variables in the dataset, excluding bounds variables.
         """
         bounds_vars = self.get_ds_bounds_variables(ds)
+        climatology_vars = self.get_ds_climatology_bounds_variables(ds)
 
-        return tuple(str(v) for v in ds.data_vars if v not in bounds_vars)
+        return tuple(
+            str(v)
+            for v in ds.data_vars
+            if v not in bounds_vars and v not in climatology_vars
+        )

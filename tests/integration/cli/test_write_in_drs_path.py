@@ -209,6 +209,23 @@ def test_validate_write_in_drs_climatology(tmp_path):
     write_root_path = tmp_path / "written"
     assert not write_root_path.exists()
 
+    # # Do with the API if you need better debugging
+    # from input4mips_validation.cli import validate_file
+    # from input4mips_validation.inference.from_data import FrequencyMetadataKeys
+    # from input4mips_validation.xarray_helpers.variables import XRVariableHelper
+    #
+    # validate_file(
+    #     start_file,
+    #     write_in_drs=write_root_path,
+    #     cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+    #     xr_variable_processor=XRVariableHelper(),
+    #     frequency_metadata_keys=FrequencyMetadataKeys(),
+    #     bounds_info=None,
+    #     time_dimension="time",
+    #     allow_cf_checker_warnings=True,
+    # )
+    # assert False, "explode"
+
     with patch.dict(
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
@@ -243,8 +260,8 @@ def test_validate_write_in_drs_climatology(tmp_path):
         contact="zebedee.nicholls@climate-resource.com;malte.meinshausen@climate-resource.com",
         creation_date=ds_attrs["creation_date"],
         dataset_category="GHGConcentrations",
-        datetime_end="2000-12-01T00:00:00Z",
-        datetime_start="2000-01-01T00:00:00Z",
+        datetime_end="2015-12-31T00:00:00Z",
+        datetime_start="1985-01-01T00:00:00Z",
         esgf_dataset_master_id=f"input4MIPs.CMIP6Plus.CMIP.CR.CR-CMIP-0-2-0.atmos.monC.co2.gn.v{version_exp}",
         filepath=str(written_file),
         frequency="monC",
@@ -275,7 +292,7 @@ def test_validate_write_in_drs_climatology(tmp_path):
         source_id="CR-CMIP-0-2-0",
         source_version="0.2.0",
         target_mip="CMIP",
-        time_range="198501-201512",
+        time_range="198501-201512-clim",
         tracking_id=ds_attrs["tracking_id"],
         variable_id="co2",
         version=version_exp,

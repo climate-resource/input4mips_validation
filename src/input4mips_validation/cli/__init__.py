@@ -201,6 +201,8 @@ def validate_file(  # noqa: PLR0913
         ds = ds_from_iris_cubes(
             iris.load(file),
             xr_variable_processor=xr_variable_processor,
+            raw_file=file,
+            time_dimension=time_dimension,
         )
 
         time_start, time_end = infer_time_start_time_end_for_filename(

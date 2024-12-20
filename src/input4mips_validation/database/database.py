@@ -11,10 +11,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
 import cftime
+import iris
 import numpy as np
 import pandas as pd
 import tqdm
-import xarray as xr
 from attrs import define, fields
 from loguru import logger
 
@@ -23,10 +23,15 @@ from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.inference.from_data import (
     FrequencyMetadataKeys,
     create_time_range,
+    infer_time_start_time_end_for_filename,
 )
 from input4mips_validation.logging import LOG_LEVEL_INFO_DB_ENTRY
 from input4mips_validation.serialisation import converter_json, json_dumps_cv_style
-from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
+from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
+)
 
 if TYPE_CHECKING:
     from input4mips_validation.cvs import Input4MIPsCVs
@@ -39,10 +44,11 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
     """
 
     @classmethod
-    def from_file(
+    def from_file(  # noqa: PLR0913
         cls,
         file: Path,
         cvs: Input4MIPsCVs,
+        xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
         frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
         time_dimension: str = "time",
     ) -> Input4MIPsDatabaseEntryFile:
@@ -56,6 +62,9 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
 
         cvs
             Controlled vocabularies that were used when writing the file
+
+        xr_variable_processor
+            Helper to use for processing the variables in xarray objects.
 
         frequency_metadata_keys
             Metadata definitions for frequency information
@@ -72,7 +81,12 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
             LOG_LEVEL_INFO_DB_ENTRY.name,
             f"Creating file database entry for {file}",
         )
-        ds = xr.open_dataset(file, use_cftime=True)
+        ds = ds_from_iris_cubes(
+            iris.load(file),
+            xr_variable_processor=xr_variable_processor,
+            raw_file=file,
+            time_dimension=time_dimension,
+        )
         metadata_attributes: dict[str, Union[str, None]] = ds.attrs
         # Having to re-infer metadata from the data this is silly,
         # would be much simpler if all metadata was just in the file's attributes.
@@ -83,10 +97,12 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
             frequency is not None
             and frequency != frequency_metadata_keys.no_time_axis_frequency
         ):
-            # Technically, this should probably use the bounds...
-            time_axis = ds[time_dimension]
-            time_start = xr_time_min_max_to_single_value(time_axis.min())
-            time_end = xr_time_min_max_to_single_value(time_axis.max())
+            time_start, time_end = infer_time_start_time_end_for_filename(
+                ds=ds,
+                frequency_metadata_key=frequency_metadata_keys.frequency_metadata_key,
+                no_time_axis_frequency=frequency_metadata_keys.no_time_axis_frequency,
+                time_dimension=time_dimension,
+            )
 
             md_datetime_start: Union[str, None] = format_datetime_for_db(time_start)
             md_datetime_end: Union[str, None] = format_datetime_for_db(time_end)

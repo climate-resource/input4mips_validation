@@ -173,6 +173,8 @@ def get_validate_file_result(  # noqa: PLR0913
         ds_careful_load = ds_from_iris_cubes(
             cubes,
             xr_variable_processor=xr_variable_processor,
+            raw_file=infile,
+            time_dimension=time_dimension,
         )
         vrs = get_ds_to_write_to_disk_validation_result(
             ds=ds_careful_load,

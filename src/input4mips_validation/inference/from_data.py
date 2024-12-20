@@ -389,9 +389,10 @@ def infer_time_start_time_end_for_filename(
 
     elif frequency in climatology_frequencies:
         climatology_bounds_var = ds[time_dimension].attrs["climatology"]
+        climatology_bounds = ds[climatology_bounds_var]
 
-        time_start = xr_time_min_max_to_single_value(ds[climatology_bounds_var].min())
-        time_end = xr_time_min_max_to_single_value(ds[climatology_bounds_var].max())
+        time_start = xr_time_min_max_to_single_value(climatology_bounds.min())
+        time_end = xr_time_min_max_to_single_value(climatology_bounds.max())
         # If first day of month,
         # roll back one day to reflect the fact that the bound is exclusive
         if time_end.day == 1:

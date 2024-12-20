@@ -142,17 +142,6 @@ DAILY_DATA = create_daily_data()
 
 def create_monthly_climatology_data() -> xr.Dataset:
     time_axis = [cftime.datetime(1850, m, 1) for m in range(1, 13)]
-    time_bounds = [
-        [
-            cftime.datetime(dt.year, dt.month, 1),
-            cftime.datetime(
-                dt.year if dt.month < 12 else dt.year + 1,
-                dt.month + 1 if dt.month < 12 else 1,
-                1,
-            ),
-        ]
-        for dt in time_axis
-    ]
 
     climatology_bounds = []
     for time_point in time_axis:
@@ -180,7 +169,7 @@ def create_monthly_climatology_data() -> xr.Dataset:
         },
         coords=dict(
             time=("time", time_axis),
-            time_bounds=(("time_bounds", "bnds"), time_bounds),
+            # No time_bounds for climatology stuff
             climatology_bounds=(("time", "bnds"), climatology_bounds),
             lon=("lon", np.linspace(-180.0 + 15.0, 180.0, 6)),
             lat=("lat", np.linspace(-90.0 + 15.0, 90.0, 6)),

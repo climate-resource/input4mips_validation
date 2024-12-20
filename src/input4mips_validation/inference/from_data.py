@@ -139,6 +139,7 @@ class BoundsInfo:
 def infer_frequency(  # noqa: PLR0913
     ds: xr.Dataset,
     no_time_axis_frequency: str,
+    time_dimension: str = "time",
     time_bounds: str = "time_bounds",
     bounds_dim: str = "bounds",
     bounds_dim_lower_val: int = 0,
@@ -159,7 +160,12 @@ def infer_frequency(  # noqa: PLR0913
         Dataset
 
     no_time_axis_frequency
-        Value to return if the data has no time axis i.e. is a fixed frequency
+        Value to return if the data has no time axis i.e. is a fixed field.
+
+    time_dimension
+        Name of the expected time dimension in `ds`.
+
+        If `time_dimension` is not in `ds`, we assume the data is a fixed field.
 
     time_bounds
         Variable assumed to contain time bounds information
@@ -178,49 +184,149 @@ def infer_frequency(  # noqa: PLR0913
     :
         Inferred frequency
     """
-    if time_bounds not in ds:
-        logger.debug(f"{time_bounds=} not found in {ds=}")
+    if time_dimension not in ds:
+        logger.debug(f"{time_dimension=} not in {ds=}, assuming fixed field")
         # Fixed field
         return no_time_axis_frequency
 
-    # # Urgh this doesn't work because October 5 to October 15 1582
-    # # don't exist in the mixed Julian/Gregorian calendar,
-    # # so you don't get the right number of days for October 1582
-    # # if you do it like this.
-    # ```
-    # timestep_size = (
-    #     ds["time_bounds"].sel(bounds=1) - ds["time_bounds"].sel(bounds=0)
-    # ).dt.days
-    #
-    # MIN_DAYS_IN_MONTH = 28
-    # MAX_DAYS_IN_MONTH = 31
-    # if (
-    #     (timestep_size >= MIN_DAYS_IN_MONTH) & (timestep_size <= MAX_DAYS_IN_MONTH)
-    # ).all():
-    #     return "mon"
-    # ```
-    # # Hence have to use the hack below instead.
-    start_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_lower_val})
-    end_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_upper_val})
+    if "climatology" in ds[time_dimension].attrs:
+        # This seems to be the only way to tell according to the convention
+        logger.debug(
+            f"{time_dimension} has a 'climatology' attribute, "
+            "assuming we are looking at a climatology"
+        )
+        climatology = True
 
-    month_diff = end_bounds.dt.month - start_bounds.dt.month
-    year_diff = end_bounds.dt.year - start_bounds.dt.year
+    else:
+        climatology = False
 
-    if ((month_diff == 0) & (year_diff == 1)).all():
-        return "yr"
+    frequency_stem = get_frequency_label_stem(
+        ds=ds,
+        climatology=climatology,
+        time_dimension=time_dimension,
+        time_bounds=time_bounds,
+        bounds_dim=bounds_dim,
+        bounds_dim_lower_val=bounds_dim_lower_val,
+        bounds_dim_upper_val=bounds_dim_upper_val,
+    )
 
-    MONTH_DIFF_IF_END_OF_YEAR = -11
-    if (
-        (month_diff == 1)
-        | ((month_diff == MONTH_DIFF_IF_END_OF_YEAR) & (year_diff == 1))
-    ).all():
-        return "mon"
+    if climatology:
+        if frequency_stem == "mon":
+            frequency_label = f"{frequency_stem}C"
 
-    time_deltas = end_bounds - start_bounds
-    # This would not work across the Julian/Gregorian boundary
-    # (Ideally, move fast paths earlier in the function...)
-    if (time_deltas.dt.days == 1).all():
-        return "day"
+        else:
+            # Apparently 1hrCM is also a thing, not implemented (yet)
+            msg = f"{climatology=} and {frequency_stem=}"
+            raise NotImplementedError(msg)
+    else:
+        frequency_label = frequency_stem
+
+    return frequency_label
+
+
+def get_frequency_label_stem(  # noqa: PLR0913
+    ds: xr.Dataset,
+    climatology: bool,
+    time_dimension: str,
+    time_bounds: str,
+    bounds_dim: str,
+    bounds_dim_lower_val: int,
+    bounds_dim_upper_val: int,
+) -> str:
+    """
+    Get the frequency label's stem from data
+
+    This is mainly intended for internal use,
+    see [`infer_frequency`][input4mips_validation.inference.from_data.infer_frequency]
+    instead.
+
+    Parameters
+    ----------
+    ds
+        Dataset
+
+    climatology
+        Does this dataset represent a climatology?
+
+    time_dimension
+        Name of the time dimension in `ds`.
+
+    time_bounds
+        Variable assumed to contain time bounds information
+
+    bounds_dim
+        The name of the bounds dimension
+
+    bounds_dim_lower_val
+        Value of the lower bounds dimension, which allows us to select the lower bounds.
+
+    bounds_dim_upper_val
+        Value of the upper bounds dimension, which allows us to select the upper bounds.
+
+    Returns
+    -------
+    :
+        Inferred frequency stem e.g. "mon", "yr".
+
+        Climatology information is added in
+        [`infer_frequency`][input4mips_validation.inference.from_data.infer_frequency].
+    """
+    if climatology:
+        # Only have time to work with, no bounds
+        helper_1 = ds[time_dimension].isel(time=slice(1, None))
+        helper_2 = ds[time_dimension].isel(time=slice(None, -1))
+
+        month_diff = helper_1.dt.month.values - helper_2.dt.month.values
+        year_diff = helper_1.dt.year.values - helper_2.dt.year.values
+
+        MONTH_DIFF_IF_END_OF_YEAR = -11
+        if (
+            (month_diff == 1)
+            | ((month_diff == MONTH_DIFF_IF_END_OF_YEAR) & (year_diff == 1))
+        ).all():
+            return "mon"
+
+    else:
+        # # Urgh this doesn't work because October 5 to October 15 1582
+        # # don't exist in the mixed Julian/Gregorian calendar,
+        # # so you don't get the right number of days for October 1582
+        # # if you do it like this.
+        # ```
+        # timestep_size = (
+        #     ds["time_bounds"].sel(bounds=1) - ds["time_bounds"].sel(bounds=0)
+        # ).dt.days
+        #
+        # MIN_DAYS_IN_MONTH = 28
+        # MAX_DAYS_IN_MONTH = 31
+        # if (
+        #     (timestep_size >= MIN_DAYS_IN_MONTH)
+        #     & (timestep_size <= MAX_DAYS_IN_MONTH)
+        # ).all():
+        #     return "mon"
+        # ```
+        #
+        # # Hence have to use the hack below instead.
+        start_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_lower_val})
+        end_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_upper_val})
+
+        month_diff = end_bounds.dt.month - start_bounds.dt.month
+        year_diff = end_bounds.dt.year - start_bounds.dt.year
+
+        if ((month_diff == 0) & (year_diff == 1)).all():
+            return "yr"
+
+        MONTH_DIFF_IF_END_OF_YEAR = -11
+        if (
+            (month_diff == 1)
+            | ((month_diff == MONTH_DIFF_IF_END_OF_YEAR) & (year_diff == 1))
+        ).all():
+            return "mon"
+
+        time_deltas = end_bounds - start_bounds
+        # This would not work across the Julian/Gregorian boundary
+        # (Ideally, move fast paths earlier in the function...)
+        if (time_deltas.dt.days == 1).all():
+            return "day"
 
     raise NotImplementedError(ds)
 

@@ -741,6 +741,7 @@ def prepare_ds_and_get_frequency(  # noqa: PLR0913
     frequency = infer_frequency(
         ds,
         no_time_axis_frequency=no_time_axis_frequency,
+        time_dimension=time_dimension,
         time_bounds=bounds_info.time_bounds,
         bounds_dim=bounds_info.bounds_dim,
         bounds_dim_lower_val=bounds_info.bounds_dim_lower_val,

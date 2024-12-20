@@ -28,6 +28,7 @@ from input4mips_validation.dataset.metadata_data_producer_multiple_variable_mini
 from input4mips_validation.inference.from_data import (
     VARIABLE_DATASET_CATEGORY_MAP,
     VARIABLE_REALM_MAP,
+    BoundsInfo,
     FrequencyMetadataKeys,
     infer_frequency,
     infer_time_start_time_end,
@@ -546,6 +547,7 @@ class Input4MIPsDataset:
         frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
         time_dimension: str = "time",
         xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
+        bounds_info: BoundsInfo | None = None,
     ) -> Path:
         """
         Write to disk
@@ -583,6 +585,11 @@ class Input4MIPsDataset:
         xr_variable_processor
             Helper to use for processing the variables in xarray objects.
 
+        bounds_info
+            Metadata definitions for bounds handling
+
+            If `None`, this will be inferred from `ds`.
+
         Returns
         -------
         :
@@ -604,6 +611,8 @@ class Input4MIPsDataset:
             out_path=out_path,
             cvs=self.cvs,
             xr_variable_processor=xr_variable_processor,
+            frequency_metadata_keys=frequency_metadata_keys,
+            bounds_info=bounds_info,
         )
         validation_result.raise_if_errors()
 
@@ -628,7 +637,7 @@ def prepare_ds_and_get_frequency(  # noqa: PLR0913
     dimensions: tuple[str, ...] | None = None,
     time_dimension: str = "time",
     add_time_bounds: AddTimeBoundsLike | None = None,
-    time_bounds_name: str = f"time{CF_XARRAY_BOUNDS_SUFFIX}",
+    bounds_info: BoundsInfo = BoundsInfo(time_bounds=f"time{CF_XARRAY_BOUNDS_SUFFIX}"),
     standard_and_or_long_names: dict[str, dict[str, str]] | None = None,
     guess_coord_axis: bool = True,
     copy_ds: bool = False,
@@ -663,12 +672,8 @@ def prepare_ds_and_get_frequency(  # noqa: PLR0913
 
         Passed to [`add_bounds`][input4mips_validation.dataset.dataset.add_bounds].
 
-    time_bounds_name
-        The name of the time bounds variable.
-
-        Provided so that users can change this value if they provide custom
-        functionality in `add_time_bounds`
-        or have a non-default for `time_dimension`.
+    bounds_info
+        Metadata definitions for bounds handling
 
     standard_and_or_long_names
         Standard/long names to use for the variables in `ds_raw`.
@@ -736,7 +741,10 @@ def prepare_ds_and_get_frequency(  # noqa: PLR0913
     frequency = infer_frequency(
         ds,
         no_time_axis_frequency=no_time_axis_frequency,
-        time_bounds=time_bounds_name,
+        time_bounds=bounds_info.time_bounds,
+        bounds_dim=bounds_info.bounds_dim,
+        bounds_dim_lower_val=bounds_info.bounds_dim_lower_val,
+        bounds_dim_upper_val=bounds_info.bounds_dim_upper_val,
     )
 
     if time_dimension in ds:

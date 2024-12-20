@@ -28,6 +28,7 @@ from input4mips_validation.cli.db import app as app_db
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.dataset import Input4MIPsDataset
 from input4mips_validation.inference.from_data import (
+    BoundsInfo,
     FrequencyMetadataKeys,
     infer_time_start_time_end,
 )
@@ -133,6 +134,7 @@ def validate_file(  # noqa: PLR0913
     write_in_drs: Union[Path, None],
     xr_variable_processor: XRVariableProcessorLike,
     frequency_metadata_keys: FrequencyMetadataKeys,
+    bounds_info: Union[BoundsInfo, None],
     time_dimension: str,
     allow_cf_checker_warnings: bool,
 ) -> None:
@@ -171,6 +173,11 @@ def validate_file(  # noqa: PLR0913
     frequency_metadata_keys
         Metadata definitions for frequency information
 
+    bounds_info
+        Metadata definitions for bounds handling.
+
+        If `None`, this will be inferred further down the stack.
+
     time_dimension
         The time dimension of the data
 
@@ -181,6 +188,8 @@ def validate_file(  # noqa: PLR0913
         file,
         cv_source=cv_source,
         xr_variable_processor=xr_variable_processor,
+        frequency_metadata_keys=frequency_metadata_keys,
+        bounds_info=bounds_info,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
     ).raise_if_errors()
 
@@ -221,6 +230,7 @@ def validate_file(  # noqa: PLR0913
                 frequency_metadata_keys=frequency_metadata_keys,
                 time_dimension=time_dimension,
                 xr_variable_processor=xr_variable_processor,
+                bounds_info=bounds_info,
             )
 
         else:
@@ -273,6 +283,8 @@ def validate_file_command(  # noqa: PLR0913
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
     )
+    # TODO: allow this to be passed from CLI
+    bounds_info = None
 
     validate_file(
         file=file,
@@ -280,6 +292,7 @@ def validate_file_command(  # noqa: PLR0913
         write_in_drs=write_in_drs,
         xr_variable_processor=xr_variable_processor,
         frequency_metadata_keys=frequency_metadata_keys,
+        bounds_info=bounds_info,
         time_dimension=time_dimension,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
     )
@@ -290,6 +303,7 @@ def validate_tree(  # noqa: PLR0913
     cv_source: Union[str, None],
     xr_variable_processor: XRVariableProcessorLike,
     frequency_metadata_keys: FrequencyMetadataKeys,
+    bounds_info: Union[BoundsInfo, None],
     time_dimension: str,
     rglob_input: str,
     allow_cf_checker_warnings: bool,
@@ -323,6 +337,11 @@ def validate_tree(  # noqa: PLR0913
     frequency_metadata_keys
         Metadata definitions for frequency information
 
+    bounds_info
+        Metadata definitions for bounds handling
+
+        If `None`, this will be inferred further down the stack.
+
     time_dimension
         The time dimension of the data
 
@@ -341,6 +360,7 @@ def validate_tree(  # noqa: PLR0913
         cv_source=cv_source,
         xr_variable_processor=xr_variable_processor,
         frequency_metadata_keys=frequency_metadata_keys,
+        bounds_info=bounds_info,
         time_dimension=time_dimension,
         rglob_input=rglob_input,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
@@ -393,12 +413,15 @@ def validate_tree_command(  # noqa: PLR0913
             bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
         )
     )
+    # TODO: allow this to be passed from CLI
+    bounds_info = None
 
     validate_tree(
         tree_root=tree_root,
         cv_source=cv_source,
         xr_variable_processor=xr_variable_processor,
         frequency_metadata_keys=frequency_metadata_keys,
+        bounds_info=bounds_info,
         time_dimension=time_dimension,
         rglob_input=rglob_input,
         allow_cf_checker_warnings=allow_cf_checker_warnings,

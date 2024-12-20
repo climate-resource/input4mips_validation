@@ -17,7 +17,7 @@ from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
 from input4mips_validation.database.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.exceptions import NonUniqueError
 from input4mips_validation.hashing import get_file_hash_sha256
-from input4mips_validation.inference.from_data import FrequencyMetadataKeys
+from input4mips_validation.inference.from_data import BoundsInfo, FrequencyMetadataKeys
 from input4mips_validation.logging import (
     LOG_LEVEL_INFO_DB_ENTRY,
     LOG_LEVEL_INFO_DB_ENTRY_ERROR,
@@ -70,6 +70,7 @@ def get_validate_database_file_entry_result(  # noqa: PLR0913
     cvs: Input4MIPsCVs | None = None,
     xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
+    bounds_info: BoundsInfo | None = None,
     time_dimension: str = "time",
     allow_cf_checker_warnings: bool = False,
     vrs: Union[ValidationResultsStore, None] = None,
@@ -101,6 +102,11 @@ def get_validate_database_file_entry_result(  # noqa: PLR0913
 
     frequency_metadata_keys
         Metadata definitions for frequency information
+
+    bounds_info
+        Metadata definitions for bounds handling
+
+        If `None`, this will be inferred from the file.
 
     time_dimension
         The time dimension of the data
@@ -170,6 +176,9 @@ def get_validate_database_file_entry_result(  # noqa: PLR0913
         entry.filepath,
         cvs=cvs,
         xr_variable_processor=xr_variable_processor,
+        frequency_metadata_keys=frequency_metadata_keys,
+        bounds_info=bounds_info,
+        time_dimension=time_dimension,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
         vrs=vrs,
     )
@@ -271,6 +280,7 @@ def validate_database_entries(  # noqa: PLR0913
     cvs: Input4MIPsCVs | None = None,
     xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
+    bounds_info: BoundsInfo | None = None,
     time_dimension: str = "time",
     allow_cf_checker_warnings: bool = False,
     n_processes: int = 1,
@@ -302,6 +312,11 @@ def validate_database_entries(  # noqa: PLR0913
 
     frequency_metadata_keys
         Metadata definitions for frequency information
+
+    bounds_info
+        Metadata definitions for bounds handling
+
+        If `None`, this will be inferred on a per-file basis.
 
     time_dimension
         The time dimension of the data
@@ -345,6 +360,7 @@ def validate_database_entries(  # noqa: PLR0913
                 cvs=cvs,
                 xr_variable_processor=xr_variable_processor,
                 frequency_metadata_keys=frequency_metadata_keys,
+                bounds_info=bounds_info,
                 time_dimension=time_dimension,
                 allow_cf_checker_warnings=allow_cf_checker_warnings,
             )

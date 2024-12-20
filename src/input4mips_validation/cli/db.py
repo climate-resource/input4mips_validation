@@ -28,7 +28,7 @@ from input4mips_validation.database import (
     update_database_file_entries,
 )
 from input4mips_validation.database.creation import create_db_file_entries
-from input4mips_validation.inference.from_data import FrequencyMetadataKeys
+from input4mips_validation.inference.from_data import BoundsInfo, FrequencyMetadataKeys
 from input4mips_validation.validation.database import (
     validate_database_entries,
     validate_tracking_ids_are_unique,
@@ -288,6 +288,7 @@ def db_validate(  # noqa: PLR0913
     cv_source: Union[str, None],
     xr_variable_processor: XRVariableProcessorLike,
     frequency_metadata_keys: FrequencyMetadataKeys,
+    bounds_info: Union[BoundsInfo, None],
     time_dimension: str,
     allow_cf_checker_warnings: bool,
     n_processes: int,
@@ -318,6 +319,11 @@ def db_validate(  # noqa: PLR0913
 
     frequency_metadata_keys
         Metadata definitions for frequency information
+
+    bounds_info
+        Metadata definitions for bounds handling
+
+        If `None`, this will be inferred further down the stack.
 
     time_dimension
         The time dimension of the data
@@ -357,6 +363,7 @@ def db_validate(  # noqa: PLR0913
         cv_source=cv_source,
         xr_variable_processor=xr_variable_processor,
         frequency_metadata_keys=frequency_metadata_keys,
+        bounds_info=bounds_info,
         time_dimension=time_dimension,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
         n_processes=n_processes,
@@ -421,12 +428,19 @@ def db_validate_command(  # noqa: PLR0913
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
     )
+    # TODO: allow this to be passed from CLI
+    bounds_info = None
+    # bounds_info = BoundsInfo.from_ds(
+    #     xr.open_dataset(file),
+    #     time_dimension=time_dimension,
+    # )
 
     db_validate(
         db_dir=db_dir,
         cv_source=cv_source,
         xr_variable_processor=xr_variable_processor,
         frequency_metadata_keys=frequency_metadata_keys,
+        bounds_info=bounds_info,
         time_dimension=time_dimension,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
         n_processes=n_processes,

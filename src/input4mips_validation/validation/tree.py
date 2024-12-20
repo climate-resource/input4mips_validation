@@ -14,7 +14,7 @@ from loguru import logger
 
 from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
 from input4mips_validation.exceptions import NonUniqueError
-from input4mips_validation.inference.from_data import FrequencyMetadataKeys
+from input4mips_validation.inference.from_data import BoundsInfo, FrequencyMetadataKeys
 from input4mips_validation.validation.error_catching import (
     ValidationResult,
     ValidationResultsStore,
@@ -361,6 +361,7 @@ def get_validate_tree_result(  # noqa: PLR0913
     cvs: Input4MIPsCVs | None = None,
     xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
+    bounds_info: BoundsInfo | None = None,
     time_dimension: str = "time",
     rglob_input: str = "*.nc",
     allow_cf_checker_warnings: bool = False,
@@ -401,6 +402,11 @@ def get_validate_tree_result(  # noqa: PLR0913
 
     frequency_metadata_keys
         Metadata definitions for frequency information
+
+    bounds_info
+        Metadata definitions for bounds handling
+
+        If `None`, this will be inferred further for each file.
 
     time_dimension
         The time dimension of the data
@@ -456,6 +462,8 @@ def get_validate_tree_result(  # noqa: PLR0913
             file,
             cvs=cvs,
             xr_variable_processor=xr_variable_processor,
+            frequency_metadata_keys=frequency_metadata_keys,
+            bounds_info=bounds_info,
             allow_cf_checker_warnings=allow_cf_checker_warnings,
         )
 

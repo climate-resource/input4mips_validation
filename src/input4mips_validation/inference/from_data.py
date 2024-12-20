@@ -12,6 +12,7 @@ import cftime
 import numpy as np
 import xarray as xr
 from attrs import define
+from loguru import logger
 
 from input4mips_validation.serialisation import format_date_for_time_range
 from input4mips_validation.xarray_helpers.time import xr_time_min_max_to_single_value
@@ -38,15 +39,119 @@ class FrequencyMetadataKeys:
     """
 
 
-def infer_frequency(
+@define
+class BoundsInfo:
+    """
+    Definition of the values used for bounds handling
+
+    We put this together for ease of explanation and conciseness.
+    """
+
+    time_bounds: str = "time_bounds"
+    """
+    Name of the variable which represents the bounds of the time axis
+    """
+
+    bounds_dim: str = "bounds"
+    """
+    The name of the bounds dimension in the data
+    """
+
+    bounds_dim_lower_val: int = 0
+    """
+    Value of the lower bounds dimension, which allows us to select the lower bounds.
+    """
+
+    bounds_dim_upper_val: int = 1
+    """
+    Value of the upper bounds dimension, which allows us to select the upper bounds.
+    """
+
+    @classmethod
+    def from_ds(cls, ds: xr.Dataset, time_dimension: str = "time") -> BoundsInfo:
+        """
+        Initialise from a dataset
+
+        Parameters
+        ----------
+        ds
+            Dataset from which to initialise
+        time_dimension
+            The name of the time dimension in the dataset
+
+        Returns
+        -------
+        :
+            Initialised class
+        """
+        if time_dimension in ds:
+            # Has to be like this according to CF-convention
+            bounds_info_key = "bounds"
+            time_bounds = ds[time_dimension].attrs[bounds_info_key]
+            time_bounds_dims = ds[time_bounds].dims
+            bounds_dim_l = [v for v in time_bounds_dims if v != time_dimension]
+            if len(bounds_dim_l) != 1:
+                msg = (
+                    f"Expected to find just one non-time dimension for {time_bounds}. "
+                    f"Derived: {bounds_dim_l=}. "
+                    f"Original dimensions of {time_bounds}: {time_bounds_dims}"
+                )
+                raise AssertionError(msg)
+
+            bounds_dim = bounds_dim_l[0]
+
+        else:
+            logger.debug(f"{time_dimension=} not in the dataset, guessing bounds info")
+            guesses = ("bounds", "bnds")
+            for guess in guesses:
+                if guess in ds.dims:
+                    bounds_dim = guess
+                    time_bounds = "not_used"
+                    logger.debug(
+                        f"Found {bounds_dim}, assuming that is the bounds variable"
+                    )
+                    break
+
+            else:
+                msg = (
+                    "Could not guess which variable was the bounds variable. "
+                    f"Tried {guesses=}. "
+                    f"{ds=}."
+                )
+                raise AssertionError(msg)
+
+        # Upper, lower
+        bounds_dim_expected_size = 2
+        if ds[bounds_dim].size != bounds_dim_expected_size:
+            raise AssertionError(ds[bounds_dim].size)
+
+        bounds_dim_upper_val = int(ds[bounds_dim].max().values.squeeze())
+        bounds_dim_lower_val = int(ds[bounds_dim].min().values.squeeze())
+
+        return cls(
+            time_bounds=time_bounds,
+            bounds_dim=bounds_dim,
+            bounds_dim_lower_val=bounds_dim_lower_val,
+            bounds_dim_upper_val=bounds_dim_upper_val,
+        )
+
+
+def infer_frequency(  # noqa: PLR0913
     ds: xr.Dataset,
     no_time_axis_frequency: str,
     time_bounds: str = "time_bounds",
+    bounds_dim: str = "bounds",
+    bounds_dim_lower_val: int = 0,
+    bounds_dim_upper_val: int = 1,
 ) -> str:
     """
     Infer frequency from data
 
     TODO: work out if/where these rules are captured anywhere else
+    These resource are helpful, but I'm not sure if they spell out the rules exactly:
+
+    - https://github.com/WCRP-CMIP/CMIP6_CVs/blob/main/CMIP6_frequency.json
+    - https://wcrp-cmip.github.io/WGCM_Infrastructure_Panel/Papers/CMIP6_global_attributes_filenames_CVs_v6.2.7.pdf
 
     Parameters
     ----------
@@ -59,11 +164,22 @@ def infer_frequency(
     time_bounds
         Variable assumed to contain time bounds information
 
+    bounds_dim
+        The name of the bounds dimension
+
+    bounds_dim_lower_val
+        Value of the lower bounds dimension, which allows us to select the lower bounds.
+
+    bounds_dim_upper_val
+        Value of the upper bounds dimension, which allows us to select the upper bounds.
+
     Returns
     -------
+    :
         Inferred frequency
     """
     if time_bounds not in ds:
+        logger.debug(f"{time_bounds=} not found in {ds=}")
         # Fixed field
         return no_time_axis_frequency
 
@@ -84,14 +200,15 @@ def infer_frequency(
     #     return "mon"
     # ```
     # # Hence have to use the hack below instead.
+    start_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_lower_val})
+    end_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_upper_val})
 
-    start_years = ds[time_bounds].sel(bounds=0).dt.year
-    start_months = ds[time_bounds].sel(bounds=0).dt.month
-    end_years = ds[time_bounds].sel(bounds=1).dt.year
-    end_months = ds[time_bounds].sel(bounds=1).dt.month
+    month_diff = end_bounds.dt.month - start_bounds.dt.month
+    year_diff = end_bounds.dt.year - start_bounds.dt.year
 
-    month_diff = end_months - start_months
-    year_diff = end_years - start_years
+    if ((month_diff == 0) & (year_diff == 1)).all():
+        return "yr"
+
     MONTH_DIFF_IF_END_OF_YEAR = -11
     if (
         (month_diff == 1)
@@ -99,8 +216,11 @@ def infer_frequency(
     ).all():
         return "mon"
 
-    if ((month_diff == 0) & (year_diff == 1)).all():
-        return "yr"
+    time_deltas = end_bounds - start_bounds
+    # This would not work across the Julian/Gregorian boundary
+    # (Ideally, move fast paths earlier in the function...)
+    if (time_deltas.dt.days == 1).all():
+        return "day"
 
     raise NotImplementedError(ds)
 

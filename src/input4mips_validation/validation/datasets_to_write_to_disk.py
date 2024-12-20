@@ -11,6 +11,10 @@ from typing import Callable, Union
 import xarray as xr
 
 from input4mips_validation.cvs import Input4MIPsCVs
+from input4mips_validation.inference.from_data import (
+    BoundsInfo,
+    FrequencyMetadataKeys,
+)
 from input4mips_validation.validation.comment import validate_comment
 from input4mips_validation.validation.creation_date import validate_creation_date
 from input4mips_validation.validation.error_catching import (
@@ -22,6 +26,7 @@ from input4mips_validation.validation.exceptions import (
 from input4mips_validation.validation.external_variables import (
     validate_external_variables,
 )
+from input4mips_validation.validation.frequency import validate_frequency
 from input4mips_validation.validation.tracking_id import validate_tracking_id
 from input4mips_validation.validation.variable_id import validate_variable_id
 from input4mips_validation.xarray_helpers.variables import (
@@ -145,12 +150,15 @@ def validate_attribute_that_depends_on_other_attribute(
     validation_function(attribute_value, attribute_dependent_on_value)
 
 
-def get_ds_to_write_to_disk_validation_result(
+def get_ds_to_write_to_disk_validation_result(  # noqa: PLR0913
     ds: xr.Dataset,
     out_path: Path,
     cvs: Input4MIPsCVs,
     vrs: Union[ValidationResultsStore, None] = None,
     xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
+    frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
+    bounds_info: BoundsInfo | None = None,
+    time_dimension: str = "time",
 ) -> ValidationResultsStore:
     """
     Get the result of validating a dataset that is going to be written to disk
@@ -177,6 +185,17 @@ def get_ds_to_write_to_disk_validation_result(
     xr_variable_processor
         Helper to use for processing the variables in xarray objects.
 
+    frequency_metadata_keys
+        Metadata definitions for frequency information
+
+    bounds_info
+        Metadata definitions for bounds handling
+
+        If `None`, this will be inferred from `ds`.
+
+    time_dimension
+        The time dimension of the data
+
     Returns
     -------
     :
@@ -184,6 +203,9 @@ def get_ds_to_write_to_disk_validation_result(
     """
     if vrs is None:
         vrs = ValidationResultsStore()
+
+    if bounds_info is None:
+        bounds_info = BoundsInfo.from_ds(ds=ds, time_dimension=time_dimension)
 
     # Metadata that can be validated standalone
     verification_standalone = (
@@ -202,6 +224,19 @@ def get_ds_to_write_to_disk_validation_result(
         ds=ds,
     )
     verification_based_on_data = (
+        (
+            # Can also be validated against CVs,
+            # but the validate_frequency will only use CV values,
+            # so would be duplication and isn't strictly needed right now
+            # (although could be good to add).
+            "frequency",
+            partial(
+                validate_frequency,
+                ds=ds,
+                frequency_metadata_keys=frequency_metadata_keys,
+                bounds_info=bounds_info,
+            ),
+        ),
         (
             "variable_id",
             partial(

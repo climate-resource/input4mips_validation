@@ -392,8 +392,10 @@ def infer_time_start_time_end_for_filename(
 
         time_start = xr_time_min_max_to_single_value(ds[climatology_bounds_var].min())
         time_end = xr_time_min_max_to_single_value(ds[climatology_bounds_var].max())
-        # Have to be careful with last bound to not muck this up
-        breakpoint()
+        # If first day of month,
+        # roll back one day to reflect the fact that the bound is exclusive
+        if time_end.day == 1:
+            time_end = time_end - dt.timedelta(days=1)
 
     else:
         time_start = xr_time_min_max_to_single_value(ds[time_dimension].min())
@@ -427,14 +429,21 @@ def create_time_range(
 
     Returns
     -------
+    :
         The time-range information,
         formatted correctly given the underlying dataset's frequency.
     """
+    climatology_frequencies = {"monC"}
     fd = partial(format_date_for_time_range, ds_frequency=ds_frequency)
     time_start_formatted = fd(time_start)
     time_end_formatted = fd(time_end)
 
-    return start_end_separator.join([time_start_formatted, time_end_formatted])
+    res = start_end_separator.join([time_start_formatted, time_end_formatted])
+
+    if ds_frequency in climatology_frequencies:
+        res = f"{res}-clim"
+
+    return res
 
 
 VARIABLE_DATASET_CATEGORY_MAP = {

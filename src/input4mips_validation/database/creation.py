@@ -27,6 +27,7 @@ from input4mips_validation.xarray_helpers.variables import (
 
 def create_db_file_entry_with_logging(
     file: Path,
+    /,
     logging_config_serialised: LoggingConfigSerialisedType,
     **kwargs: Any,
 ) -> Input4MIPsDatabaseEntryFile:

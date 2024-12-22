@@ -32,9 +32,10 @@ def ds_from_iris_cubes(  # noqa: PLR0913
     Load an [xarray.Dataset][] from [iris.cube.CubeList][]
 
     This is a thin wrapper around [ncdata.iris_xarray.cubes_to_xarray][]
-    that also handles setting bounds as co-ordinates.
+    that also handles setting bounds as co-ordinates and climatology variables.
 
-    TODO: raise issue in https://github.com/pp-mo/ncdata
+    TODO: raise issue in https://github.com/pp-mo/ncdata to handle the edge cases,
+    these fixes should be there rather than here.
 
     Parameters
     ----------

@@ -7,17 +7,26 @@ from __future__ import annotations
 import io
 import sys
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, TypedDict, Union
 
-from loguru import logger
+from loguru import HandlerConfig, logger
 from typing_extensions import TypeAlias
 
-LoggingConfigType: TypeAlias = Union[dict[str, list[dict[str, Any]]], None]
+
+class ConfigLike(TypedDict):
+    """
+    Configuration-like to use with loguru
+    """
+
+    handlers: list[HandlerConfig]
+
+
+LoggingConfigLike: TypeAlias = Union[ConfigLike, None]
 LoggingConfigSerialisedType: TypeAlias = Union[
     dict[str, list[dict[str, Union[str, Path]]]], None
 ]
 
-LOGGING_CONFIG: LoggingConfigType = None
+LOGGING_CONFIG: LoggingConfigLike = None
 """
 Logging configuration being used
 
@@ -28,7 +37,7 @@ but we're trying it.
 """
 
 
-def serialise_logging_config(config: LoggingConfigType) -> LoggingConfigSerialisedType:
+def serialise_logging_config(config: LoggingConfigLike) -> LoggingConfigSerialisedType:
     """
     Serialise logging configuration
 
@@ -78,12 +87,12 @@ def serialise_logging_config(config: LoggingConfigType) -> LoggingConfigSerialis
         res["handlers"] = new_handlers_l
 
     logger.debug(f"Serialised {config} to {res}")
-    return res
+    return res  # type: ignore # making this behave is not trivial
 
 
 def deserialise_logging_config(
     config: LoggingConfigSerialisedType,
-) -> LoggingConfigType:
+) -> LoggingConfigLike:
     """
     Deserialise logging configuration
 
@@ -104,7 +113,7 @@ def deserialise_logging_config(
         Deserialised configuration
     """
     if config is None:
-        res: LoggingConfigType = None
+        res: LoggingConfigLike = None
 
     else:
         new_handlers_l = []
@@ -127,8 +136,8 @@ def deserialise_logging_config(
 
             new_handlers_l.append(new_handler)
 
-        res = {k: v for k, v in config.items() if k != "handlers"}
-        res["handlers"] = new_handlers_l
+        res = {k: v for k, v in config.items() if k != "handlers"}  # type: ignore # making this behave not trivial
+        res["handlers"] = new_handlers_l  # type: ignore # making this behave not trivial
 
     logger.debug(f"Deserialised {config} to {res}")
     return res

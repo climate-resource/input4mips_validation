@@ -4,6 +4,7 @@ Creation of database entries
 
 from __future__ import annotations
 
+import concurrent.futures
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
@@ -113,34 +114,40 @@ def create_db_file_entries(  # noqa: PLR0913
         time_dimension=time_dimension,
     )
 
-    logger.info(
-        "Creating database entries in parallel using "
-        f"{n_processes} {'processes' if n_processes > 1 else 'process'}"
-    )
-    db_entries = [
-        create_db_file_entry_with_logging(
-            logging_config_serialised, file, **call_kwargs
+    if n_processes == 1:
+        logger.info("Creating database entries serially")
+        db_entries = [
+            create_db_file_entry_with_logging(
+                logging_config_serialised, file, **call_kwargs
+            )
+            for file in tqdm.tqdm(files, desc="Files to process")
+        ]
+
+    else:
+        logger.info(
+            "Creating database entries in parallel using "
+            f"{n_processes} {'processes' if n_processes > 1 else 'process'}"
         )
-        for file in tqdm.tqdm(files, desc="Files to process")
-    ]
-    # with concurrent.futures.ProcessPoolExecutor(max_workers=n_processes) as executor:
-    #     futures = [
-    #         executor.submit(
-    #             create_db_file_entry_with_logging,
-    #             logging_config_serialised,
-    #             file,
-    #             **call_kwargs,
-    #         )
-    #         for file in tqdm.tqdm(files, desc="Submitting files to queue")
-    #     ]
-    #
-    #     db_entries = [
-    #         future.result()
-    #         for future in tqdm.tqdm(
-    #             concurrent.futures.as_completed(futures),
-    #             desc="Database file entries",
-    #             total=len(futures),
-    #         )
-    #     ]
+        with concurrent.futures.ProcessPoolExecutor(
+            max_workers=n_processes
+        ) as executor:
+            futures = [
+                executor.submit(
+                    create_db_file_entry_with_logging,
+                    logging_config_serialised,
+                    file,
+                    **call_kwargs,
+                )
+                for file in tqdm.tqdm(files, desc="Submitting files to queue")
+            ]
+
+            db_entries = [
+                future.result()
+                for future in tqdm.tqdm(
+                    concurrent.futures.as_completed(futures),
+                    desc="Database file entries",
+                    total=len(futures),
+                )
+            ]
 
     return tuple(db_entries)

@@ -124,8 +124,7 @@ def create_db_file_entries(  # noqa: PLR0913
 
     else:
         logger.info(
-            "Creating database entries in parallel using "
-            f"{n_processes} {'processes' if n_processes > 1 else 'process'}"
+            f"Creating database entries in parallel using {n_processes} processes"
         )
         with concurrent.futures.ProcessPoolExecutor(
             max_workers=n_processes

@@ -52,7 +52,11 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
     "n_processes",
     (
         pytest.param(1, id="serial"),
-        pytest.param(1, id="parallel", marks=pytest.mark.xfail(reason="Flaky in CI")),
+        pytest.param(
+            2,
+            id="parallel",
+            # marks=pytest.mark.xfail(reason="Flaky in CI")
+        ),
     ),
 )
 def test_basic(tmp_path, n_processes):

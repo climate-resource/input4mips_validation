@@ -138,6 +138,16 @@ def create_daily_data(
 
 
 DAILY_DATA = create_daily_data()
+DAILY_DATA_ACROSS_JULIAN_GREGORIAN_BOUNDARY = create_daily_data(
+    days=(
+        cftime.datetime(1582, 10, 2, 12, 0, 0, calendar="gregorian"),
+        cftime.datetime(1582, 10, 3, 12, 0, 0, calendar="gregorian"),
+        cftime.datetime(1582, 10, 4, 12, 0, 0, calendar="gregorian"),
+        cftime.datetime(1582, 10, 15, 12, 0, 0, calendar="gregorian"),
+        cftime.datetime(1582, 10, 16, 12, 0, 0, calendar="gregorian"),
+        cftime.datetime(1582, 10, 17, 12, 0, 0, calendar="gregorian"),
+    ),
+)
 
 
 def create_monthly_climatology_data() -> xr.Dataset:
@@ -218,6 +228,12 @@ MONTHLY_CLIMATOLOGY_DATA = create_monthly_climatology_data()
             "day",
             does_not_raise(),
             id="valid_day",
+        ),
+        pytest.param(
+            DAILY_DATA_ACROSS_JULIAN_GREGORIAN_BOUNDARY,
+            "day",
+            does_not_raise(),
+            id="day_across_julian_gregorian_boundary",
         ),
         pytest.param(
             MONTHLY_DATA,

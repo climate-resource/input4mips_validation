@@ -324,7 +324,7 @@ def is_monthly_steps(
     :
         `True` if the steps are monthly, otherwise `False`
     """
-    # # Urgh this doesn't work because October 5 to October 15 1582
+    # # Urgh this doesn't work because October 5 to October 14 1582 (inclusive)
     # # don't exist in the mixed Julian/Gregorian calendar,
     # # so you don't get the right number of days for October 1582
     # # if you do it like this.
@@ -404,32 +404,25 @@ def get_frequency_label_stem(  # noqa: PLR0913
         step_start = ds[time_dimension].isel(time=slice(None, -1))
         step_end = ds[time_dimension].isel(time=slice(1, None))
 
-        if is_monthly_steps(
-            step_start=step_start,
-            step_end=step_end,
-        ):
-            return "mon"
-
     else:
-        start_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_lower_val})
-        end_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_upper_val})
+        step_start = ds[time_bounds].sel({bounds_dim: bounds_dim_lower_val})
+        step_end = ds[time_bounds].sel({bounds_dim: bounds_dim_upper_val})
 
-        if is_yearly_steps(
-            step_start=start_bounds,
-            step_end=end_bounds,
-        ):
-            return "yr"
+    if is_yearly_steps(
+        step_start=step_start,
+        step_end=step_end,
+    ):
+        return "yr"
 
-        if is_monthly_steps(
-            step_start=start_bounds,
-            step_end=end_bounds,
-        ):
-            return "mon"
+    if is_monthly_steps(
+        step_start=step_start,
+        step_end=step_end,
+    ):
+        return "mon"
 
-        time_deltas = end_bounds - start_bounds
-        # This would not work across the Julian/Gregorian boundary.
-        if (time_deltas.dt.days == 1).all():
-            return "day"
+    time_deltas = step_end - step_start
+    if (time_deltas.dt.days == 1).all():
+        return "day"
 
     raise NotImplementedError(ds)
 

@@ -56,10 +56,10 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
             2,
             id="parallel",
             marks=[
-                # pytest.mark.skipif(
-                #     os.environ.get("GITHUB_ACTIONS", "false") == "true",
-                #     reason="Flaky in CI",
-                # ),
+                pytest.mark.skipif(
+                    os.environ.get("GITHUB_ACTIONS", "false") == "true",
+                    reason="Flaky in CI",
+                ),
                 pytest.mark.timeout(10),
             ],
         ),

@@ -773,6 +773,9 @@ def add_bounds(  # noqa: PLR0913
     If you want to follow a different pattern, please feel free to use
     this function as a template.
 
+    If `ds` represents a climatology, no time bounds will be added,
+    in line with the CF-conventions.
+
     Parameters
     ----------
     ds

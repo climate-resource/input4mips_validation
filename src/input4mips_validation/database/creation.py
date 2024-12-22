@@ -22,6 +22,10 @@ from input4mips_validation.logging_config import (
     deserialise_logging_config,
     serialise_logging_config,
 )
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
+)
 
 
 def create_db_file_entry_with_logging(
@@ -58,11 +62,12 @@ def create_db_file_entry_with_logging(
     return Input4MIPsDatabaseEntryFile.from_file(file, **kwargs)
 
 
-def create_db_file_entries(
+def create_db_file_entries(  # noqa: PLR0913
     files: Iterable[Path],
     cv_source: str | None,
     frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
     time_dimension: str = "time",
+    xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     n_processes: int = 1,
 ) -> tuple[Input4MIPsDatabaseEntryFile, ...]:
     """
@@ -85,6 +90,9 @@ def create_db_file_entries(
 
     time_dimension
         The time dimension of the data
+
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
 
     n_processes
         Number of parallel processes to use while creating the entries.
@@ -110,6 +118,7 @@ def create_db_file_entries(
                 logging_config_serialised,
                 file,
                 cvs=cvs,
+                xr_variable_processor=xr_variable_processor,
                 frequency_metadata_keys=frequency_metadata_keys,
                 time_dimension=time_dimension,
             )

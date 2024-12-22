@@ -39,6 +39,57 @@ class FrequencyMetadataKeys:
     """
 
 
+def ds_is_climatology(ds: xr.Dataset, time_dimension: str) -> bool:
+    """
+    Determine whether a dataset represents a climatology or not
+
+    Parameters
+    ----------
+    ds
+        Dataset to check
+
+    time_dimension
+        The name of the time dimension in `ds`, if `ds` contains a time dimension
+
+    Returns
+    -------
+    :
+        Whether the dataset is a climatology or not
+    """
+    if time_dimension in ds:
+        # As far as I can tell from the cf-conventions,
+        # this is what defines whether something is a climatology or not.
+        # See https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#climatological-statistics
+        #
+        # > Intervals of climatological time
+        # > are conceptually different from ordinary time intervals...
+        # > To indicate this difference,
+        # > a climatological time coordinate variable does not have a bounds attribute.
+        # > Instead, it has a climatology attribute
+        ds_is_climatology = "climatology" in ds[time_dimension].attrs
+    else:
+        ds_is_climatology = False
+
+    return ds_is_climatology
+
+
+def frequency_is_climatology(frequency: str) -> bool:
+    """
+    Check whether the frequency information indicates that the data is a climatology
+
+    Parameters
+    ----------
+    frequency
+        Frequency attribute value
+
+    Returns
+    -------
+    :
+        Whether the data represents a climatology or not
+    """
+    return frequency in {"monC"}
+
+
 @define
 class BoundsInfo:
     """
@@ -84,7 +135,11 @@ class BoundsInfo:
         :
             Initialised class
         """
-        if time_dimension in ds:
+        climatology = ds_is_climatology(ds, time_dimension)
+
+        should_have_time_bounds = (time_dimension in ds) and (not climatology)
+
+        if should_have_time_bounds:
             # Has to be like this according to CF-convention
             bounds_info_key = "bounds"
             time_bounds = ds[time_dimension].attrs[bounds_info_key]
@@ -93,7 +148,7 @@ class BoundsInfo:
             if len(bounds_dim_l) != 1:
                 msg = (
                     f"Expected to find just one non-time dimension for {time_bounds}. "
-                    f"Derived: {bounds_dim_l=}. "
+                    f"Inferred: {bounds_dim_l=}. "
                     f"Original dimensions of {time_bounds}: {time_bounds_dims}"
                 )
                 raise AssertionError(msg)
@@ -101,8 +156,14 @@ class BoundsInfo:
             bounds_dim = bounds_dim_l[0]
 
         else:
-            logger.debug(f"{time_dimension=} not in the dataset, guessing bounds info")
-            guesses = ("bounds", "bnds")
+            if climatology:
+                logger.debug("climatology, guessing bounds info")
+            else:
+                logger.debug(
+                    f"{time_dimension=} not in the dataset, guessing bounds info"
+                )
+
+            guesses = ("bounds", "bnds", "nv")
             for guess in guesses:
                 if guess in ds.dims:
                     bounds_dim = guess
@@ -115,7 +176,7 @@ class BoundsInfo:
             else:
                 msg = (
                     "Could not guess which variable was the bounds variable. "
-                    f"Tried {guesses=}. "
+                    f"Guessed {guesses=}. "
                     f"{ds=}."
                 )
                 raise AssertionError(msg)
@@ -139,6 +200,7 @@ class BoundsInfo:
 def infer_frequency(  # noqa: PLR0913
     ds: xr.Dataset,
     no_time_axis_frequency: str,
+    time_dimension: str = "time",
     time_bounds: str = "time_bounds",
     bounds_dim: str = "bounds",
     bounds_dim_lower_val: int = 0,
@@ -159,7 +221,12 @@ def infer_frequency(  # noqa: PLR0913
         Dataset
 
     no_time_axis_frequency
-        Value to return if the data has no time axis i.e. is a fixed frequency
+        Value to return if the data has no time axis i.e. is a fixed field.
+
+    time_dimension
+        Name of the expected time dimension in `ds`.
+
+        If `time_dimension` is not in `ds`, we assume the data is a fixed field.
 
     time_bounds
         Variable assumed to contain time bounds information
@@ -178,54 +245,189 @@ def infer_frequency(  # noqa: PLR0913
     :
         Inferred frequency
     """
-    if time_bounds not in ds:
-        logger.debug(f"{time_bounds=} not found in {ds=}")
+    if time_dimension not in ds:
+        logger.debug(f"{time_dimension=} not in {ds=}, assuming fixed field")
         # Fixed field
         return no_time_axis_frequency
 
-    # # Urgh this doesn't work because October 5 to October 15 1582
+    climatology = ds_is_climatology(ds, time_dimension)
+
+    frequency_stem = get_frequency_label_stem(
+        ds=ds,
+        climatology=climatology,
+        time_dimension=time_dimension,
+        time_bounds=time_bounds,
+        bounds_dim=bounds_dim,
+        bounds_dim_lower_val=bounds_dim_lower_val,
+        bounds_dim_upper_val=bounds_dim_upper_val,
+    )
+
+    if climatology:
+        if frequency_stem == "mon":
+            frequency_label = f"{frequency_stem}C"
+
+        else:
+            # Apparently 1hrCM is also a thing, not implemented (yet)
+            msg = f"{climatology=} and {frequency_stem=}"
+            raise NotImplementedError(msg)
+    else:
+        frequency_label = frequency_stem
+
+    return frequency_label
+
+
+def is_yearly_steps(
+    step_start: xr.DataArray,
+    step_end: xr.DataArray,
+) -> bool:
+    """
+    Determine whether the steps are yearly
+
+    Parameters
+    ----------
+    step_start
+        Start of each step (e.g. start of each bound)
+
+    step_end
+        End of each step (e.g. end of each bound)
+
+    Returns
+    -------
+    :
+        `True` if the steps are yearly, otherwise `False`
+    """
+    month_diff = step_end.dt.month.values - step_start.dt.month.values
+    year_diff = step_end.dt.year.values - step_start.dt.year.values
+
+    is_yearly_steps = ((month_diff == 0) & (year_diff == 1)).all()
+
+    return bool(is_yearly_steps)
+
+
+def is_monthly_steps(
+    step_start: xr.DataArray,
+    step_end: xr.DataArray,
+) -> bool:
+    """
+    Determine whether the steps are monthly
+
+    Parameters
+    ----------
+    step_start
+        Start of each step (e.g. start of each bound)
+
+    step_end
+        End of each step (e.g. end of each bound)
+
+    Returns
+    -------
+    :
+        `True` if the steps are monthly, otherwise `False`
+    """
+    # # Urgh this doesn't work because October 5 to October 14 1582 (inclusive)
     # # don't exist in the mixed Julian/Gregorian calendar,
     # # so you don't get the right number of days for October 1582
     # # if you do it like this.
     # ```
-    # timestep_size = (
-    #     ds["time_bounds"].sel(bounds=1) - ds["time_bounds"].sel(bounds=0)
-    # ).dt.days
+    # timestep_size = (step_end - step_start).dt.days
     #
     # MIN_DAYS_IN_MONTH = 28
     # MAX_DAYS_IN_MONTH = 31
-    # if (
-    #     (timestep_size >= MIN_DAYS_IN_MONTH) & (timestep_size <= MAX_DAYS_IN_MONTH)
-    # ).all():
-    #     return "mon"
+    # is_monthly_steps = (
+    #     (timestep_size >= MIN_DAYS_IN_MONTH)
+    #     & (timestep_size <= MAX_DAYS_IN_MONTH)
+    # ).all()
     # ```
+    #
     # # Hence have to use the hack below instead.
-    start_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_lower_val})
-    end_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_upper_val})
-
-    month_diff = end_bounds.dt.month - start_bounds.dt.month
-    year_diff = end_bounds.dt.year - start_bounds.dt.year
-
-    if ((month_diff == 0) & (year_diff == 1)).all():
-        return "yr"
+    month_diff = step_end.dt.month.values - step_start.dt.month.values
+    year_diff = step_end.dt.year.values - step_start.dt.year.values
 
     MONTH_DIFF_IF_END_OF_YEAR = -11
-    if (
+    is_monthly_steps = (
         (month_diff == 1)
         | ((month_diff == MONTH_DIFF_IF_END_OF_YEAR) & (year_diff == 1))
-    ).all():
+    ).all()
+
+    return bool(is_monthly_steps)
+
+
+def get_frequency_label_stem(  # noqa: PLR0913
+    ds: xr.Dataset,
+    climatology: bool,
+    time_dimension: str,
+    time_bounds: str,
+    bounds_dim: str,
+    bounds_dim_lower_val: int,
+    bounds_dim_upper_val: int,
+) -> str:
+    """
+    Get the frequency label's stem from data
+
+    This is mainly intended for internal use,
+    see [`infer_frequency`][input4mips_validation.inference.from_data.infer_frequency]
+    instead.
+
+    Parameters
+    ----------
+    ds
+        Dataset
+
+    climatology
+        Does this dataset represent a climatology?
+
+    time_dimension
+        Name of the time dimension in `ds`.
+
+    time_bounds
+        Variable assumed to contain time bounds information
+
+    bounds_dim
+        The name of the bounds dimension
+
+    bounds_dim_lower_val
+        Value of the lower bounds dimension, which allows us to select the lower bounds.
+
+    bounds_dim_upper_val
+        Value of the upper bounds dimension, which allows us to select the upper bounds.
+
+    Returns
+    -------
+    :
+        Inferred frequency stem e.g. "mon", "yr".
+
+        Climatology information is added in
+        [`infer_frequency`][input4mips_validation.inference.from_data.infer_frequency].
+    """
+    if climatology:
+        # Only have time to work with, no bounds
+        step_start = ds[time_dimension].isel(time=slice(None, -1))
+        step_end = ds[time_dimension].isel(time=slice(1, None))
+
+    else:
+        step_start = ds[time_bounds].sel({bounds_dim: bounds_dim_lower_val})
+        step_end = ds[time_bounds].sel({bounds_dim: bounds_dim_upper_val})
+
+    if is_yearly_steps(
+        step_start=step_start,
+        step_end=step_end,
+    ):
+        return "yr"
+
+    if is_monthly_steps(
+        step_start=step_start,
+        step_end=step_end,
+    ):
         return "mon"
 
-    time_deltas = end_bounds - start_bounds
-    # This would not work across the Julian/Gregorian boundary
-    # (Ideally, move fast paths earlier in the function...)
+    time_deltas = step_end - step_start
     if (time_deltas.dt.days == 1).all():
         return "day"
 
     raise NotImplementedError(ds)
 
 
-def infer_time_start_time_end(
+def infer_time_start_time_end_for_filename(
     ds: xr.Dataset,
     frequency_metadata_key: str,
     no_time_axis_frequency: str,
@@ -235,7 +437,7 @@ def infer_time_start_time_end(
     Union[cftime.datetime, dt.datetime, np.datetime64, None],
 ]:
     """
-    Infer start and end time of the data in a dataset
+    Infer start and end time of the data in a dataset for creating file names
 
     Parameters
     ----------
@@ -261,9 +463,29 @@ def infer_time_start_time_end(
     time_end :
         End time of the data
     """
-    if ds.attrs[frequency_metadata_key] == no_time_axis_frequency:
+    frequency = ds.attrs[frequency_metadata_key]
+    is_climatology = frequency_is_climatology(frequency)
+
+    if frequency == no_time_axis_frequency:
         time_start: Union[cftime.datetime, dt.datetime, np.datetime64, None] = None
         time_end: Union[cftime.datetime, dt.datetime, np.datetime64, None] = None
+
+    elif is_climatology:
+        # Can do this with confidence as this is what the spec defines.
+        # See comments in `ds_is_climatology`.
+        climatology_bounds_var = ds[time_dimension].attrs["climatology"]
+        climatology_bounds = ds[climatology_bounds_var]
+
+        time_start = xr_time_min_max_to_single_value(climatology_bounds.min())
+        time_end = xr_time_min_max_to_single_value(climatology_bounds.max())
+        if isinstance(time_end, np.datetime64):
+            raise TypeError(time_end)
+
+        if frequency == "monC":
+            # If first day of month,
+            # roll back one day to reflect the fact that the bound is exclusive.
+            if time_end.day == 1:
+                time_end = time_end - dt.timedelta(days=1)
 
     else:
         time_start = xr_time_min_max_to_single_value(ds[time_dimension].min())
@@ -272,14 +494,19 @@ def infer_time_start_time_end(
     return time_start, time_end
 
 
-def create_time_range(
+def create_time_range_for_filename(
     time_start: cftime.datetime | dt.datetime | np.datetime64,
     time_end: cftime.datetime | dt.datetime | np.datetime64,
     ds_frequency: str,
     start_end_separator: str = "-",
 ) -> str:
     """
-    Create the time range information
+    Create the time range information for the filename
+
+    It is safest to use this function with the output from
+    [`infer_time_start_time_end_for_filename`][input4mips_validation.inference.from_data.infer_time_start_time_end_for_filename]
+    because that function correctly infers the start and end time from the data,
+    even when the data represents a climatology.
 
     Parameters
     ----------
@@ -297,6 +524,7 @@ def create_time_range(
 
     Returns
     -------
+    :
         The time-range information,
         formatted correctly given the underlying dataset's frequency.
     """
@@ -304,7 +532,12 @@ def create_time_range(
     time_start_formatted = fd(time_start)
     time_end_formatted = fd(time_end)
 
-    return start_end_separator.join([time_start_formatted, time_end_formatted])
+    res = start_end_separator.join([time_start_formatted, time_end_formatted])
+
+    if frequency_is_climatology(ds_frequency):
+        res = f"{res}-clim"
+
+    return res
 
 
 VARIABLE_DATASET_CATEGORY_MAP = {

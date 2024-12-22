@@ -9,6 +9,7 @@ from pathlib import Path
 import cftime
 import iris
 import ncdata.iris_xarray
+import netCDF4  # type: ignore # adding stubs a problem for another day
 import xarray as xr
 from iris.cube import CubeList
 
@@ -110,9 +111,10 @@ def ds_from_iris_cubes(  # noqa: PLR0913
             if raw_file is None:
                 raise AssertionError
 
-            xr_raw = xr.open_dataset(raw_file, decode_cf=False)
-            time_calendar = xr_raw[time_dimension].attrs["calendar"]
-            time_unit = xr_raw[time_dimension].attrs["units"]
+            # Use netCDF4 to ensure as fast reading as possible
+            with netCDF4.Dataset(raw_file, "r") as ds_netcdf4:
+                time_calendar = ds_netcdf4[time_dimension].getncattr("calendar")
+                time_unit = ds_netcdf4[time_dimension].getncattr("units")
 
         if time_unit is None:
             raise AssertionError

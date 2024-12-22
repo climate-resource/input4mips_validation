@@ -233,6 +233,7 @@ def get_ds_to_write_to_disk_validation_result(  # noqa: PLR0913
             partial(
                 validate_frequency,
                 ds=ds,
+                time_dimension=time_dimension,
                 frequency_metadata_keys=frequency_metadata_keys,
                 bounds_info=bounds_info,
             ),

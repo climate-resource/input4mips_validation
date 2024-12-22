@@ -73,7 +73,9 @@ def ds_is_climatology(ds: xr.Dataset, time_dimension: str) -> bool:
     return ds_is_climatology
 
 
-def get_climatology_bounds(ds, time_dimension: str = "time") -> xr.DataArray:
+def get_climatology_bounds(
+    ds: xr.Dataset, time_dimension: str = "time"
+) -> xr.DataArray:
     """
     Get the climatology bounds variable
 
@@ -99,7 +101,7 @@ def get_climatology_bounds(ds, time_dimension: str = "time") -> xr.DataArray:
     # Can do this with confidence as this is what the spec defines.
     # For further details, see comments in `ds_is_climatology`.
     climatology_bounds_var = ds[time_dimension].attrs["climatology"]
-    climatology_bounds = ds[climatology_bounds_var]
+    climatology_bounds: xr.DataArray = ds[climatology_bounds_var]
 
     return climatology_bounds
 

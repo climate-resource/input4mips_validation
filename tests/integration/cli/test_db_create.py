@@ -48,17 +48,17 @@ def test_basic(tmp_path):
     """
     Write two files in a tree, then make sure we can create the database
     """
-    # Note: using the runner to invoke the commands causes things to break.
-    # I have no idea why (I think it's related to the parallel processing),
-    # but this is the reason we use subprocess throughout here.
-    input4mips_validation_cli = shutil.which("input4mips-validation")
-    subprocess_check_output = partial(
-        subprocess.check_output,
-        env={
-            "INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
-            **os.environ,
-        },
-    )
+    # # Note: using the runner to invoke the commands causes things to break.
+    # # I have no idea why (I think it's related to the parallel processing),
+    # # but this is the reason we use subprocess throughout here.
+    # input4mips_validation_cli = shutil.which("input4mips-validation")
+    # subprocess_check_output = partial(
+    #     subprocess.check_output,
+    #     env={
+    #         "INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+    #         **os.environ,
+    #     },
+    # )
 
     cvs = load_cvs(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 

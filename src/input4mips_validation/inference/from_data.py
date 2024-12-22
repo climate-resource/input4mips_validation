@@ -39,6 +39,57 @@ class FrequencyMetadataKeys:
     """
 
 
+def ds_is_climatology(ds: xr.Dataset, time_dimension: str) -> bool:
+    """
+    Determine whether a dataset represents a climatology or not
+
+    Parameters
+    ----------
+    ds
+        Dataset to check
+
+    time_dimension
+        The name of the time dimension in `ds`, if `ds` contains a time dimension
+
+    Returns
+    -------
+    :
+        Whether the dataset is a climatology or not
+    """
+    if time_dimension in ds:
+        # As far as I can tell from the cf-conventions,
+        # this is what defines whether something is a climatology or not.
+        # See https://cfconventions.org/Data/cf-conventions/cf-conventions-1.12/cf-conventions.html#climatological-statistics
+        #
+        # > Intervals of climatological time
+        # > are conceptually different from ordinary time intervals...
+        # > To indicate this difference,
+        # > a climatological time coordinate variable does not have a bounds attribute.
+        # > Instead, it has a climatology attribute
+        ds_is_climatology = "climatology" in ds[time_dimension].attrs
+    else:
+        ds_is_climatology = False
+
+    return ds_is_climatology
+
+
+def frequency_is_climatology(frequency: str) -> bool:
+    """
+    Check whether the frequency information indicates that the data is a climatology
+
+    Parameters
+    ----------
+    frequency
+        Frequency attribute value
+
+    Returns
+    -------
+    :
+        Whether the data represents a climatology or not
+    """
+    return frequency in {"monC"}
+
+
 @define
 class BoundsInfo:
     """
@@ -84,10 +135,7 @@ class BoundsInfo:
         :
             Initialised class
         """
-        if time_dimension in ds:
-            climatology = "climatology" in ds[time_dimension].attrs
-        else:
-            climatology = False
+        climatology = ds_is_climatology(ds, time_dimension)
 
         should_have_time_bounds = (time_dimension in ds) and (not climatology)
 
@@ -202,16 +250,7 @@ def infer_frequency(  # noqa: PLR0913
         # Fixed field
         return no_time_axis_frequency
 
-    if "climatology" in ds[time_dimension].attrs:
-        # This seems to be the only way to tell according to the convention
-        logger.debug(
-            f"{time_dimension} has a 'climatology' attribute, "
-            "assuming we are looking at a climatology"
-        )
-        climatology = True
-
-    else:
-        climatology = False
+    climatology = ds_is_climatology(ds, time_dimension)
 
     frequency_stem = get_frequency_label_stem(
         ds=ds,
@@ -380,14 +419,16 @@ def infer_time_start_time_end_for_filename(
     time_end :
         End time of the data
     """
-    climatology_frequencies = {"monC"}
     frequency = ds.attrs[frequency_metadata_key]
+    is_climatology = frequency_is_climatology(frequency)
 
     if frequency == no_time_axis_frequency:
         time_start: Union[cftime.datetime, dt.datetime, np.datetime64, None] = None
         time_end: Union[cftime.datetime, dt.datetime, np.datetime64, None] = None
 
-    elif frequency in climatology_frequencies:
+    elif is_climatology:
+        # Can do this with confidence as this is what the spec defines.
+        # See comments in `ds_is_climatology`.
         climatology_bounds_var = ds[time_dimension].attrs["climatology"]
         climatology_bounds = ds[climatology_bounds_var]
 
@@ -396,15 +437,11 @@ def infer_time_start_time_end_for_filename(
         if isinstance(time_end, np.datetime64):
             raise TypeError(time_end)
 
-        if frequency != "monC":
-            # The logic below will break if we have a climatology other than monthly,
-            # hence this guard.
-            raise NotImplementedError
-
-        # If first day of month,
-        # roll back one day to reflect the fact that the bound is exclusive.
-        if time_end.day == 1:
-            time_end = time_end - dt.timedelta(days=1)
+        if frequency == "monC":
+            # If first day of month,
+            # roll back one day to reflect the fact that the bound is exclusive.
+            if time_end.day == 1:
+                time_end = time_end - dt.timedelta(days=1)
 
     else:
         time_start = xr_time_min_max_to_single_value(ds[time_dimension].min())
@@ -413,14 +450,19 @@ def infer_time_start_time_end_for_filename(
     return time_start, time_end
 
 
-def create_time_range(
+def create_time_range_for_filename(
     time_start: cftime.datetime | dt.datetime | np.datetime64,
     time_end: cftime.datetime | dt.datetime | np.datetime64,
     ds_frequency: str,
     start_end_separator: str = "-",
 ) -> str:
     """
-    Create the time range information
+    Create the time range information for the filename
+
+    It is safest to use this function with the output from
+    [`infer_time_start_time_end_for_filename`][input4mips_validation.inference.from_data.infer_time_start_time_end_for_filename]
+    because that function correctly infers the start and end time from the data,
+    even when the data represents a climatology.
 
     Parameters
     ----------
@@ -442,14 +484,13 @@ def create_time_range(
         The time-range information,
         formatted correctly given the underlying dataset's frequency.
     """
-    climatology_frequencies = {"monC"}
     fd = partial(format_date_for_time_range, ds_frequency=ds_frequency)
     time_start_formatted = fd(time_start)
     time_end_formatted = fd(time_end)
 
     res = start_end_separator.join([time_start_formatted, time_end_formatted])
 
-    if ds_frequency in climatology_frequencies:
+    if frequency_is_climatology(ds_frequency):
         res = f"{res}-clim"
 
     return res

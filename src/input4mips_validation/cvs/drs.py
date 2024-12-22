@@ -47,7 +47,7 @@ from typing_extensions import TypeAlias
 from input4mips_validation.cvs.loading_raw import RawCVLoader
 from input4mips_validation.inference.from_data import (
     FrequencyMetadataKeys,
-    create_time_range,
+    create_time_range_for_filename,
     infer_time_start_time_end_for_filename,
 )
 from input4mips_validation.serialisation import converter_json
@@ -211,7 +211,7 @@ class DataReferenceSyntax:
         ):
             # Hard-code here for now because the rules about time-range
             # creation cannot be inferred from the DRS as currently written.
-            all_available_metadata["time_range"] = create_time_range(
+            all_available_metadata["time_range"] = create_time_range_for_filename(
                 time_start=time_start,
                 time_end=time_end,
                 ds_frequency=all_available_metadata[frequency_metadata_key],
@@ -587,7 +587,7 @@ class DataReferenceSyntax:
             time_dimension=time_dimension,
         )
         if time_start is not None and time_end is not None:
-            time_range = create_time_range(
+            time_range = create_time_range_for_filename(
                 time_start=time_start,
                 time_end=time_end,
                 ds_frequency=ds.attrs[frequency_metadata_keys.frequency_metadata_key],

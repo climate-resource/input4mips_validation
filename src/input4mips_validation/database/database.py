@@ -22,7 +22,7 @@ from input4mips_validation.database.raw import Input4MIPsDatabaseEntryFileRaw
 from input4mips_validation.hashing import get_file_hash_sha256
 from input4mips_validation.inference.from_data import (
     FrequencyMetadataKeys,
-    create_time_range,
+    create_time_range_for_filename,
     infer_time_start_time_end_for_filename,
 )
 from input4mips_validation.logging import LOG_LEVEL_INFO_DB_ENTRY
@@ -110,7 +110,7 @@ class Input4MIPsDatabaseEntryFile(Input4MIPsDatabaseEntryFileRaw):
             md_datetime_start: Union[str, None] = format_datetime_for_db(time_start)
             md_datetime_end: Union[str, None] = format_datetime_for_db(time_end)
 
-            md_datetime_time_range: Union[str, None] = create_time_range(
+            md_datetime_time_range: Union[str, None] = create_time_range_for_filename(
                 time_start=time_start,
                 time_end=time_end,
                 ds_frequency=frequency,

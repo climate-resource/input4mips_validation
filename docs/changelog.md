@@ -21,6 +21,14 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## Input4MIPs validation v0.17.1 (2024-12-22)
+
+
+### 🐛 Bug Fixes
+
+- Fixed up addition of bounds when using climatology data (time bounds are no longer added). ([#104](https://github.com/climate-resource/input4mips_validation/pull/104))
+
+
 ## Input4MIPs validation v0.17.0 (2024-12-22)
 
 

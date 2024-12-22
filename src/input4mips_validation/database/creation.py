@@ -118,7 +118,7 @@ def create_db_file_entries(  # noqa: PLR0913
     if n_processes == 1:
         logger.info("Creating database entries serially")
         db_entries = [
-            create_db_file_entry_with_logging(file, **call_kwargs)
+            create_db_file_entry_with_logging(file, **call_kwargs)  # type: ignore # mypy confused by unpacking
             for file in tqdm.tqdm(files, desc="Files to process")
         ]
 
@@ -133,7 +133,7 @@ def create_db_file_entries(  # noqa: PLR0913
                 executor.submit(
                     create_db_file_entry_with_logging,
                     file,
-                    **call_kwargs,
+                    **call_kwargs,  # type: ignore # mypy confused by unpacking
                 )
                 for file in tqdm.tqdm(files, desc="Submitting files to queue")
             ]

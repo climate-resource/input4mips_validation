@@ -54,6 +54,9 @@ def get_valid_ds_min_metadata_example(
         If not supplied, we retrieve it with
         [pint.get_application_registry][].
 
+    fixed_field
+        Should we return a fixed field dataset?
+
     Returns
     -------
     dataset :
@@ -112,6 +115,99 @@ def get_valid_ds_min_metadata_example(
         coords=coords,
         attrs={},
     )
+
+    return ds, metadata_minimum
+
+
+def get_valid_ds_min_metadata_example_climatology(
+    variable_id: str = "co2",
+    units: str = "ppm",
+    unit_registry: Union[pint.registry.UnitRegistry, None] = None,
+) -> tuple[xr.Dataset, Input4MIPsDatasetMetadataDataProducerMinimum]:
+    """
+    Get an example of a valid climatology dataset and associated minimum metadata
+
+    The results can be combined to create a
+    [`Input4MIPsDataset`][input4mips_validation.dataset.Input4MIPsDataset].
+
+    Parameters
+    ----------
+    variable_id
+        Variable ID to apply to the dataset
+
+    units
+        Units to attach to the dataset
+
+    unit_registry
+        Unit registry to use.
+        If not supplied, we retrieve it with
+        [pint.get_application_registry][].
+
+    Returns
+    -------
+    dataset :
+        Example valid dataset
+
+    minimum_metadata :
+        Example minimum metadata
+    """
+    if unit_registry is None:
+        ur: pint.registry.UnitRegistry = pint.get_application_registry()  # type: ignore
+
+    metadata_minimum = Input4MIPsDatasetMetadataDataProducerMinimum(
+        grid_label="gn",
+        nominal_resolution="10000 km",
+        source_id="CR-CMIP-0-2-0",
+        target_mip="CMIP",
+    )
+
+    lon = np.arange(-165.0, 180.0, 15.0, dtype=np.float64)
+    lat = np.arange(-82.5, 90.0, 15.0, dtype=np.float64)
+
+    rng = np.random.default_rng()
+
+    time = [cftime.datetime(2000, m, 1) for m in range(1, 13)]
+    climatology_bounds = []
+    for time_point in time:
+        start_year = 1985
+        if time_point.month == 12:
+            start_month = 12
+            end_month = 1
+            end_year = 2016
+
+        else:
+            start_month = time_point.month
+            end_month = start_month + 1
+            end_year = 2015
+
+        climatology_bounds.append(
+            [
+                cftime.datetime(start_year, start_month, 1),
+                cftime.datetime(end_year, end_month, 1),
+            ]
+        )
+
+    ds_data = ur.Quantity(
+        rng.random((lat.size, lon.size, len(time))),
+        units,
+    )
+    dimensions = ["lat", "lon", "time"]
+    coords = dict(
+        lon=("lon", lon),
+        lat=("lat", lat),
+        time=time,
+        climatology_bounds=(("time", "nv"), climatology_bounds),
+    )
+
+    ds = xr.Dataset(
+        data_vars={
+            variable_id: (dimensions, ds_data),
+        },
+        coords=coords,
+        attrs={},
+    )
+    ds[variable_id].attrs = {"cell_methods": "time: mean over years"}
+    ds["time"].attrs = {"climatology": "climatology_bounds"}
 
     return ds, metadata_minimum
 

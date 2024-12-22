@@ -21,6 +21,38 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## Input4MIPs validation v0.17.0 (2024-12-22)
+
+
+### ⚠️ Breaking Changes
+
+- - `input4mips_validation.inference.from_data.infer_time_start_time_end` renamed to [`input4mips_validation.inference.from_data.infer_time_start_time_end_for_filename`][input4mips_validation.inference.from_data.infer_time_start_time_end_for_filename].
+  - `input4mips_validation.inference.from_data.create_time_range` renamed to [`input4mips_validation.inference.from_data.create_time_range_for_filename`][input4mips_validation.inference.from_data.create_time_range_for_filename].
+
+  ([#103](https://github.com/climate-resource/input4mips_validation/pull/103))
+
+### 🆕 Features
+
+- Added [`input4mips_validation.validation.external_variables.validate_external_variables`][input4mips_validation.validation.external_variables.validate_external_variables]. ([#98](https://github.com/climate-resource/input4mips_validation/pull/98))
+- Added [`input4mips_validation.validation.frequency.validate_frequency`][input4mips_validation.validation.frequency.validate_frequency]. ([#100](https://github.com/climate-resource/input4mips_validation/pull/100))
+- Added support for data that represents a monthly climatology. ([#103](https://github.com/climate-resource/input4mips_validation/pull/103))
+
+### 🎉 Improvements
+
+- Split [`input4mips_validation.validation.allowed_characters`][input4mips_validation.validation.allowed_characters] into its own module. ([#98](https://github.com/climate-resource/input4mips_validation/pull/98))
+- Added [`input4mips_validation.inference.from_data.BoundsInfo`][input4mips_validation.inference.from_data.BoundsInfo] and propagated it throughout the stack, to make it easier to specify how the bounds variables should be handled. ([#100](https://github.com/climate-resource/input4mips_validation/pull/100))
+
+### 🐛 Bug Fixes
+
+- Fixed the behaviour of [`input4mips_validation.cvs.loading_raw.get_raw_cvs_loader`][input4mips_validation.cvs.loading_raw.get_raw_cvs_loader]
+  (and therefore [`input4mips_validation.cvs.loading.load_cvs`][input4mips_validation.cvs.loading.load_cvs])
+  when the `INPUT4MIPS_VALIDATION_CV_SOURCE_FORCE_DOWNLOAD` environment variable was set. ([#101](https://github.com/climate-resource/input4mips_validation/pull/101))
+
+### 🔧 Trivial/Internal Changes
+
+- [#103](https://github.com/climate-resource/input4mips_validation/pull/103)
+
+
 ## Input4MIPs validation v0.16.0 (2024-12-16)
 
 

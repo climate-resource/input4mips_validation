@@ -7,10 +7,13 @@ from __future__ import annotations
 import io
 import sys
 from pathlib import Path
-from typing import Any, TypedDict, Union
+from typing import TYPE_CHECKING, Any, TypedDict, Union
 
-from loguru import HandlerConfig, logger
+from loguru import logger
 from typing_extensions import TypeAlias
+
+if TYPE_CHECKING:
+    from loguru import HandlerConfig
 
 
 class ConfigLike(TypedDict):

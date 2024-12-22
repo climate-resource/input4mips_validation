@@ -11860,7 +11860,7 @@ packages:
   name: input4mips-validation
   version: 0.16.1a1
   path: .
-  sha256: 8ec82b59b01af5df0c888387132e7fd8e1d40172312f0f58d6aca8877936fe9b
+  sha256: 2629792c3ceb040f049a97769fba7d98b629d679c39a0130eef7fda2a1d9c425
   requires_dist:
   - scitools-iris>=3.0
   - netcdf4>=1.0
@@ -11892,6 +11892,7 @@ packages:
   - liccheck>=0.9.2,<0.10 ; extra == 'dev'
   - setuptools>=70.0.0 ; extra == 'dev'
   - pip>=24.2 ; extra == 'dev'
+  - loguru>=0.7.3 ; extra == 'dev'
   - netcdf4>=1.7.2 ; extra == 'dev'
   - mkdocs>=1.6.0 ; extra == 'docs'
   - mkdocstrings[python]>=0.25.0 ; extra == 'docs'

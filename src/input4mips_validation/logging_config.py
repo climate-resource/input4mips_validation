@@ -71,11 +71,17 @@ def serialise_logging_config(config: LoggingConfigLike) -> LoggingConfigSerialis
             if isinstance(handler["sink"], (str, Path)):
                 new_handler["sink"] = handler["sink"]
 
-            elif handler["sink"] == sys.stderr:
+            elif handler["sink"] == sys.stderr or (
+                isinstance(handler["sink"], io.TextIOWrapper)
+                and (handler["sink"].name == "<stderr>")
+            ):
                 new_handler["sink"] = "stderr"
 
-            elif handler["sink"] == sys.stderr:
-                new_handler["sink"] = "stderr"
+            elif handler["sink"] == sys.stdout or (
+                isinstance(handler["sink"], io.TextIOWrapper)
+                and (handler["sink"].name == "<stdout>")
+            ):
+                new_handler["sink"] = "stdout"
 
             else:
                 logger.warning(

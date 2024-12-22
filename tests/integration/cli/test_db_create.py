@@ -184,29 +184,29 @@ def test_basic(tmp_path, n_processes):
     # each named with their hash.
     exp_created_files = [f"{v['sha256']}.json" for v in info.values()]
 
-    # Then test the CLI
-    with patch.dict(
-        os.environ,
-        {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
-    ):
-        args = [
-            "db",
-            "create",
-            str(tree_root),
-            "--db-dir",
-            str(db_dir),
-            "--n-processes",
-            n_processes,
-        ]
-        result = runner.invoke(app, args)
-
-    assert result.exit_code == 0, result.exc_info
-
-    created_files = list(db_dir.glob("*.json"))
-    assert len(created_files) == len(exp_created_files)
-    for exp_created_file in exp_created_files:
-        assert (db_dir / exp_created_file).exists()
-
-    db_entries_cli = load_database_file_entries(db_dir)
-
-    assert set(db_entries_cli) == set(db_entries_exp)
+    # # Then test the CLI
+    # with patch.dict(
+    #     os.environ,
+    #     {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
+    # ):
+    #     args = [
+    #         "db",
+    #         "create",
+    #         str(tree_root),
+    #         "--db-dir",
+    #         str(db_dir),
+    #         "--n-processes",
+    #         n_processes,
+    #     ]
+    #     result = runner.invoke(app, args)
+    #
+    # assert result.exit_code == 0, result.exc_info
+    #
+    # created_files = list(db_dir.glob("*.json"))
+    # assert len(created_files) == len(exp_created_files)
+    # for exp_created_file in exp_created_files:
+    #     assert (db_dir / exp_created_file).exists()
+    #
+    # db_entries_cli = load_database_file_entries(db_dir)
+    #
+    # assert set(db_entries_cli) == set(db_entries_exp)

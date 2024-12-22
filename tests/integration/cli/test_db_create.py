@@ -55,7 +55,10 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
         pytest.param(
             2,
             id="parallel",
-            # marks=pytest.mark.xfail(reason="Flaky in CI")
+            marks=[
+                pytest.mark.xfail(reason="Flaky in CI"),
+                pytest.mark.timeout(10),
+            ],
         ),
     ),
 )

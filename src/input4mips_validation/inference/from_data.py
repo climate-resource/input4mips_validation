@@ -276,6 +276,82 @@ def infer_frequency(  # noqa: PLR0913
     return frequency_label
 
 
+def is_yearly_steps(
+    step_start: xr.DataArray,
+    step_end: xr.DataArray,
+) -> bool:
+    """
+    Determine whether the steps are yearly
+
+    Parameters
+    ----------
+    step_start
+        Start of each step (e.g. start of each bound)
+
+    step_end
+        End of each step (e.g. end of each bound)
+
+    Returns
+    -------
+    :
+        `True` if the steps are yearly, otherwise `False`
+    """
+    month_diff = step_end.dt.month.values - step_start.dt.month.values
+    year_diff = step_end.dt.year.values - step_start.dt.year.values
+
+    is_yearly_steps = ((month_diff == 0) & (year_diff == 1)).all()
+
+    return bool(is_yearly_steps)
+
+
+def is_monthly_steps(
+    step_start: xr.DataArray,
+    step_end: xr.DataArray,
+) -> bool:
+    """
+    Determine whether the steps are monthly
+
+    Parameters
+    ----------
+    step_start
+        Start of each step (e.g. start of each bound)
+
+    step_end
+        End of each step (e.g. end of each bound)
+
+    Returns
+    -------
+    :
+        `True` if the steps are monthly, otherwise `False`
+    """
+    # # Urgh this doesn't work because October 5 to October 15 1582
+    # # don't exist in the mixed Julian/Gregorian calendar,
+    # # so you don't get the right number of days for October 1582
+    # # if you do it like this.
+    # ```
+    # timestep_size = (step_end - step_start).dt.days
+    #
+    # MIN_DAYS_IN_MONTH = 28
+    # MAX_DAYS_IN_MONTH = 31
+    # is_monthly_steps = (
+    #     (timestep_size >= MIN_DAYS_IN_MONTH)
+    #     & (timestep_size <= MAX_DAYS_IN_MONTH)
+    # ).all()
+    # ```
+    #
+    # # Hence have to use the hack below instead.
+    month_diff = step_end.dt.month.values - step_start.dt.month.values
+    year_diff = step_end.dt.year.values - step_start.dt.year.values
+
+    MONTH_DIFF_IF_END_OF_YEAR = -11
+    is_monthly_steps = (
+        (month_diff == 1)
+        | ((month_diff == MONTH_DIFF_IF_END_OF_YEAR) & (year_diff == 1))
+    ).all()
+
+    return bool(is_monthly_steps)
+
+
 def get_frequency_label_stem(  # noqa: PLR0913
     ds: xr.Dataset,
     climatology: bool,
@@ -325,58 +401,33 @@ def get_frequency_label_stem(  # noqa: PLR0913
     """
     if climatology:
         # Only have time to work with, no bounds
-        helper_1 = ds[time_dimension].isel(time=slice(1, None))
-        helper_2 = ds[time_dimension].isel(time=slice(None, -1))
+        step_start = ds[time_dimension].isel(time=slice(None, -1))
+        step_end = ds[time_dimension].isel(time=slice(1, None))
 
-        month_diff = helper_1.dt.month.values - helper_2.dt.month.values
-        year_diff = helper_1.dt.year.values - helper_2.dt.year.values
-
-        MONTH_DIFF_IF_END_OF_YEAR = -11
-        if (
-            (month_diff == 1)
-            | ((month_diff == MONTH_DIFF_IF_END_OF_YEAR) & (year_diff == 1))
-        ).all():
+        if is_monthly_steps(
+            step_start=step_start,
+            step_end=step_end,
+        ):
             return "mon"
 
     else:
-        # # Urgh this doesn't work because October 5 to October 15 1582
-        # # don't exist in the mixed Julian/Gregorian calendar,
-        # # so you don't get the right number of days for October 1582
-        # # if you do it like this.
-        # ```
-        # timestep_size = (
-        #     ds["time_bounds"].sel(bounds=1) - ds["time_bounds"].sel(bounds=0)
-        # ).dt.days
-        #
-        # MIN_DAYS_IN_MONTH = 28
-        # MAX_DAYS_IN_MONTH = 31
-        # if (
-        #     (timestep_size >= MIN_DAYS_IN_MONTH)
-        #     & (timestep_size <= MAX_DAYS_IN_MONTH)
-        # ).all():
-        #     return "mon"
-        # ```
-        #
-        # # Hence have to use the hack below instead.
         start_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_lower_val})
         end_bounds = ds[time_bounds].sel({bounds_dim: bounds_dim_upper_val})
 
-        month_diff = end_bounds.dt.month - start_bounds.dt.month
-        year_diff = end_bounds.dt.year - start_bounds.dt.year
-
-        if ((month_diff == 0) & (year_diff == 1)).all():
+        if is_yearly_steps(
+            step_start=start_bounds,
+            step_end=end_bounds,
+        ):
             return "yr"
 
-        MONTH_DIFF_IF_END_OF_YEAR = -11
-        if (
-            (month_diff == 1)
-            | ((month_diff == MONTH_DIFF_IF_END_OF_YEAR) & (year_diff == 1))
-        ).all():
+        if is_monthly_steps(
+            step_start=start_bounds,
+            step_end=end_bounds,
+        ):
             return "mon"
 
         time_deltas = end_bounds - start_bounds
-        # This would not work across the Julian/Gregorian boundary
-        # (Ideally, move fast paths earlier in the function...)
+        # This would not work across the Julian/Gregorian boundary.
         if (time_deltas.dt.days == 1).all():
             return "day"
 

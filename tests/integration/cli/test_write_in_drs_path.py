@@ -193,9 +193,10 @@ def test_validate_write_in_drs_climatology(tmp_path):
             standard_and_or_long_names={
                 variable_name: {"standard_name": variable_name}
             },
-            dimensions=("lat", "lon"),
         ),
     )
+    # The resulting data should not have time bounds
+    assert "time_bounds" not in input4mips_ds.data
 
     # Write a correct file as a helper
     helper_root_path = tmp_path / "helper"

@@ -822,7 +822,12 @@ def add_bounds(  # noqa: PLR0913
 
     for dim in dimensions_use:
         if dim == time_dimension:
+            # if ds_is_climatology(ds, time_dimension=time_dimension):
+            #     # Climatologies don't have bounds, they have climatology info instead.
+            #     continue
+            #
             ds = add_time_bounds_use(ds, output_dim_bounds=bounds_dim)
+
         else:
             ds = ds.cf.add_bounds(dim, output_dim=bounds_dim)
             # Remove the bounds variable from co-ordinates

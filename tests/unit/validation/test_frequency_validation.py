@@ -277,7 +277,6 @@ MONTHLY_CLIMATOLOGY_DATA = create_monthly_climatology_data()
             ),
             id="monC_data_mon_metadata",
         ),
-        # TODO: add test across Julian/Gregorian boundary of daily data
         # pytest.param(
         #     THREE_HOURLY_DATA,
         #     "to_check",

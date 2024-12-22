@@ -148,7 +148,7 @@ class BoundsInfo:
             if len(bounds_dim_l) != 1:
                 msg = (
                     f"Expected to find just one non-time dimension for {time_bounds}. "
-                    f"Derived: {bounds_dim_l=}. "
+                    f"Inferred: {bounds_dim_l=}. "
                     f"Original dimensions of {time_bounds}: {time_bounds_dims}"
                 )
                 raise AssertionError(msg)
@@ -163,7 +163,7 @@ class BoundsInfo:
                     f"{time_dimension=} not in the dataset, guessing bounds info"
                 )
 
-            guesses = ("bounds", "bnds")
+            guesses = ("bounds", "bnds", "nv")
             for guess in guesses:
                 if guess in ds.dims:
                     bounds_dim = guess
@@ -176,7 +176,7 @@ class BoundsInfo:
             else:
                 msg = (
                     "Could not guess which variable was the bounds variable. "
-                    f"Tried {guesses=}. "
+                    f"Guessed {guesses=}. "
                     f"{ds=}."
                 )
                 raise AssertionError(msg)

@@ -58,7 +58,7 @@ def create_monthly_data(years: tuple[int, ...] = (2021, 2022, 2023)) -> xr.Datas
         },
         coords=dict(
             time=("time", time_axis),
-            time_bounds=(("time_bounds", "bnds"), time_bounds),
+            time_bounds=(("time", "bnds"), time_bounds),
             lon=("lon", np.linspace(-180.0 + 15.0, 180.0, 6)),
             lat=("lat", np.linspace(-90.0 + 15.0, 90.0, 6)),
         ),
@@ -90,7 +90,7 @@ def create_yearly_data(years: tuple[int, ...] = (2021, 2022, 2023)) -> xr.Datase
         },
         coords=dict(
             time=("time", time_axis),
-            time_bounds=(("time_bounds", "bnds"), time_bounds),
+            time_bounds=(("time", "bnds"), time_bounds),
             lon=("lon", np.linspace(-180.0 + 15.0, 180.0, 6)),
             lat=("lat", np.linspace(-90.0 + 15.0, 90.0, 6)),
         ),
@@ -127,7 +127,7 @@ def create_daily_data(
         },
         coords=dict(
             time=("time", time_axis),
-            time_bounds=(("time_bounds", "bnds"), time_bounds),
+            time_bounds=(("time", "bnds"), time_bounds),
             lon=("lon", np.linspace(-180.0 + 15.0, 180.0, 6)),
             lat=("lat", np.linspace(-90.0 + 15.0, 90.0, 6)),
         ),

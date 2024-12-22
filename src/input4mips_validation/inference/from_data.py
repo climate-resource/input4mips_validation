@@ -396,8 +396,13 @@ def infer_time_start_time_end_for_filename(
         if isinstance(time_end, np.datetime64):
             raise TypeError(time_end)
 
+        if frequency != "monC":
+            # The logic below will break if we have a climatology other than monthly,
+            # hence this guard.
+            raise NotImplementedError
+
         # If first day of month,
-        # roll back one day to reflect the fact that the bound is exclusive
+        # roll back one day to reflect the fact that the bound is exclusive.
         if time_end.day == 1:
             time_end = time_end - dt.timedelta(days=1)
 

@@ -13,6 +13,7 @@ from unittest.mock import patch
 import numpy as np
 import pint
 import pint_xarray  # noqa: F401 # required to activate pint accessor
+import pytest
 import xarray as xr
 from typer.testing import CliRunner
 
@@ -47,7 +48,24 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
 ).absolute()
 
 
-def test_basic(tmp_path):
+@pytest.mark.parametrize(
+    "n_processes",
+    (
+        pytest.param(1, id="serial"),
+        pytest.param(
+            2,
+            id="parallel",
+            marks=[
+                pytest.mark.skipif(
+                    os.environ.get("GITHUB_ACTIONS", "false") == "true",
+                    reason="Flaky in CI",
+                ),
+                pytest.mark.timeout(10),
+            ],
+        ),
+    ),
+)
+def test_basic(tmp_path, n_processes):
     """
     Write two files in a tree, then make sure we can create the database
     """
@@ -156,7 +174,9 @@ def test_basic(tmp_path):
 
     # Test the function directly first (helps with debugging)
     db_entries = create_db_file_entries(
-        tree_root.rglob("*.nc"), cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE
+        tree_root.rglob("*.nc"),
+        cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
+        n_processes=n_processes,
     )
 
     assert set(db_entries) == set(db_entries_exp)
@@ -172,7 +192,15 @@ def test_basic(tmp_path):
         os.environ,
         {"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     ):
-        args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
+        args = [
+            "db",
+            "create",
+            str(tree_root),
+            "--db-dir",
+            str(db_dir),
+            "--n-processes",
+            n_processes,
+        ]
         result = runner.invoke(app, args)
 
     assert result.exit_code == 0, result.exc_info

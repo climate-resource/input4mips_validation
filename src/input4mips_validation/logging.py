@@ -4,10 +4,9 @@ Logging
 
 from __future__ import annotations
 
-import io
 import sys
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 from loguru import logger
 
@@ -84,7 +83,7 @@ One level higher than
 
 def get_default_config(
     level: str = LOG_LEVEL_INFO_INDIVIDUAL_CHECK.name,
-) -> dict[str, list[dict[str, Union[Union[io.TextIOWrapper, Any], str, bool]]]]:
+) -> input4mips_validation.logging_config.ConfigLike:
     """
     Get default logging configuration
 
@@ -123,7 +122,7 @@ def get_default_config(
 def setup_logging(
     enable: bool,
     logging_config: Optional[
-        Union[Path, input4mips_validation.logging_config.LoggingConfigType]
+        Union[Path, input4mips_validation.logging_config.LoggingConfigLike]
     ] = None,
     logging_level: Optional[str] = None,
 ) -> None:
@@ -166,7 +165,7 @@ def setup_logging(
     elif isinstance(logging_config, dict):
         # mypy not happy about kwargs being passed here,
         # fair enough I guess
-        logger.configure(**logging_config)  # type: ignore
+        logger.configure(**logging_config)
         input4mips_validation.logging_config.LOGGING_CONFIG = logging_config
 
     else:
@@ -190,7 +189,7 @@ def setup_logging(
 
         loguru_configurer = LoguruConfig.load(logging_config, configure=False)
         loguru_configurer.load()
-        input4mips_validation.logging_config.LOGGING_CONFIG = dict(
+        input4mips_validation.logging_config.LOGGING_CONFIG = dict(  # type: ignore # loguru_configurer not typed properly
             handlers=loguru_configurer.handlers,
             levels=loguru_configurer.levels,
             extra=loguru_configurer.extra,

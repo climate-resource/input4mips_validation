@@ -29,8 +29,8 @@ from input4mips_validation.xarray_helpers.variables import (
 
 
 def create_db_file_entry_with_logging(
-    logging_config_serialised: LoggingConfigSerialisedType,
     file: Path,
+    logging_config_serialised: LoggingConfigSerialisedType,
     **kwargs: Any,
 ) -> Input4MIPsDatabaseEntryFile:
     """
@@ -108,6 +108,7 @@ def create_db_file_entries(  # noqa: PLR0913
         input4mips_validation.logging_config.LOGGING_CONFIG
     )
     call_kwargs = dict(
+        logging_config_serialised=logging_config_serialised,
         cvs=cvs,
         xr_variable_processor=xr_variable_processor,
         frequency_metadata_keys=frequency_metadata_keys,
@@ -117,9 +118,7 @@ def create_db_file_entries(  # noqa: PLR0913
     if n_processes == 1:
         logger.info("Creating database entries serially")
         db_entries = [
-            create_db_file_entry_with_logging(
-                logging_config_serialised, file, **call_kwargs
-            )
+            create_db_file_entry_with_logging(file, **call_kwargs)
             for file in tqdm.tqdm(files, desc="Files to process")
         ]
 
@@ -134,7 +133,6 @@ def create_db_file_entries(  # noqa: PLR0913
             futures = [
                 executor.submit(
                     create_db_file_entry_with_logging,
-                    logging_config_serialised,
                     file,
                     **call_kwargs,
                 )

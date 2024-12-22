@@ -31,7 +31,7 @@ from input4mips_validation.inference.from_data import (
     BoundsInfo,
     FrequencyMetadataKeys,
     infer_frequency,
-    infer_time_start_time_end_for_filename,
+    infer_time_start_time_end,
 )
 from input4mips_validation.io import (
     generate_creation_timestamp,
@@ -523,7 +523,7 @@ class Input4MIPsDataset:
         ds_disk.attrs["tracking_id"] = generate_tracking_id()
         ds_disk.attrs["creation_date"] = generate_creation_timestamp()
 
-        time_start, time_end = infer_time_start_time_end_for_filename(
+        time_start, time_end = infer_time_start_time_end(
             ds=ds_disk,
             frequency_metadata_key=frequency_metadata_keys.frequency_metadata_key,
             no_time_axis_frequency=frequency_metadata_keys.no_time_axis_frequency,
@@ -741,7 +741,6 @@ def prepare_ds_and_get_frequency(  # noqa: PLR0913
     frequency = infer_frequency(
         ds,
         no_time_axis_frequency=no_time_axis_frequency,
-        time_dimension=time_dimension,
         time_bounds=bounds_info.time_bounds,
         bounds_dim=bounds_info.bounds_dim,
         bounds_dim_lower_val=bounds_info.bounds_dim_lower_val,

@@ -16,7 +16,6 @@ from input4mips_validation.inference.from_data import (
 def validate_frequency(
     frequency: str,
     ds: xr.Dataset,
-    time_dimension: str = "time",
     frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
     bounds_info: BoundsInfo = BoundsInfo(),
 ) -> None:
@@ -30,9 +29,6 @@ def validate_frequency(
 
     ds
         Dataset to which the frequency metadata applies.
-
-    time_dimension
-        The name of the time dimension, if it appears in `ds`.
 
     frequency_metadata_keys
         Metadata definitions for frequency information
@@ -49,7 +45,6 @@ def validate_frequency(
         expected_frequency = infer_frequency(
             ds=ds,
             no_time_axis_frequency=frequency_metadata_keys.no_time_axis_frequency,
-            time_dimension=time_dimension,
             time_bounds=bounds_info.time_bounds,
             bounds_dim=bounds_info.bounds_dim,
             bounds_dim_lower_val=bounds_info.bounds_dim_lower_val,

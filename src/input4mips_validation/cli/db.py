@@ -47,7 +47,6 @@ def db_create(  # noqa: PLR0913
     cv_source: Union[str, None],
     frequency_metadata_keys: FrequencyMetadataKeys,
     time_dimension: str,
-    xr_variable_processor: XRVariableProcessorLike,
     rglob_input: str,
     n_processes: int,
 ) -> None:
@@ -80,9 +79,6 @@ def db_create(  # noqa: PLR0913
     time_dimension
         The time dimension of the data
 
-    xr_variable_processor
-        Helper to use for processing the variables in xarray objects.
-
     rglob_input
         String to use when applying `rglob` to find input files
 
@@ -102,7 +98,6 @@ def db_create(  # noqa: PLR0913
         files=all_files,
         cv_source=cv_source,
         frequency_metadata_keys=frequency_metadata_keys,
-        xr_variable_processor=xr_variable_processor,
         time_dimension=time_dimension,
         n_processes=n_processes,
     )
@@ -136,7 +131,6 @@ def db_create_command(  # noqa: PLR0913
         ),
     ],
     cv_source: CV_SOURCE_OPTION = None,
-    bnds_coord_indicators: BNDS_COORD_INDICATORS_TYPE = "bnds;bounds",
     frequency_metadata_key: FREQUENCY_METADATA_KEY_OPTION = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
     time_dimension: TIME_DIMENSION_OPTION = "time",
@@ -150,11 +144,6 @@ def db_create_command(  # noqa: PLR0913
         msg = "If using `create`, the database directory must not already exist"
         raise FileExistsError(msg)
 
-    xr_variable_processor = XRVariableHelper(
-        bounds_coord_indicators=tuple(
-            bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
-        )
-    )
     frequency_metadata_keys = FrequencyMetadataKeys(
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
@@ -166,7 +155,6 @@ def db_create_command(  # noqa: PLR0913
         cv_source=cv_source,
         frequency_metadata_keys=frequency_metadata_keys,
         time_dimension=time_dimension,
-        xr_variable_processor=xr_variable_processor,
         rglob_input=rglob_input,
         n_processes=n_processes,
     )
@@ -178,7 +166,6 @@ def db_add_tree(  # noqa: PLR0913
     cv_source: Union[str, None],
     frequency_metadata_keys: FrequencyMetadataKeys,
     time_dimension: str,
-    xr_variable_processor: XRVariableProcessorLike,
     rglob_input: str,
     n_processes: int,
 ) -> None:
@@ -211,9 +198,6 @@ def db_add_tree(  # noqa: PLR0913
     time_dimension
         The time dimension of the data
 
-    xr_variable_processor
-        Helper to use for processing the variables in xarray objects.
-
     rglob_input
         String to use when applying `rglob` to find input files
 
@@ -240,7 +224,6 @@ def db_add_tree(  # noqa: PLR0913
         files=files_to_add,
         cv_source=cv_source,
         frequency_metadata_keys=frequency_metadata_keys,
-        xr_variable_processor=xr_variable_processor,
         time_dimension=time_dimension,
         n_processes=n_processes,
     )
@@ -275,7 +258,6 @@ def db_add_tree_command(  # noqa: PLR0913
         ),
     ],
     cv_source: CV_SOURCE_OPTION = None,
-    bnds_coord_indicators: BNDS_COORD_INDICATORS_TYPE = "bnds;bounds",
     frequency_metadata_key: FREQUENCY_METADATA_KEY_OPTION = "frequency",
     no_time_axis_frequency: NO_TIME_AXIS_FREQUENCY_OPTION = "fx",
     time_dimension: TIME_DIMENSION_OPTION = "time",
@@ -285,11 +267,6 @@ def db_add_tree_command(  # noqa: PLR0913
     """
     Add files from a tree to a database
     """
-    xr_variable_processor = XRVariableHelper(
-        bounds_coord_indicators=tuple(
-            bnds_coord_indicators.split(BNDS_COORD_INDICATORS_SEPARATOR)
-        )
-    )
     frequency_metadata_keys = FrequencyMetadataKeys(
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
@@ -301,7 +278,6 @@ def db_add_tree_command(  # noqa: PLR0913
         cv_source=cv_source,
         frequency_metadata_keys=frequency_metadata_keys,
         time_dimension=time_dimension,
-        xr_variable_processor=xr_variable_processor,
         rglob_input=rglob_input,
         n_processes=n_processes,
     )

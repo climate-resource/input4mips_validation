@@ -58,7 +58,7 @@ def create_monthly_data(years: tuple[int, ...] = (2021, 2022, 2023)) -> xr.Datas
         },
         coords=dict(
             time=("time", time_axis),
-            time_bounds=(("time_bounds", "bnds"), time_bounds),
+            time_bounds=(("time", "bnds"), time_bounds),
             lon=("lon", np.linspace(-180.0 + 15.0, 180.0, 6)),
             lat=("lat", np.linspace(-90.0 + 15.0, 90.0, 6)),
         ),
@@ -90,7 +90,7 @@ def create_yearly_data(years: tuple[int, ...] = (2021, 2022, 2023)) -> xr.Datase
         },
         coords=dict(
             time=("time", time_axis),
-            time_bounds=(("time_bounds", "bnds"), time_bounds),
+            time_bounds=(("time", "bnds"), time_bounds),
             lon=("lon", np.linspace(-180.0 + 15.0, 180.0, 6)),
             lat=("lat", np.linspace(-90.0 + 15.0, 90.0, 6)),
         ),
@@ -127,7 +127,7 @@ def create_daily_data(
         },
         coords=dict(
             time=("time", time_axis),
-            time_bounds=(("time_bounds", "bnds"), time_bounds),
+            time_bounds=(("time", "bnds"), time_bounds),
             lon=("lon", np.linspace(-180.0 + 15.0, 180.0, 6)),
             lat=("lat", np.linspace(-90.0 + 15.0, 90.0, 6)),
         ),
@@ -138,6 +138,62 @@ def create_daily_data(
 
 
 DAILY_DATA = create_daily_data()
+DAILY_DATA_ACROSS_JULIAN_GREGORIAN_BOUNDARY = create_daily_data(
+    days=(
+        cftime.datetime(1582, 10, 2, 12, 0, 0, calendar="gregorian"),
+        cftime.datetime(1582, 10, 3, 12, 0, 0, calendar="gregorian"),
+        cftime.datetime(1582, 10, 4, 12, 0, 0, calendar="gregorian"),
+        cftime.datetime(1582, 10, 15, 12, 0, 0, calendar="gregorian"),
+        cftime.datetime(1582, 10, 16, 12, 0, 0, calendar="gregorian"),
+        cftime.datetime(1582, 10, 17, 12, 0, 0, calendar="gregorian"),
+    ),
+)
+
+
+def create_monthly_climatology_data() -> xr.Dataset:
+    time_axis = [cftime.datetime(1850, m, 1) for m in range(1, 13)]
+
+    climatology_bounds = []
+    for time_point in time_axis:
+        start_year = 1800
+        if time_point.month == 12:
+            start_month = 12
+            end_month = 1
+            end_year = 1901
+
+        else:
+            start_month = time_point.month
+            end_month = start_month + 1
+            end_year = 1900
+
+        climatology_bounds.append(
+            [
+                cftime.datetime(start_year, start_month, 1),
+                cftime.datetime(end_year, end_month, 1),
+            ]
+        )
+
+    res = xr.Dataset(
+        data_vars={
+            "co2": (("time", "lat", "lon"), RNG.random((len(time_axis), 6, 6))),
+        },
+        coords=dict(
+            time=("time", time_axis),
+            # No time_bounds for climatology stuff
+            climatology_bounds=(("time", "nv"), climatology_bounds),
+            lon=("lon", np.linspace(-180.0 + 15.0, 180.0, 6)),
+            lat=("lat", np.linspace(-90.0 + 15.0, 90.0, 6)),
+        ),
+        attrs={},
+    )
+
+    res["co2"].attrs = {"cell_methods": "time: mean over years"}
+    res["time"].attrs = {"climatology": "climatology_bounds"}
+
+    return res
+
+
+MONTHLY_CLIMATOLOGY_DATA = create_monthly_climatology_data()
 
 
 @pytest.mark.parametrize(
@@ -174,6 +230,12 @@ DAILY_DATA = create_daily_data()
             id="valid_day",
         ),
         pytest.param(
+            DAILY_DATA_ACROSS_JULIAN_GREGORIAN_BOUNDARY,
+            "day",
+            does_not_raise(),
+            id="day_across_julian_gregorian_boundary",
+        ),
+        pytest.param(
             MONTHLY_DATA,
             "yr",
             pytest.raises(
@@ -196,6 +258,24 @@ DAILY_DATA = create_daily_data()
                 ),
             ),
             id="yr_data_mon_metadata",
+        ),
+        pytest.param(
+            MONTHLY_CLIMATOLOGY_DATA,
+            "monC",
+            does_not_raise(),
+            id="valid_monC",
+        ),
+        pytest.param(
+            MONTHLY_CLIMATOLOGY_DATA,
+            "mon",
+            pytest.raises(
+                ValueError,
+                match=create_exp_error_msg(
+                    data_frequency="monC",
+                    metadata_frequency="mon",
+                ),
+            ),
+            id="monC_data_mon_metadata",
         ),
         # TODO: add test across Julian/Gregorian boundary of daily data
         # pytest.param(

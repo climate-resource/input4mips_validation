@@ -248,7 +248,8 @@ def test_validate_flow(tmp_path):
     12. Check the status of all files in the database is `False`
     """
     # Note: using the runner to invoke the commands causes things to break.
-    # I have no idea why, but this is the reason we use subprocess throughout here.
+    # I have no idea why (I think it's related to the parallel processing),
+    # but this is the reason we use subprocess throughout here.
     input4mips_validation_cli = shutil.which("input4mips-validation")
     subprocess_check_output = partial(
         subprocess.check_output,

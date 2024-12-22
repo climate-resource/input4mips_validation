@@ -73,6 +73,37 @@ def ds_is_climatology(ds: xr.Dataset, time_dimension: str) -> bool:
     return ds_is_climatology
 
 
+def get_climatology_bounds(ds, time_dimension: str = "time") -> xr.DataArray:
+    """
+    Get the climatology bounds variable
+
+    This should only be used after having first checked that `ds`
+    is a climatology (
+    using e.g.
+    [`ds_is_climatology`][input4mips_validation.inference.from_data.ds_is_climatology]
+    ).
+
+    Parameters
+    ----------
+    ds
+        Dataset
+
+    time_dimension
+        Time dimension in `ds`
+
+    Returns
+    -------
+    :
+        Climatology bounds variable
+    """
+    # Can do this with confidence as this is what the spec defines.
+    # For further details, see comments in `ds_is_climatology`.
+    climatology_bounds_var = ds[time_dimension].attrs["climatology"]
+    climatology_bounds = ds[climatology_bounds_var]
+
+    return climatology_bounds
+
+
 def frequency_is_climatology(frequency: str) -> bool:
     """
     Check whether the frequency information indicates that the data is a climatology
@@ -473,8 +504,7 @@ def infer_time_start_time_end_for_filename(
     elif is_climatology:
         # Can do this with confidence as this is what the spec defines.
         # See comments in `ds_is_climatology`.
-        climatology_bounds_var = ds[time_dimension].attrs["climatology"]
-        climatology_bounds = ds[climatology_bounds_var]
+        climatology_bounds = get_climatology_bounds(ds, time_dimension=time_dimension)
 
         time_start = xr_time_min_max_to_single_value(climatology_bounds.min())
         time_end = xr_time_min_max_to_single_value(climatology_bounds.max())

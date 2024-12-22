@@ -30,6 +30,8 @@ from input4mips_validation.inference.from_data import (
     VARIABLE_REALM_MAP,
     BoundsInfo,
     FrequencyMetadataKeys,
+    ds_is_climatology,
+    get_climatology_bounds,
     infer_frequency,
     infer_time_start_time_end_for_filename,
 )
@@ -814,6 +816,24 @@ def add_bounds(  # noqa: PLR0913
     else:
         dimensions_use = dimensions
 
+    is_climatology = ds_is_climatology(ds, time_dimension=time_dimension)
+    if is_climatology:
+        # So much easier once we switch to using cf-python throughout
+        climatology_bounds = get_climatology_bounds(ds, time_dimension=time_dimension)
+        climatology_bounds_other_dim_l = tuple(
+            d for d in climatology_bounds.dims if d != time_dimension
+        )
+        if len(climatology_bounds_other_dim_l) != 1:
+            msg = (
+                "Should only have one non-time dimension for the climatology bounds. "
+                f"Found {climatology_bounds_other_dim_l}. {time_dimension=}"
+            )
+            raise AssertionError(msg)
+
+        dimensions_use = tuple(
+            v for v in dimensions_use if v not in climatology_bounds_other_dim_l
+        )
+
     if add_time_bounds is None:
         # Can't make mypy behave, hence type ignore
         add_time_bounds_use: AddTimeBoundsLike = iv_xr_helpers.add_time_bounds  # type: ignore
@@ -822,10 +842,10 @@ def add_bounds(  # noqa: PLR0913
 
     for dim in dimensions_use:
         if dim == time_dimension:
-            # if ds_is_climatology(ds, time_dimension=time_dimension):
-            #     # Climatologies don't have bounds, they have climatology info instead.
-            #     continue
-            #
+            if is_climatology:
+                # Climatologies don't have bounds, they have climatology info instead.
+                continue
+
             ds = add_time_bounds_use(ds, output_dim_bounds=bounds_dim)
 
         else:

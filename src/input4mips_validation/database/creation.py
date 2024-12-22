@@ -118,7 +118,7 @@ def create_db_file_entries(  # noqa: PLR0913
                 logging_config_serialised,
                 file,
                 cvs=cvs,
-                xr_variable_processor=xr_variable_processor,
+                # xr_variable_processor=xr_variable_processor,
                 frequency_metadata_keys=frequency_metadata_keys,
                 time_dimension=time_dimension,
             )

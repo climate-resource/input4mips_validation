@@ -36,11 +36,11 @@ def create_db_file_entry_with_logging(
 
     Parameters
     ----------
-    logging_config_serialised
-        Logging configuration to use (serialised version thereof)
-
     file
         File for which to create the entry
+
+    logging_config_serialised
+        Logging configuration to use (serialised version thereof)
 
     kwargs
         Passed to

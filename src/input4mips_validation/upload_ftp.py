@@ -364,6 +364,8 @@ def upload_files_p(  # noqa: PLR0913
             mkdir_v(ftp_dir_rel_to_root, ftp=ftp)
             cd_v(ftp_dir_rel_to_root, ftp=ftp)
 
+    # TODO: move this to use input4mips_validation.parallelisation.run_parallel
+    # However, only do that once we have tests.
     logger.info(
         "Uploading in parallel using up to "
         f"{n_threads} {'threads' if n_threads > 1 else 'thread'}"

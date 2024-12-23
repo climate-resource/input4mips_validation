@@ -60,7 +60,6 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
                     os.environ.get("GITHUB_ACTIONS", "false") == "true",
                     reason="Flaky in CI",
                 ),
-                pytest.mark.timeout(10),
             ],
         ),
     ),

@@ -169,6 +169,7 @@ def db_create_command(  # noqa: PLR0913
     )
 
     if n_processes > 1:
+        # TODO: allow controlling this from CLI
         mp_context = multiprocessing.get_context("fork")
 
         # I thought I needed the below, but it appears all you need

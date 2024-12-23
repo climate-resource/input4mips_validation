@@ -9,6 +9,7 @@ from __future__ import annotations
 import concurrent.futures
 import multiprocessing
 from collections.abc import Iterable
+from multiprocessing.context import BaseContext
 from typing import Callable, TypeVar
 
 import tqdm
@@ -25,9 +26,8 @@ def run_parallel(
     iterable_input: Iterable[U],
     input_desc: str,
     n_processes: int,
+    mp_context: BaseContext | None = multiprocessing.get_context("fork"),
     *args: P.args,
-    mp_context: multiprocessing.context.BaseContext
-    | None = multiprocessing.get_context("spawn"),
     **kwargs: P.kwargs,
 ) -> tuple[T, ...]:
     """
@@ -64,7 +64,10 @@ def run_parallel(
 
         The whole multiprocessing context universe is a bit complex,
         particularly given we also have logging.
-        In short, spawn is slower, but safer.
+        In short, spawn is slower, but safer and is supported by windows.
+        Yet forking seems to be the only thing
+        that allows our logging to come through without issue
+        (although maybe we're doing something wrong, it's a bit unclear).
         Full docs on multiprocessing contexts are here:
         https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods.
 
@@ -86,7 +89,7 @@ def run_parallel(
 
     else:
         if mp_context is None:
-            mp_context = multiprocessing.get_context("spawn")
+            mp_context = multiprocessing.get_context("fork")
 
         logger.info(f"Submitting {input_desc} to {n_processes} parallel processes")
         with concurrent.futures.ProcessPoolExecutor(

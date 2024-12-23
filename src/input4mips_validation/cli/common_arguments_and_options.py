@@ -5,6 +5,7 @@ Common arguments and options used across our CI
 # # Do not use this here, it breaks typer's annotations
 # from __future__ import annotations
 
+from enum import Enum
 from typing import Annotated, Optional
 
 import typer
@@ -72,6 +73,30 @@ FREQUENCY_METADATA_KEY_OPTION = Annotated[
 
 N_PROCESSES_OPTION = Annotated[
     int, typer.Option(help="Number of parallel processes to use")
+]
+
+
+class MultiprocessingContextIDOption(str, Enum):
+    """
+    Options for identifying the multiprocessing context to use
+    """
+
+    fork = "fork"
+    spawn = "spawn"
+
+
+MP_CONTEXT_ID_OPTION = Annotated[
+    MultiprocessingContextIDOption,
+    typer.Option(
+        help=(
+            "Multiprocessing context ID. "
+            ""
+            "In short, forking is faster and will preserve logging. "
+            "However, it is harder to debug and only available on POSIX systems. "
+            "In contrast, spawn is slower and will (probably) not preserve logging "
+            "in sub-processes, but it will work on windows."
+        )
+    ),
 ]
 
 NO_TIME_AXIS_FREQUENCY_OPTION = Annotated[

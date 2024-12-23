@@ -9,10 +9,7 @@ from __future__ import annotations
 
 import datetime as dt
 import os
-import shutil
-import subprocess
 from collections.abc import Iterable
-from functools import partial
 from pathlib import Path
 
 import netCDF4
@@ -113,7 +110,20 @@ def create_db_entries_exp(
     return db_entries_exp
 
 
-def test_add_flow(tmp_path):
+@pytest.mark.parametrize(
+    "n_processes, mp_context_id",
+    (
+        pytest.param(1, None, id="serial"),
+        pytest.param(
+            2,
+            "fork",
+            id="parallel-fork",
+            # Interestingly, tests don't hang here...
+        ),
+        pytest.param(2, "spawn", id="parallel-spawn"),
+    ),
+)
+def test_add_flow(tmp_path, n_processes, mp_context_id):
     """
     Test the flow of adding data to a database
 
@@ -162,6 +172,9 @@ def test_add_flow(tmp_path):
 
     # Then test the CLI
     args = ["db", "create", str(tree_root), "--db-dir", str(db_dir)]
+    if mp_context_id is not None:
+        args.extend(["--mp-context-id", mp_context_id])
+
     result = runner.invoke(
         app,
         args,
@@ -203,6 +216,9 @@ def test_add_flow(tmp_path):
     exp_created_files_post_add = [f"{v['sha256']}.json" for v in info_post_add.values()]
 
     args = ["db", "add-tree", str(tree_root), "--db-dir", str(db_dir)]
+    if mp_context_id is not None:
+        args.extend(["--mp-context-id", mp_context_id])
+
     result = runner.invoke(
         app,
         args,
@@ -222,22 +238,19 @@ def test_add_flow(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "n_processes",
+    "n_processes, mp_context_id",
     (
-        pytest.param(1, id="serial"),
+        pytest.param(1, None, id="serial"),
         pytest.param(
             2,
-            id="parallel",
-            marks=[
-                pytest.mark.skipif(
-                    os.environ.get("GITHUB_ACTIONS", "false") == "true",
-                    reason="Flaky in CI",
-                ),
-            ],
+            "fork",
+            id="parallel-fork",
+            marks=pytest.mark.skip(reason="Causes tests to hang, see #108"),
         ),
+        pytest.param(2, "spawn", id="parallel-spawn"),
     ),
 )
-def test_validate_flow(tmp_path, n_processes):
+def test_validate_flow(tmp_path, n_processes, mp_context_id):  # noqa: PLR0915
     """
     Test the flow of validating data in a database
 
@@ -264,19 +277,6 @@ def test_validate_flow(tmp_path, n_processes):
     11. Validate with the `--force` flag
     12. Check the status of all files in the database is `False`
     """
-    # TODO: try undoing this when we fix up loguru usage
-    # Note: using the runner to invoke the commands causes things to break.
-    # I have no idea why (I think it's related to the parallel processing),
-    # but this is the reason we use subprocess throughout here.
-    input4mips_validation_cli = shutil.which("input4mips-validation")
-    subprocess_check_output = partial(
-        subprocess.check_output,
-        env={
-            "INPUT4MIPS_VALIDATION_CV_SOURCE": DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
-            **os.environ,
-        },
-    )
-
     cvs = load_cvs(cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)
 
     # Create ourselves a tree
@@ -311,16 +311,25 @@ def test_validate_flow(tmp_path, n_processes):
     db_dir = tmp_path / "test-validate-flow"
 
     # 1. Create the database
-    subprocess_check_output(
-        [
-            input4mips_validation_cli,
-            "db",
-            "create",
-            str(tree_root),
-            "--db-dir",
-            str(db_dir),
-        ],
+    args = [
+        "db",
+        "create",
+        str(tree_root),
+        "--db-dir",
+        str(db_dir),
+        "--n-processes",
+        str(n_processes),
+    ]
+    if mp_context_id is not None:
+        args.extend(["--mp-context-id", mp_context_id])
+
+    result = runner.invoke(
+        app,
+        args,
+        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     )
+
+    assert result.exit_code == 0, result.exc_info
 
     # 2. Check initial status
     assert all(
@@ -328,19 +337,26 @@ def test_validate_flow(tmp_path, n_processes):
     )
 
     # 3. Validate the database
-    subprocess_check_output(
-        [
-            input4mips_validation_cli,
-            "--logging-level",
-            "DEBUG",
-            "db",
-            "validate",
-            "--db-dir",
-            str(db_dir),
-            "--n-processes",
-            str(n_processes),
-        ],
+    args = [
+        "--logging-level",
+        "DEBUG",
+        "db",
+        "validate",
+        "--db-dir",
+        str(db_dir),
+        "--n-processes",
+        str(n_processes),
+    ]
+    if mp_context_id is not None:
+        args.extend(["--mp-context-id", mp_context_id])
+
+    result = runner.invoke(
+        app,
+        args,
+        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     )
+
+    assert result.exit_code == 0, result.exc_info
 
     # 4. Check status of files in the database
     db_1 = {v.filepath: v for v in load_database_file_entries(db_dir)}
@@ -371,17 +387,24 @@ def test_validate_flow(tmp_path, n_processes):
     )
 
     # 7. Validate the database again
-    subprocess_check_output(
-        [
-            input4mips_validation_cli,
-            "db",
-            "validate",
-            "--db-dir",
-            str(db_dir),
-            "--n-processes",
-            str(n_processes),
-        ],
+    args = [
+        "db",
+        "validate",
+        "--db-dir",
+        str(db_dir),
+        "--n-processes",
+        str(n_processes),
+    ]
+    if mp_context_id is not None:
+        args.extend(["--mp-context-id", mp_context_id])
+
+    result = runner.invoke(
+        app,
+        args,
+        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     )
+
+    assert result.exit_code == 0, result.exc_info
 
     # 8. Check status of files in the database
     db_3 = {v.filepath: v for v in load_database_file_entries(db_dir)}
@@ -389,17 +412,24 @@ def test_validate_flow(tmp_path, n_processes):
     assert all(v.validated_input4mips for k, v in db_3.items() if k != broken_file)
 
     # 9. Change the DRS and validate again
-    subprocess_check_output(
-        [
-            input4mips_validation_cli,
-            "db",
-            "validate",
-            "--db-dir",
-            str(db_dir),
-            "--n-processes",
-            str(n_processes),
-        ],
+    args = [
+        "db",
+        "validate",
+        "--db-dir",
+        str(db_dir),
+        "--n-processes",
+        str(n_processes),
+    ]
+    if mp_context_id is not None:
+        args.extend(["--mp-context-id", mp_context_id])
+
+    result = runner.invoke(
+        app,
+        args,
+        env={"INPUT4MIPS_VALIDATION_CV_SOURCE": str(DEFAULT_TEST_INPUT4MIPS_CV_SOURCE)},
     )
+
+    assert result.exit_code == 0, result.exc_info
 
     # 10. Check status of files in the database.
     #     No change from above because we didn't use `--force`
@@ -408,22 +438,28 @@ def test_validate_flow(tmp_path, n_processes):
     assert all(v.validated_input4mips for k, v in db_4.items() if k != broken_file)
 
     # 11. Change the DRS and validate again with the `--force` flag
-    subprocess.check_output(
-        [  # noqa: S603
-            input4mips_validation_cli,
-            "db",
-            "validate",
-            "--db-dir",
-            str(db_dir),
-            "--force",
-            "--n-processes",
-            str(n_processes),
-        ],
+    args = [
+        "db",
+        "validate",
+        "--db-dir",
+        str(db_dir),
+        "--force",
+        "--n-processes",
+        str(n_processes),
+    ]
+    if mp_context_id is not None:
+        args.extend(["--mp-context-id", mp_context_id])
+
+    result = runner.invoke(
+        app,
+        args,
         env={
-            "INPUT4MIPS_VALIDATION_CV_SOURCE": DIFFERENT_DRS_CV_SOURCE,
+            "INPUT4MIPS_VALIDATION_CV_SOURCE": str(DIFFERENT_DRS_CV_SOURCE),
             **os.environ,
         },
     )
+
+    assert result.exit_code == 0, result.exc_info
 
     # 12. Check status of files in the database.
     #     Should all be `False` now.

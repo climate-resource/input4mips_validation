@@ -294,6 +294,7 @@ def validate_database_entries(  # noqa: PLR0913
     time_dimension: str = "time",
     allow_cf_checker_warnings: bool = False,
     n_processes: int = 1,
+    mp_context: multiprocessing.context.BaseContext | None = None,
 ) -> tuple[Input4MIPsDatabaseEntryFile, ...]:
     """
     Validate entries for files in our database
@@ -340,6 +341,13 @@ def validate_database_entries(  # noqa: PLR0913
     n_processes
         Number of parallel processes to use while validating the entries.
 
+    mp_context
+        Multiprocessing context to use.
+
+        If `n_processes` is equal to 1, simply pass `None`.
+        If `n_processes` is greater than 1 and you pass `None`,
+        a default context will be created and used.
+
     Returns
     -------
     :
@@ -351,13 +359,6 @@ def validate_database_entries(  # noqa: PLR0913
 
     elif cv_source is not None:
         logger.warning(f"Using provided cvs instead of {cv_source=}")
-
-    if n_processes > 1:
-        # TODO: allow controlling this from CLI
-        mp_context = multiprocessing.get_context("fork")
-
-    else:
-        mp_context = None
 
     validated_entries = run_parallel(
         database_file_entry_is_valid,

@@ -53,9 +53,6 @@ def run_parallel(
         If set to `1`, we run the process serially
         (very helpful for debugging).
 
-    *args
-        Arguments to use for every call of `func_to_call`.
-
     mp_context
         Multiprocessing context to use.
 
@@ -70,6 +67,9 @@ def run_parallel(
         (although maybe we're doing something wrong, it's a bit unclear).
         Full docs on multiprocessing contexts are here:
         https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods.
+
+    *args
+        Arguments to use for every call of `func_to_call`.
 
     **kwargs
         Keyword arguments to use for every call of `func_to_call`.

@@ -483,7 +483,7 @@ def get_validate_tree_result(  # noqa: PLR0913
             )
 
         # TODO: check cross references in files to external variables
-        # e.g. areacella
+        # e.g. areacella with cf-python
 
         tvrs.file_validation_results_stores[file] = validate_file_result
 

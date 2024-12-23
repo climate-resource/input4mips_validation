@@ -4,11 +4,9 @@ Database validation
 
 from __future__ import annotations
 
-import concurrent.futures
 from pathlib import Path
 from typing import Any, Optional, Union
 
-import tqdm
 from attrs import define, evolve
 from loguru import logger
 
@@ -28,6 +26,7 @@ from input4mips_validation.logging_config import (
     deserialise_logging_config,
     serialise_logging_config,
 )
+from input4mips_validation.parallelisation import run_parallel
 from input4mips_validation.validation.error_catching import (
     ValidationResultsStore,
 )
@@ -222,10 +221,11 @@ class FileEntryValidationResult:
 
 
 def database_file_entry_is_valid(
-    logging_config_serialised: LoggingConfigSerialisedType,
     entry: Input4MIPsDatabaseEntryFile,
+    /,
+    logging_config_serialised: LoggingConfigSerialisedType,
     **kwargs: Any,
-) -> FileEntryValidationResult:
+) -> Input4MIPsDatabaseEntryFile:
     """
     Determine if a database entry for a file is valid
 
@@ -236,11 +236,11 @@ def database_file_entry_is_valid(
 
     Parameters
     ----------
-    logging_config_serialised
-        Logging configuration to use (serialised version thereof)
-
     entry
         Entry to validate
+
+    logging_config_serialised
+        Logging configuration to use (serialised version thereof)
 
     **kwargs
         Passed to
@@ -249,7 +249,7 @@ def database_file_entry_is_valid(
     Returns
     -------
     :
-        Result of the validation of `entry`.
+        Updated `entry` based on the result of validating.
     """
     logging_config = deserialise_logging_config(logging_config_serialised)
     if logging_config is not None:
@@ -261,15 +261,42 @@ def database_file_entry_is_valid(
     vrs = get_validate_database_file_entry_result(entry=entry, **kwargs)
     try:
         vrs.raise_if_errors()
-        res = FileEntryValidationResult(entry=entry, passed_validation=True)
+        res_validation = FileEntryValidationResult(entry=entry, passed_validation=True)
 
     except Exception as exc:
-        res = FileEntryValidationResult(
+        res_validation = FileEntryValidationResult(
             entry=entry,
             passed_validation=False,
             exception_type=type(exc).__name__,
             exception_msg=str(exc),
         )
+
+    passed_validation = res_validation.passed_validation
+
+    if passed_validation:
+        logger.log(
+            LOG_LEVEL_INFO_DB_ENTRY.name,
+            "Validation passed for the entry pointing to "
+            f"{res_validation.entry.filepath}",
+        )
+
+    else:
+        logger.log(
+            LOG_LEVEL_INFO_DB_ENTRY_ERROR.name,
+            f"Validation failed with {res_validation.exception_type=} "
+            "for the entry pointing to "
+            f"{res_validation.entry.filepath}",
+        )
+        logger.debug(
+            f"Validation failed with {res_validation.exception_type=} "
+            f"for {res_validation.entry.filepath}.\n"
+            f"Details: {res_validation.exception_msg}"
+        )
+
+    res = evolve(
+        res_validation.entry,
+        validated_input4mips=passed_validation,
+    )
 
     return res
 
@@ -345,62 +372,19 @@ def validate_database_entries(  # noqa: PLR0913
     logging_config_serialised = serialise_logging_config(
         input4mips_validation.logging_config.LOGGING_CONFIG
     )
-    logger.info(
-        f"Validating {len(entries_to_validate)} database "
-        f"{'entries' if len(entries_to_validate) > 1 else 'entry'} in parallel using "
-        f"{n_processes} {'processes' if n_processes > 1 else 'process'}"
+
+    validated_entries = run_parallel(
+        database_file_entry_is_valid,
+        entries_to_validate,
+        input_desc="database entries",
+        n_processes=n_processes,
+        logging_config_serialised=logging_config_serialised,
+        cvs=cvs,
+        xr_variable_processor=xr_variable_processor,
+        frequency_metadata_keys=frequency_metadata_keys,
+        bounds_info=bounds_info,
+        time_dimension=time_dimension,
+        allow_cf_checker_warnings=allow_cf_checker_warnings,
     )
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=n_processes) as executor:
-        futures = [
-            executor.submit(
-                database_file_entry_is_valid,
-                logging_config_serialised,
-                entry,
-                cvs=cvs,
-                xr_variable_processor=xr_variable_processor,
-                frequency_metadata_keys=frequency_metadata_keys,
-                bounds_info=bounds_info,
-                time_dimension=time_dimension,
-                allow_cf_checker_warnings=allow_cf_checker_warnings,
-            )
-            for entry in tqdm.tqdm(
-                entries_to_validate, desc="Submitting entries to the queue"
-            )
-        ]
-
-        out_l = []
-        for future in tqdm.tqdm(
-            concurrent.futures.as_completed(futures),
-            desc="Database file entries",
-            total=len(futures),
-        ):
-            file_validation_result = future.result()
-            passed_validation = file_validation_result.passed_validation
-            out_l.append(
-                evolve(
-                    file_validation_result.entry,
-                    validated_input4mips=passed_validation,
-                )
-            )
-            if passed_validation:
-                logger.log(
-                    LOG_LEVEL_INFO_DB_ENTRY.name,
-                    "Validation passed for the entry pointing to "
-                    f"{file_validation_result.entry.filepath}",
-                )
-
-            else:
-                logger.log(
-                    LOG_LEVEL_INFO_DB_ENTRY_ERROR.name,
-                    f"Validation failed with {file_validation_result.exception_type=} "
-                    "for the entry pointing to "
-                    f"{file_validation_result.entry.filepath}",
-                )
-                logger.debug(
-                    f"Validation failed with {file_validation_result.exception_type=} "
-                    f"for {file_validation_result.entry.filepath}.\n"
-                    f"Details: {file_validation_result.exception_msg}"
-                )
-
-    return tuple(out_l)
+    return validated_entries

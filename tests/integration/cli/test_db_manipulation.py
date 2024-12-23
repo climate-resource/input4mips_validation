@@ -18,6 +18,7 @@ from pathlib import Path
 import netCDF4
 import pint
 import pint_xarray  # noqa: F401 # required to activate pint accessor
+import pytest
 from typer.testing import CliRunner
 
 from input4mips_validation.cli import app
@@ -220,7 +221,23 @@ def test_add_flow(tmp_path):
     assert set(db_entries_cli_post_add) == set(db_entries_exp_post_add)
 
 
-def test_validate_flow(tmp_path):
+@pytest.mark.parametrize(
+    "n_processes",
+    (
+        pytest.param(1, id="serial"),
+        pytest.param(
+            2,
+            id="parallel",
+            marks=[
+                pytest.mark.skipif(
+                    os.environ.get("GITHUB_ACTIONS", "false") == "true",
+                    reason="Flaky in CI",
+                ),
+            ],
+        ),
+    ),
+)
+def test_validate_flow(tmp_path, n_processes):
     """
     Test the flow of validating data in a database
 
@@ -247,6 +264,7 @@ def test_validate_flow(tmp_path):
     11. Validate with the `--force` flag
     12. Check the status of all files in the database is `False`
     """
+    # TODO: try undoing this when we fix up loguru usage
     # Note: using the runner to invoke the commands causes things to break.
     # I have no idea why (I think it's related to the parallel processing),
     # but this is the reason we use subprocess throughout here.
@@ -319,6 +337,8 @@ def test_validate_flow(tmp_path):
             "validate",
             "--db-dir",
             str(db_dir),
+            "--n-processes",
+            str(n_processes),
         ],
     )
 
@@ -358,6 +378,8 @@ def test_validate_flow(tmp_path):
             "validate",
             "--db-dir",
             str(db_dir),
+            "--n-processes",
+            str(n_processes),
         ],
     )
 
@@ -374,6 +396,8 @@ def test_validate_flow(tmp_path):
             "validate",
             "--db-dir",
             str(db_dir),
+            "--n-processes",
+            str(n_processes),
         ],
     )
 
@@ -392,6 +416,8 @@ def test_validate_flow(tmp_path):
             "--db-dir",
             str(db_dir),
             "--force",
+            "--n-processes",
+            str(n_processes),
         ],
         env={
             "INPUT4MIPS_VALIDATION_CV_SOURCE": DIFFERENT_DRS_CV_SOURCE,

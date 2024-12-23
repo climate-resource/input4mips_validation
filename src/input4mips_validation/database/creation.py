@@ -4,13 +4,9 @@ Creation of database entries
 
 from __future__ import annotations
 
-import concurrent.futures
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
-
-import tqdm
-from loguru import logger
 
 import input4mips_validation.logging_config
 from input4mips_validation.cvs.loading import load_cvs
@@ -22,6 +18,7 @@ from input4mips_validation.logging_config import (
     deserialise_logging_config,
     serialise_logging_config,
 )
+from input4mips_validation.parallelisation import run_parallel
 from input4mips_validation.xarray_helpers.variables import (
     XRVariableHelper,
     XRVariableProcessorLike,
@@ -30,6 +27,7 @@ from input4mips_validation.xarray_helpers.variables import (
 
 def create_db_file_entry_with_logging(
     file: Path,
+    /,
     logging_config_serialised: LoggingConfigSerialisedType,
     **kwargs: Any,
 ) -> Input4MIPsDatabaseEntryFile:
@@ -38,11 +36,11 @@ def create_db_file_entry_with_logging(
 
     Parameters
     ----------
-    logging_config_serialised
-        Logging configuration to use (serialised version thereof)
-
     file
         File for which to create the entry
+
+    logging_config_serialised
+        Logging configuration to use (serialised version thereof)
 
     kwargs
         Passed to
@@ -104,47 +102,21 @@ def create_db_file_entries(  # noqa: PLR0913
     """
     cvs = load_cvs(cv_source=cv_source)
 
+    # Might be fixable if we use multiprocessing more directly,
+    # see e.g. https://github.com/znichollscr/loguru/blob/61963240dece1979961ec43840e06a1f396479c4/tests/test_multiprocessing.py#L243
     logging_config_serialised = serialise_logging_config(
         input4mips_validation.logging_config.LOGGING_CONFIG
     )
-    call_kwargs = dict(
+
+    db_entries = run_parallel(
+        func_to_call=create_db_file_entry_with_logging,
+        iterable_input=files,
+        input_desc="files",
+        n_processes=n_processes,
         logging_config_serialised=logging_config_serialised,
         cvs=cvs,
         xr_variable_processor=xr_variable_processor,
         frequency_metadata_keys=frequency_metadata_keys,
         time_dimension=time_dimension,
     )
-
-    if n_processes == 1:
-        logger.info("Creating database entries serially")
-        db_entries = [
-            create_db_file_entry_with_logging(file, **call_kwargs)  # type: ignore # mypy confused by unpacking
-            for file in tqdm.tqdm(files, desc="Files to process")
-        ]
-
-    else:
-        logger.info(
-            f"Creating database entries in parallel using {n_processes} processes"
-        )
-        with concurrent.futures.ProcessPoolExecutor(
-            max_workers=n_processes
-        ) as executor:
-            futures = [
-                executor.submit(
-                    create_db_file_entry_with_logging,
-                    file,
-                    **call_kwargs,  # type: ignore # mypy confused by unpacking
-                )
-                for file in tqdm.tqdm(files, desc="Submitting files to queue")
-            ]
-
-            db_entries = [
-                future.result()
-                for future in tqdm.tqdm(
-                    concurrent.futures.as_completed(futures),
-                    desc="Database file entries",
-                    total=len(futures),
-                )
-            ]
-
-    return tuple(db_entries)
+    return db_entries

@@ -169,11 +169,6 @@ def test_basic(tmp_path, n_processes, mp_context_id):
         ]
     )
 
-    # In the tests, we have to use spawn.
-    # I don't know why exactly,
-    # but probably there is an issue in our code somewhere.
-    # Helpful starting point if we ever try to fix this:
-    # https://github.com/pytest-dev/pytest/issues/11174#issuecomment-2423571642
     if mp_context_id is not None:
         mp_context = multiprocessing.get_context(mp_context_id)
     else:

@@ -4,13 +4,13 @@ Database validation
 
 from __future__ import annotations
 
+import multiprocessing
 from pathlib import Path
 from typing import Any, Optional, Union
 
 from attrs import define, evolve
 from loguru import logger
 
-import input4mips_validation.logging_config
 from input4mips_validation.cvs import Input4MIPsCVs, load_cvs
 from input4mips_validation.database.database import Input4MIPsDatabaseEntryFile
 from input4mips_validation.exceptions import NonUniqueError
@@ -19,12 +19,6 @@ from input4mips_validation.inference.from_data import BoundsInfo, FrequencyMetad
 from input4mips_validation.logging import (
     LOG_LEVEL_INFO_DB_ENTRY,
     LOG_LEVEL_INFO_DB_ENTRY_ERROR,
-    setup_logging,
-)
-from input4mips_validation.logging_config import (
-    LoggingConfigSerialisedType,
-    deserialise_logging_config,
-    serialise_logging_config,
 )
 from input4mips_validation.parallelisation import run_parallel
 from input4mips_validation.validation.error_catching import (
@@ -223,7 +217,6 @@ class FileEntryValidationResult:
 def database_file_entry_is_valid(
     entry: Input4MIPsDatabaseEntryFile,
     /,
-    logging_config_serialised: LoggingConfigSerialisedType,
     **kwargs: Any,
 ) -> Input4MIPsDatabaseEntryFile:
     """
@@ -239,9 +232,6 @@ def database_file_entry_is_valid(
     entry
         Entry to validate
 
-    logging_config_serialised
-        Logging configuration to use (serialised version thereof)
-
     **kwargs
         Passed to
         [`get_validate_database_file_entry_result`][input4mips_validation.validation.database.get_validate_database_file_entry_result]
@@ -251,13 +241,6 @@ def database_file_entry_is_valid(
     :
         Updated `entry` based on the result of validating.
     """
-    logging_config = deserialise_logging_config(logging_config_serialised)
-    if logging_config is not None:
-        setup_logging(
-            enable=True,
-            logging_config=logging_config,
-        )
-
     vrs = get_validate_database_file_entry_result(entry=entry, **kwargs)
     try:
         vrs.raise_if_errors()
@@ -311,6 +294,7 @@ def validate_database_entries(  # noqa: PLR0913
     time_dimension: str = "time",
     allow_cf_checker_warnings: bool = False,
     n_processes: int = 1,
+    mp_context: multiprocessing.context.BaseContext | None = None,
 ) -> tuple[Input4MIPsDatabaseEntryFile, ...]:
     """
     Validate entries for files in our database
@@ -357,6 +341,13 @@ def validate_database_entries(  # noqa: PLR0913
     n_processes
         Number of parallel processes to use while validating the entries.
 
+    mp_context
+        Multiprocessing context to use.
+
+        If `n_processes` is equal to 1, simply pass `None`.
+        If `n_processes` is greater than 1 and you pass `None`,
+        a default context will be created and used.
+
     Returns
     -------
     :
@@ -369,22 +360,18 @@ def validate_database_entries(  # noqa: PLR0913
     elif cv_source is not None:
         logger.warning(f"Using provided cvs instead of {cv_source=}")
 
-    logging_config_serialised = serialise_logging_config(
-        input4mips_validation.logging_config.LOGGING_CONFIG
-    )
-
     validated_entries = run_parallel(
         database_file_entry_is_valid,
         entries_to_validate,
         input_desc="database entries",
         n_processes=n_processes,
-        logging_config_serialised=logging_config_serialised,
         cvs=cvs,
         xr_variable_processor=xr_variable_processor,
         frequency_metadata_keys=frequency_metadata_keys,
         bounds_info=bounds_info,
         time_dimension=time_dimension,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
+        mp_context=mp_context,
     )
 
     return validated_entries

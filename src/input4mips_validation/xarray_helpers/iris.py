@@ -5,6 +5,7 @@ Helpers for interchanging with iris
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import cftime
 import iris
@@ -28,6 +29,7 @@ def ds_from_iris_cubes(  # noqa: PLR0913
     time_calendar: str | None = None,
     raw_file: Path | str | None = None,
     time_dimension: str | None = None,
+    xr_load_kwargs: dict[str, Any] | None = None,
 ) -> xr.Dataset:
     """
     Load an [xarray.Dataset][] from [iris.cube.CubeList][]
@@ -70,6 +72,11 @@ def ds_from_iris_cubes(  # noqa: PLR0913
         Only required if there is a climatology variable in `cubes`
         and `time_calendar` and `time_unit` are not provided.
 
+    xr_load_kwargs
+        Passed to [`ncdata.iris_xarray.cubes_to_xarray`][].
+
+        If not supplied, we use `dict(use_cftime=True)`.
+
     Returns
     -------
     :
@@ -82,7 +89,10 @@ def ds_from_iris_cubes(  # noqa: PLR0913
         and the right combination of `time_unit`, `time_calendar`
         and `raw_file` is not provided.
     """
-    ds = ncdata.iris_xarray.cubes_to_xarray(cubes)
+    if xr_load_kwargs is None:
+        xr_load_kwargs = dict(use_cftime=True)
+
+    ds = ncdata.iris_xarray.cubes_to_xarray(cubes, xr_load_kwargs=xr_load_kwargs)
 
     bnds_guess = xr_variable_processor.get_ds_bounds_variables(
         ds,

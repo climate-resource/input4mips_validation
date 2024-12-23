@@ -5,6 +5,7 @@ CLI for database handling
 # # Do not use this here, it breaks typer's annotations
 # from __future__ import annotations
 
+import multiprocessing
 from pathlib import Path
 from typing import Annotated, Union
 
@@ -17,10 +18,12 @@ from input4mips_validation.cli.common_arguments_and_options import (
     BNDS_COORD_INDICATORS_TYPE,
     CV_SOURCE_OPTION,
     FREQUENCY_METADATA_KEY_OPTION,
+    MP_CONTEXT_ID_OPTION,
     N_PROCESSES_OPTION,
     NO_TIME_AXIS_FREQUENCY_OPTION,
     RGLOB_INPUT_OPTION,
     TIME_DIMENSION_OPTION,
+    MultiprocessingContextIDOption,
 )
 from input4mips_validation.database import (
     dump_database_file_entries,
@@ -50,6 +53,7 @@ def db_create(  # noqa: PLR0913
     xr_variable_processor: XRVariableProcessorLike,
     rglob_input: str,
     n_processes: int,
+    mp_context: Union[multiprocessing.context.BaseContext, None],
 ) -> None:
     """
     Create a database from a tree of files
@@ -88,6 +92,11 @@ def db_create(  # noqa: PLR0913
 
     n_processes
         Number of parallel processes to use while creating the entries
+
+    mp_context
+        Multiprocessing context to use.
+
+        If `n_processes` is equal to 1, simply pass `None`.
     """
     if db_dir.exists():
         msg = "The database directory must not already exist"
@@ -105,6 +114,7 @@ def db_create(  # noqa: PLR0913
         xr_variable_processor=xr_variable_processor,
         time_dimension=time_dimension,
         n_processes=n_processes,
+        mp_context=mp_context,
     )
 
     logger.info(
@@ -142,6 +152,7 @@ def db_create_command(  # noqa: PLR0913
     time_dimension: TIME_DIMENSION_OPTION = "time",
     rglob_input: RGLOB_INPUT_OPTION = "*.nc",
     n_processes: N_PROCESSES_OPTION = 1,
+    mp_context_id: MP_CONTEXT_ID_OPTION = MultiprocessingContextIDOption.fork,
 ) -> None:
     """
     Create a database from a tree of files
@@ -160,6 +171,38 @@ def db_create_command(  # noqa: PLR0913
         no_time_axis_frequency=no_time_axis_frequency,
     )
 
+    if n_processes > 1:
+        mp_context = multiprocessing.get_context(mp_context_id)
+
+        # I thought I needed the below, but it appears all you need
+        # is to use a fork context
+        # (although this doesn't work on windows, should probably raise a warning
+        # or something...)
+        ###
+        # Update the handlers so they work in parallel
+        # This is almost certainly not how you're meant to do this.
+        # However, fixing this properly
+        # would require moving the number of processes into the setup API
+        # so we could ensure context was passed when calling `setup_logging`.
+        # That is doable, but is a job for another day.
+
+        # # Remove old handlers first to avoid pickling errors.
+        # logger.remove()
+
+        # # Add updated versions of the handlers we have.
+        # for handler_cfg in input4mips_validation.logging_config.LOGGING_CONFIG[
+        #     "handlers"
+        # ]:
+        #     logger.add(
+        #         **handler_cfg,
+        #         enqueue=True,
+        #         context=mp_context,
+        #     )
+        ###
+
+    else:
+        mp_context = None
+
     db_create(
         tree_root=tree_root,
         db_dir=db_dir,
@@ -169,6 +212,7 @@ def db_create_command(  # noqa: PLR0913
         xr_variable_processor=xr_variable_processor,
         rglob_input=rglob_input,
         n_processes=n_processes,
+        mp_context=mp_context,
     )
 
 
@@ -181,6 +225,7 @@ def db_add_tree(  # noqa: PLR0913
     xr_variable_processor: XRVariableProcessorLike,
     rglob_input: str,
     n_processes: int,
+    mp_context: Union[multiprocessing.context.BaseContext, None],
 ) -> None:
     """
     Add files from a tree to a database
@@ -219,6 +264,11 @@ def db_add_tree(  # noqa: PLR0913
 
     n_processes
         Number of parallel processes to use while creating the entries
+
+    mp_context
+        Multiprocessing context to use.
+
+        If `n_processes` is equal to 1, simply pass `None`.
     """
     all_tree_files = set(tree_root.rglob(rglob_input))
 
@@ -243,6 +293,7 @@ def db_add_tree(  # noqa: PLR0913
         xr_variable_processor=xr_variable_processor,
         time_dimension=time_dimension,
         n_processes=n_processes,
+        mp_context=mp_context,
     )
 
     logger.info(
@@ -281,6 +332,7 @@ def db_add_tree_command(  # noqa: PLR0913
     time_dimension: TIME_DIMENSION_OPTION = "time",
     rglob_input: RGLOB_INPUT_OPTION = "*.nc",
     n_processes: N_PROCESSES_OPTION = 1,
+    mp_context_id: MP_CONTEXT_ID_OPTION = MultiprocessingContextIDOption.fork,
 ) -> None:
     """
     Add files from a tree to a database
@@ -295,6 +347,12 @@ def db_add_tree_command(  # noqa: PLR0913
         no_time_axis_frequency=no_time_axis_frequency,
     )
 
+    if n_processes > 1:
+        mp_context = multiprocessing.get_context(mp_context_id)
+
+    else:
+        mp_context = None
+
     db_add_tree(
         tree_root=tree_root,
         db_dir=db_dir,
@@ -304,6 +362,7 @@ def db_add_tree_command(  # noqa: PLR0913
         xr_variable_processor=xr_variable_processor,
         rglob_input=rglob_input,
         n_processes=n_processes,
+        mp_context=mp_context,
     )
 
 
@@ -316,6 +375,7 @@ def db_validate(  # noqa: PLR0913
     time_dimension: str,
     allow_cf_checker_warnings: bool,
     n_processes: int,
+    mp_context: Union[multiprocessing.context.BaseContext, None],
     force: bool,
 ) -> None:
     """
@@ -358,6 +418,11 @@ def db_validate(  # noqa: PLR0913
     n_processes
         Number of parallel processes to use while creating the entries
 
+    mp_context
+        Multiprocessing context to use.
+
+        If `n_processes` is equal to 1, simply pass `None`.
+
     force
         Force validation to run on all files,
         even those that have already been validated
@@ -391,6 +456,7 @@ def db_validate(  # noqa: PLR0913
         time_dimension=time_dimension,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
         n_processes=n_processes,
+        mp_context=mp_context,
     )
 
     logger.info(
@@ -429,6 +495,7 @@ def db_validate_command(  # noqa: PLR0913
     time_dimension: TIME_DIMENSION_OPTION = "time",
     allow_cf_checker_warnings: ALLOW_CF_CHECKER_WARNINGS_TYPE = False,
     n_processes: N_PROCESSES_OPTION = 1,
+    mp_context_id: MP_CONTEXT_ID_OPTION = MultiprocessingContextIDOption.fork,
     force: Annotated[
         bool,
         typer.Option(
@@ -452,12 +519,15 @@ def db_validate_command(  # noqa: PLR0913
         frequency_metadata_key=frequency_metadata_key,
         no_time_axis_frequency=no_time_axis_frequency,
     )
+
     # TODO: allow this to be passed from CLI
     bounds_info = None
-    # bounds_info = BoundsInfo.from_ds(
-    #     xr.open_dataset(file),
-    #     time_dimension=time_dimension,
-    # )
+
+    if n_processes > 1:
+        mp_context = multiprocessing.get_context(mp_context_id)
+
+    else:
+        mp_context = None
 
     db_validate(
         db_dir=db_dir,
@@ -468,6 +538,7 @@ def db_validate_command(  # noqa: PLR0913
         time_dimension=time_dimension,
         allow_cf_checker_warnings=allow_cf_checker_warnings,
         n_processes=n_processes,
+        mp_context=mp_context,
         force=force,
     )
 

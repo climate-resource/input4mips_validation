@@ -379,7 +379,7 @@ def create_files_in_tree_return_info(
     written_files = create_files_in_tree(tree_root=tree_root, **kwargs)
     info = {}
     for written_file in written_files:
-        ds = xr.open_dataset(written_file)
+        ds = xr.open_dataset(written_file, decode_cf=False)
 
         variable_id = ds.attrs["variable_id"]
         info[variable_id] = {k: ds.attrs[k] for k in ["creation_date", "tracking_id"]}

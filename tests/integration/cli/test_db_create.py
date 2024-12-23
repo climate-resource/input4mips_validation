@@ -5,6 +5,7 @@ Tests of our `db create` command
 from __future__ import annotations
 
 import datetime as dt
+import multiprocessing
 import os
 from functools import partial
 from pathlib import Path
@@ -49,22 +50,19 @@ DEFAULT_TEST_INPUT4MIPS_CV_SOURCE = (
 
 
 @pytest.mark.parametrize(
-    "n_processes",
+    "n_processes, mp_context_id",
     (
-        pytest.param(1, id="serial"),
+        pytest.param(1, None, id="serial"),
         pytest.param(
             2,
-            id="parallel",
-            marks=[
-                pytest.mark.skipif(
-                    os.environ.get("GITHUB_ACTIONS", "false") == "true",
-                    reason="Flaky in CI",
-                ),
-            ],
+            "fork",
+            id="parallel-fork",
+            marks=pytest.mark.skip(reason="Causes tests to hang, see #108"),
         ),
+        pytest.param(2, "spawn", id="parallel-spawn"),
     ),
 )
-def test_basic(tmp_path, n_processes):
+def test_basic(tmp_path, n_processes, mp_context_id):
     """
     Write two files in a tree, then make sure we can create the database
     """
@@ -171,11 +169,17 @@ def test_basic(tmp_path, n_processes):
         ]
     )
 
+    if mp_context_id is not None:
+        mp_context = multiprocessing.get_context(mp_context_id)
+    else:
+        mp_context = None
+
     # Test the function directly first (helps with debugging)
     db_entries = create_db_file_entries(
         tree_root.rglob("*.nc"),
         cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
         n_processes=n_processes,
+        mp_context=mp_context,
     )
 
     assert set(db_entries) == set(db_entries_exp)
@@ -200,6 +204,9 @@ def test_basic(tmp_path, n_processes):
             "--n-processes",
             n_processes,
         ]
+        if mp_context_id is not None:
+            args.extend(["--mp-context-id", mp_context_id])
+
         result = runner.invoke(app, args)
 
     assert result.exit_code == 0, result.exc_info

@@ -5,6 +5,7 @@ CLI for database handling
 # # Do not use this here, it breaks typer's annotations
 # from __future__ import annotations
 
+import multiprocessing
 from pathlib import Path
 from typing import Annotated, Union
 
@@ -50,6 +51,7 @@ def db_create(  # noqa: PLR0913
     xr_variable_processor: XRVariableProcessorLike,
     rglob_input: str,
     n_processes: int,
+    mp_context: Union[multiprocessing.context.BaseContext, None],
 ) -> None:
     """
     Create a database from a tree of files
@@ -88,6 +90,11 @@ def db_create(  # noqa: PLR0913
 
     n_processes
         Number of parallel processes to use while creating the entries
+
+    mp_context
+        Multiprocessing context to use.
+
+        If `n_processes` is equal to 1, simply pass `None`.
     """
     if db_dir.exists():
         msg = "The database directory must not already exist"
@@ -105,6 +112,7 @@ def db_create(  # noqa: PLR0913
         xr_variable_processor=xr_variable_processor,
         time_dimension=time_dimension,
         n_processes=n_processes,
+        mp_context=mp_context,
     )
 
     logger.info(
@@ -160,6 +168,38 @@ def db_create_command(  # noqa: PLR0913
         no_time_axis_frequency=no_time_axis_frequency,
     )
 
+    if n_processes > 1:
+        mp_context = multiprocessing.get_context("fork")
+
+        # I thought I needed the below, but it appears all you need
+        # is to use a fork context
+        # (although this doesn't work on windows, should probably raise a warning
+        # or something...)
+        ###
+        # Update the handlers so they work in parallel
+        # This is almost certainly not how you're meant to do this.
+        # However, fixing this properly
+        # would require moving the number of processes into the setup API
+        # so we could ensure context was passed when calling `setup_logging`.
+        # That is doable, but is a job for another day.
+
+        # # Remove old handlers first to avoid pickling errors.
+        # logger.remove()
+
+        # # Add updated versions of the handlers we have.
+        # for handler_cfg in input4mips_validation.logging_config.LOGGING_CONFIG[
+        #     "handlers"
+        # ]:
+        #     logger.add(
+        #         **handler_cfg,
+        #         enqueue=True,
+        #         context=mp_context,
+        #     )
+        ###
+
+    else:
+        mp_context = None
+
     db_create(
         tree_root=tree_root,
         db_dir=db_dir,
@@ -169,6 +209,7 @@ def db_create_command(  # noqa: PLR0913
         xr_variable_processor=xr_variable_processor,
         rglob_input=rglob_input,
         n_processes=n_processes,
+        mp_context=mp_context,
     )
 
 

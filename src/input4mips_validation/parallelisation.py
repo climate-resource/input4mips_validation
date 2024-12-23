@@ -26,7 +26,8 @@ def run_parallel(
     input_desc: str,
     n_processes: int,
     *args: P.args,
-    mp_context: multiprocessing.BaseContext = multiprocessing.get_context("spawn"),
+    mp_context: multiprocessing.context.BaseContext
+    | None = multiprocessing.get_context("spawn"),
     **kwargs: P.kwargs,
 ) -> tuple[T, ...]:
     """
@@ -59,6 +60,7 @@ def run_parallel(
         Multiprocessing context to use.
 
         By default, we use a spawn context.
+        If `None`, we will revert to the default if `n_processes` is greater than 1.
 
         The whole multiprocessing context universe is a bit complex,
         particularly given we also have logging.
@@ -83,6 +85,9 @@ def run_parallel(
         ]
 
     else:
+        if mp_context is None:
+            mp_context = multiprocessing.get_context("spawn")
+
         logger.info(f"Submitting {input_desc} to {n_processes} parallel processes")
         with concurrent.futures.ProcessPoolExecutor(
             max_workers=n_processes, mp_context=mp_context

@@ -21,6 +21,29 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## Input4MIPs validation v0.18.0 (2024-12-23)
+
+
+### ⚠️ Breaking Changes
+
+- Changed the interface to [`input4mips_validation.database.creation.create_db_file_entry_with_logging`][input4mips_validation.database.creation.create_db_file_entry_with_logging] and [`input4mips_validation.validation.database.database_file_entry_is_valid`][input4mips_validation.validation.database.database_file_entry_is_valid].
+  Both of these functions were intended for internal use, hence this should hopefully cause minor issues for users. ([#106](https://github.com/climate-resource/input4mips_validation/pull/106))
+- Removed (the mostly internal interfaces) `input4mips_validation.logging_config.serialise_logging_config` and `input4mips_validation.logging_config.deserialise_logging_config`.
+  We don't think these are in general need, although it is still being figured out (see [#108](https://github.com/climate-resource/input4mips_validation/issues/108)). ([#107](https://github.com/climate-resource/input4mips_validation/pull/107))
+
+### 🆕 Features
+
+- Added the `--mp-context-id` option to the command-line interfaces that support multiprocessing to give the user more control of how the multiprocessing is done.
+  This is then passed down the stack to [`input4mips_validation.parallelisation.run_parallel`][input4mips_validation.parallelisation.run_parallel]. ([#107](https://github.com/climate-resource/input4mips_validation/pull/107))
+
+### 🎉 Improvements
+
+- Added [`input4mips_validation.parallelisation`][input4mips_validation.parallelisation] to assist with simplifying parallelisation, mainly for internal use. ([#106](https://github.com/climate-resource/input4mips_validation/pull/106))
+- Added `xr_load_kwargs` to [`input4mips_validation.xarray_helpers.iris.ds_from_iris_cubes`][input4mips_validation.xarray_helpers.iris.ds_from_iris_cubes].
+  By default, this sets things up so the user doesn't get a thousand warnings about using cftime rather than numpy time objects
+  (but the user can pass the argument to change this however they wish). ([#107](https://github.com/climate-resource/input4mips_validation/pull/107))
+
+
 ## Input4MIPs validation v0.17.1 (2024-12-22)
 
 

@@ -101,7 +101,6 @@ def get_default_config(
         handlers=[
             dict(
                 sink=sys.stderr,
-                enqueue=True,
                 level=level,
                 colorize=True,
                 format=" - ".join(

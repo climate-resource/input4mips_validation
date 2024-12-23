@@ -27,6 +27,40 @@ def run_parallel(
     *args: P.args,
     **kwargs: P.kwargs,
 ) -> tuple[T, ...]:
+    """
+    Run a function in parallel
+
+    Yet another abstraction for this,
+    because the ones we had weren't doing what we wanted.
+
+    Parameters
+    ----------
+    func_to_call
+        Function to call
+
+    iterable_input
+        Input with which to call the function.
+
+    input_desc
+        Description of the input (used to make the progress bars more helpful)
+
+    n_processes
+        Number of processes to use during the processing.
+
+        If set to `1`, we run the process serially
+        (very helpful for debugging).
+    *args
+        Arguments to use for every call of `func_to_call`.
+
+    **kwargs
+        Keyword arguments to use for every call of `func_to_call`.
+
+    Returns
+    -------
+    :
+        Result of calling `func_to_call` with every element in `iterable_input`
+        in combination with `args` and `kwargs`.
+    """
     if n_processes == 1:
         logger.debug("Running serially")
         res = [

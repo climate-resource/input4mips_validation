@@ -26,7 +26,7 @@ from the examples given in that link.
 
 ### ⚠️ Breaking Changes
 
-- Changed the interface to [`input4mips_validation.database.creation.create_db_file_entry_with_logging`][input4mips_validation.database.creation.create_db_file_entry_with_logging] and [`input4mips_validation.validation.database.database_file_entry_is_valid`][input4mips_validation.validation.database.database_file_entry_is_valid].
+- Changed the interface to `input4mips_validation.database.creation.create_db_file_entry_with_logging`.
   Both of these functions were intended for internal use, hence this should hopefully cause minor issues for users. ([#106](https://github.com/climate-resource/input4mips_validation/pull/106))
 - Removed (the mostly internal interfaces) `input4mips_validation.logging_config.serialise_logging_config` and `input4mips_validation.logging_config.deserialise_logging_config`.
   We don't think these are in general need, although it is still being figured out (see [#108](https://github.com/climate-resource/input4mips_validation/issues/108)). ([#107](https://github.com/climate-resource/input4mips_validation/pull/107))

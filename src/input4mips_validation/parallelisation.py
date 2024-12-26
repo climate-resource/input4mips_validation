@@ -16,6 +16,9 @@ import tqdm
 from loguru import logger
 from typing_extensions import Concatenate, ParamSpec
 
+import input4mips_validation.logging_config
+from input4mips_validation.logging_config import ConfigLike
+
 P = ParamSpec("P")
 T = TypeVar("T")
 U = TypeVar("U")
@@ -91,9 +94,18 @@ def run_parallel(
         if mp_context is None:
             mp_context = multiprocessing.get_context("fork")
 
+        ensure_all_handlers_are_enqueued(
+            logger_h=logger,
+            mp_context=mp_context,
+            configs_to_set=input4mips_validation.logging_config.LOGGING_CONFIG,
+        )
+
         logger.info(f"Submitting {input_desc} to {n_processes} parallel processes")
         with concurrent.futures.ProcessPoolExecutor(
-            max_workers=n_processes, mp_context=mp_context
+            max_workers=n_processes,
+            mp_context=mp_context,
+            initializer=initialise_process_pool_worker_with_logging,
+            initargs=(logger,),
         ) as executor:
             futures = [
                 executor.submit(
@@ -117,3 +129,22 @@ def run_parallel(
             ]
 
     return tuple(res)
+
+
+def ensure_all_handlers_are_enqueued(
+    logger_h, mp_context: BaseContext, configs_to_set: ConfigLike | None
+) -> None:
+    if configs_to_set is not None:
+        # Remove existing loggers
+        logger_h.remove()
+
+        for handler_config in configs_to_set["handlers"]:
+            logger_h.add(
+                enqueue=True,
+                context=mp_context,
+                **handler_config,
+            )
+
+
+def initialise_process_pool_worker_with_logging(parent_logger):
+    logger._core = parent_logger._core

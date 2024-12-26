@@ -7,9 +7,6 @@ from __future__ import annotations
 import multiprocessing
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any
-
-import loguru
 
 from input4mips_validation.cvs.loading import load_cvs
 from input4mips_validation.database.database import Input4MIPsDatabaseEntryFile
@@ -19,37 +16,6 @@ from input4mips_validation.xarray_helpers.variables import (
     XRVariableHelper,
     XRVariableProcessorLike,
 )
-
-
-def create_db_file_entry_with_logging(
-    file: Path,
-    /,
-    logger_to_use: loguru.Logger,
-    **kwargs: Any,
-) -> Input4MIPsDatabaseEntryFile:
-    """
-    Create database file entries with logging passed through too
-
-    Parameters
-    ----------
-    file
-        File for which to create the entry
-
-    logger_to_use
-        Logger to use when creating the entries
-
-    **kwargs
-        Passed to
-        [`Input4MIPsDatabaseEntryFile.from_file`][input4mips_validation.database.database.Input4MIPsDatabaseEntryFile.from_file]
-
-    Returns
-    -------
-    :
-        Created database entry for `file`
-    """
-    logger_to_use.info("hi")
-
-    return Input4MIPsDatabaseEntryFile.from_file(file, **kwargs)
 
 
 def create_db_file_entries(  # noqa: PLR0913

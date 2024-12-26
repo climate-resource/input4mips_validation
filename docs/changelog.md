@@ -21,6 +21,14 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## Input4MIPs validation v0.19.0 (2024-12-26)
+
+
+### ⚠️ Breaking Changes
+
+- Removed `input4mips_validation.database.creation.create_db_file_entry_with_logging`, this function was never meant to be released. ([#111](https://github.com/climate-resource/input4mips_validation/pull/111))
+
+
 ## Input4MIPs validation v0.18.0 (2024-12-23)
 
 

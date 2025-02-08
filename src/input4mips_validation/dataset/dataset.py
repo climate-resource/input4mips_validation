@@ -218,6 +218,7 @@ class Input4MIPsDataset:
         activity_id: str = "input4MIPs",
         dataset_category: str | None = None,
         realm: str | None = None,
+        xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     ) -> Input4MIPsDataset:
         """
         Initialise from the minimum information required from the data producer
@@ -267,12 +268,17 @@ class Input4MIPsDataset:
             If not supplied, we will try and infer this based on
             [`VARIABLE_REALM_MAP`][input4mips_validation.inference.from_data.VARIABLE_REALM_MAP].
 
+        xr_variable_processor
+            Helper to use for processing the variables in xarray objects.
+
         Returns
         -------
         :
             Initialised instance
         """
-        variable_id = get_ds_var_assert_single(data)
+        variable_id = get_ds_var_assert_single(
+            data, xr_variable_processor=xr_variable_processor
+        )
 
         ### These lines are exactly the same as in
         # `from_data_producer_minimum_information_multiple_variable`.
@@ -852,6 +858,11 @@ def add_bounds(  # noqa: PLR0913
             ds = add_time_bounds_use(ds, output_dim_bounds=bounds_dim)
 
         else:
+            if dim not in ds.variables:
+                # Can only add bounds to dimensions
+                # that have a variable associated with them.
+                continue
+
             ds = ds.cf.add_bounds(dim, output_dim=bounds_dim)
             # Remove the bounds variable from co-ordinates
             # to avoid iris screaming about CF-conventions later.
@@ -952,7 +963,10 @@ def handle_ds_standard_long_names(
     return ds
 
 
-def get_ds_var_assert_single(ds: xr.Dataset) -> str:
+def get_ds_var_assert_single(
+    ds: xr.Dataset,
+    xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
+) -> str:
     """
     Get a [xarray.Dataset][]'s variable, asserting that there is only one
 
@@ -961,16 +975,20 @@ def get_ds_var_assert_single(ds: xr.Dataset) -> str:
     ds
         Data from which to retrieve the variable
 
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
+
     Returns
     -------
+    :
         Variable
     """
-    ds_var_l: list[str] = list(ds.data_vars)
-    if len(ds_var_l) != 1:
-        msg = f"`ds` must only have one variable. Received: {ds_var_l!r}"
+    ds_vars = xr_variable_processor.get_ds_variables(ds)
+    if len(ds_vars) != 1:
+        msg = f"`ds` must only have one variable. Received: {ds_vars!r}"
         raise AssertionError(msg)
 
-    return ds_var_l[0]
+    return ds_vars[0]
 
 
 def convert_input4mips_metadata_to_ds_attrs(

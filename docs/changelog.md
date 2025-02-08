@@ -21,6 +21,15 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## Input4MIPs validation v0.19.1 (2025-02-08)
+
+
+### 🎉 Improvements
+
+- Added the ability to handle data sets with string variables, like region.
+  The key logic improvement is in [`XRVariableProcessorLike.get_ds_variables`][input4mips_validation.xarray_helpers.variables.XRVariableProcessorLike.get_ds_variables], which now excludes any non-number variables from the dataset's variables. ([#113](https://github.com/climate-resource/input4mips_validation/pull/113))
+
+
 ## Input4MIPs validation v0.19.0 (2024-12-26)
 
 

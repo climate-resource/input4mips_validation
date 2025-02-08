@@ -360,11 +360,11 @@ def test_validate_written_region_file(tmp_path):
             metadata_minimum=metadata_minimum,
             dataset_category="Temperature",
             realm="atmos",
-            prepare_func=partial(
-                prepare_ds_and_get_frequency,
-                # TODO: remove this and make sure it still works
-                dimensions=("time",),
-            ),
+            # prepare_func=partial(
+            #     prepare_ds_and_get_frequency,
+            #     # TODO: remove this and make sure it still works
+            #     dimensions=("time",),
+            # ),
         )
 
     written_file = input4mips_ds.write(root_data_dir=tmp_path)

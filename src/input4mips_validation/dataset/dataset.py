@@ -952,7 +952,10 @@ def handle_ds_standard_long_names(
     return ds
 
 
-def get_ds_var_assert_single(ds: xr.Dataset) -> str:
+def get_ds_var_assert_single(
+    ds: xr.Dataset,
+    xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
+) -> str:
     """
     Get a [xarray.Dataset][]'s variable, asserting that there is only one
 
@@ -961,16 +964,20 @@ def get_ds_var_assert_single(ds: xr.Dataset) -> str:
     ds
         Data from which to retrieve the variable
 
+    xr_variable_processor
+        Helper to use for processing the variables in xarray objects.
+
     Returns
     -------
+    :
         Variable
     """
-    ds_var_l: list[str] = list(ds.data_vars)
-    if len(ds_var_l) != 1:
-        msg = f"`ds` must only have one variable. Received: {ds_var_l!r}"
+    ds_vars = xr_variable_processor.get_ds_variables(ds)
+    if len(ds_vars) != 1:
+        msg = f"`ds` must only have one variable. Received: {ds_vars!r}"
         raise AssertionError(msg)
 
-    return ds_var_l[0]
+    return ds_vars[0]
 
 
 def convert_input4mips_metadata_to_ds_attrs(

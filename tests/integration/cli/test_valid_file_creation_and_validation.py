@@ -381,10 +381,6 @@ def test_validate_written_region_file(tmp_path):
     get_validate_file_result(
         written_file,
         cv_source=DEFAULT_TEST_INPUT4MIPS_CV_SOURCE,
-        bounds_info=BoundsInfo(
-            time_bounds="time_bnds",
-            bounds_dim="bnds",
-        ),
     ).raise_if_errors()
 
     # Then test the CLI

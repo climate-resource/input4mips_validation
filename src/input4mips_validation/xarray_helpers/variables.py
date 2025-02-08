@@ -167,13 +167,16 @@ class XRVariableHelper:
         Returns
         -------
         :
-            Variables in the dataset, excluding bounds variables.
+            Variables in the dataset, excluding bounds, climatology
+            and obviously non-data (e.g. string) variables.
         """
         bounds_vars = self.get_ds_bounds_variables(ds)
         climatology_vars = self.get_ds_climatology_bounds_variables(ds)
+        # Must be a better way to do this
+        str_vars = tuple(k for k, v in ds.data_vars.items() if str(v.dtype) == "object")
 
         return tuple(
             str(v)
             for v in ds.data_vars
-            if v not in bounds_vars and v not in climatology_vars
+            if v not in bounds_vars and v not in climatology_vars and v not in str_vars
         )

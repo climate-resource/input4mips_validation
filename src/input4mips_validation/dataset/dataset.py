@@ -218,6 +218,7 @@ class Input4MIPsDataset:
         activity_id: str = "input4MIPs",
         dataset_category: str | None = None,
         realm: str | None = None,
+        xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     ) -> Input4MIPsDataset:
         """
         Initialise from the minimum information required from the data producer
@@ -267,12 +268,17 @@ class Input4MIPsDataset:
             If not supplied, we will try and infer this based on
             [`VARIABLE_REALM_MAP`][input4mips_validation.inference.from_data.VARIABLE_REALM_MAP].
 
+        xr_variable_processor
+            Helper to use for processing the variables in xarray objects.
+
         Returns
         -------
         :
             Initialised instance
         """
-        variable_id = get_ds_var_assert_single(data)
+        variable_id = get_ds_var_assert_single(
+            data, xr_variable_processor=xr_variable_processor
+        )
 
         ### These lines are exactly the same as in
         # `from_data_producer_minimum_information_multiple_variable`.

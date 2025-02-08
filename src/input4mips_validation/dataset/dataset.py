@@ -852,6 +852,11 @@ def add_bounds(  # noqa: PLR0913
             ds = add_time_bounds_use(ds, output_dim_bounds=bounds_dim)
 
         else:
+            if dim not in ds.variables:
+                # Can only add bounds to dimensions
+                # that have a variable associated with them.
+                continue
+
             ds = ds.cf.add_bounds(dim, output_dim=bounds_dim)
             # Remove the bounds variable from co-ordinates
             # to avoid iris screaming about CF-conventions later.

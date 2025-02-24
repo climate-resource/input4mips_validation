@@ -21,11 +21,11 @@ from input4mips_validation.serialisation import converter_json
 
 __all__ = [
     "SOURCE_ID_FILENAME",
-    "SourceIDValues",
-    "SourceIDEntry",
     "SourceIDEntries",
-    "convert_unstructured_cv_to_source_id_entries",
+    "SourceIDEntry",
+    "SourceIDValues",
     "convert_source_id_entries_to_unstructured_cv",
+    "convert_unstructured_cv_to_source_id_entries",
 ]
 
 SOURCE_ID_FILENAME: str = "input4MIPs_source_id.json"

@@ -5,6 +5,8 @@ from typing import Union
 
 from attrs import frozen
 
+from input4mips_validation.cvs.author import Author
+
 
 @frozen
 class SourceIDValues:
@@ -29,3 +31,6 @@ class SourceIDValues:
 
     license_id: Union[str, None] = None
     """ID of the license that applies to this dataset"""
+
+    authors: Union[tuple[Author, ...], None] = None
+    """Author(s) of the dataset"""

@@ -693,19 +693,29 @@ This is the minimum metadata required to create a valid
             "from typing import Union",
             "",
             "from attrs import frozen",
+            "",
+            "from input4mips_validation.cvs.author import Author",
         ),
         class_name="SourceIDValues",
         class_docstring="Values defined by a source ID",
         class_attributes=(
-            ALL_KNOWN_DATABASE_FIELDS[k]
-            for k in [
-                "contact",
-                "further_info_url",
-                "institution_id",
-                "mip_era",
-                "source_version",
-                "license_id",
-            ]
+            *(
+                ALL_KNOWN_DATABASE_FIELDS[k]
+                for k in [
+                    "contact",
+                    "further_info_url",
+                    "institution_id",
+                    "mip_era",
+                    "source_version",
+                    "license_id",
+                ]
+            ),
+            Attribute(
+                name="authors",
+                type_dec="tuple[Author, ...] | None = None",
+                docstring="Author(s) of the dataset",
+                comments=["TODO: validation of author"],
+            ),
         ),
     )
 

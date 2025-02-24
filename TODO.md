@@ -1,0 +1,3 @@
+- add class into things
+- check validation of individual class
+- check integration validation

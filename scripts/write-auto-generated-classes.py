@@ -714,7 +714,7 @@ This is the minimum metadata required to create a valid
                 name="authors",
                 type_dec="Union[tuple[Author, ...], None] = None",
                 docstring="Author(s) of the dataset",
-                comments=["TODO: validation of author"],
+                comments=[],
             ),
         ),
     )

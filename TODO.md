@@ -1,3 +1,0 @@
-- ~add class into things~
-- check validation of individual class
-- ~check integration validation~ (not a thing, authors defined exclusively by CVs, not part of file)

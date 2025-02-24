@@ -4,7 +4,13 @@ Definition of an author of a dataset.
 
 from __future__ import annotations
 
-from attrs import frozen
+from attrs import field, frozen, validators
+
+from input4mips_validation.attrs_helpers import (
+    make_attrs_validator_compatible_single_input,
+)
+from input4mips_validation.validation.email import validate_email
+from input4mips_validation.validation.orcid import validate_orcid
 
 
 @frozen
@@ -14,15 +20,16 @@ class Author:
     name: str
     """Name of the author"""
 
-    # TODO: validation
-    email: str
+    email: str = field(
+        validator=[make_attrs_validator_compatible_single_input(validate_email)]
+    )
     """
     Contact email for the author
 
     Needed in case of clarifications related to the dataset
     """
 
-    affiliations: tuple[str, ...]
+    affiliations: tuple[str, ...] = field(validator=[validators.instance_of(tuple)])
     """
     Affiliation(s) of the author
 
@@ -30,8 +37,9 @@ class Author:
     to allow authors to write their affiliations as they wish.
     """
 
-    # TODO: validation
-    orcid: str
+    orcid: str = field(
+        validator=[make_attrs_validator_compatible_single_input(validate_orcid)]
+    )
     """
     ORCID of the author
     """

@@ -18,6 +18,7 @@ from input4mips_validation.cvs.activity_id import (
     ActivityIDEntry,
     ActivityIDValues,
 )
+from input4mips_validation.cvs.author import Author
 from input4mips_validation.cvs.drs import DataReferenceSyntax
 from input4mips_validation.cvs.license import (
     LicenseEntries,
@@ -119,6 +120,27 @@ def test_load_cvs(input4mips_cv_source):
                 SourceIDEntry(
                     source_id="CR-CMIP-0-2-0",
                     values=SourceIDValues(
+                        authors=(
+                            Author(
+                                name="Zebedee Nicholls",
+                                email="zebedee.nicholls@climate-resource.com",
+                                affiliations=(
+                                    "Climate Resource, Melbourne, Victoria, Australia",
+                                    "Energy, Climate and Environment Program, International Institute for Applied Systems Analysis (IIASA), 2361 Laxenburg, Austria",  # noqa: E501
+                                    "School of Geography, Earth and Atmospheric Sciences, The University of Melbourne, Melbourne, Victoria, Australia",  # noqa: E501
+                                ),
+                                orcid="0000-0002-4767-2723",
+                            ),
+                            Author(
+                                name="Malte Meinshausen",
+                                email="malte.meinshausen@climate-resource.com",
+                                affiliations=(
+                                    "Climate Resource, Melbourne, Victoria, Australia",
+                                    "School of Geography, Earth and Atmospheric Sciences, The University of Melbourne, Melbourne, Victoria, Australia",  # noqa: E501
+                                ),
+                                orcid="0000-0003-4048-3521",
+                            ),
+                        ),
                         contact="zebedee.nicholls@climate-resource.com;malte.meinshausen@climate-resource.com",
                         further_info_url="http://www.tbd.invalid",
                         institution_id="CR",

@@ -32,5 +32,5 @@ class SourceIDValues:
     license_id: Union[str, None] = None
     """ID of the license that applies to this dataset"""
 
-    authors: tuple[Author, ...] | None = None
+    authors: Union[tuple[Author, ...], None] = None
     """Author(s) of the dataset"""

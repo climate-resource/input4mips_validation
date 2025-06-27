@@ -154,6 +154,26 @@ print()
 # Inferred from CVs
 print(f"{input4mips_ds.metadata.license=}")
 
+# %%
+# If you want, you can also force override metadata like the below.
+# Be a bit careful though, because you can also produce things that are just wrong this way.
+# (The attrs evolve thing is weird if you haven't seen it before,
+# but makes sense within the rest of the project as it avoids users mucking up metadata by accident.)
+from attrs import evolve
+
+input4mips_ds = evolve(
+    input4mips_ds,
+    metadata=evolve(
+        input4mips_ds.metadata,
+        # frequency = "mon",
+        further_info_url="my/nice/url",
+    ),
+)
+
+# %%
+# You can then check changed values using e.g. this
+input4mips_ds.metadata.further_info_url
+
 # %% editable=true slideshow={"slide_type": ""}
 print(f"{cvs.DRS.directory_path_template=}")
 print(f"{cvs.DRS.filename_template=}")
@@ -162,3 +182,16 @@ print(f"{cvs.DRS.filename_template=}")
 TMP_DIR = Path(tempfile.mkdtemp())
 written_file = input4mips_ds.write(TMP_DIR)
 print(f"The file was written in {written_file}")
+
+# %%
+# If you want to do anything really fancy with metadata,
+# my advice is to just write the file
+# then update the metadata of the written file using netCDF4,
+# e.g.
+import netCDF4
+
+with netCDF4.Dataset(written_file, "a") as ds:
+    ds.setncattr("fancy_attribute", "My special value")
+
+# %%
+xr.load_dataset(written_file).attrs["fancy_attribute"]

@@ -195,3 +195,13 @@ with netCDF4.Dataset(written_file, "a") as ds:
 
 # %%
 xr.load_dataset(written_file).attrs["fancy_attribute"]
+
+# %%
+# The full docs of this command can be accessed with
+# # !input4mips-validation validate-file --help
+# !input4mips-validation \
+#     validate-file \
+#     --cv-source {raw_cvs_loader.base_url} \
+#     {written_file}
+
+# %%

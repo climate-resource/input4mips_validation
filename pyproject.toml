@@ -12,6 +12,7 @@ dependencies = [
     "attrs",
     "cattrs",
     "cf-xarray",
+    "click",
     "loguru",
     "ncdata",
     "pandas",

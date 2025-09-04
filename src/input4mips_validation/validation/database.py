@@ -183,6 +183,7 @@ def get_validate_database_file_entry_result(  # noqa: PLR0913
         Path(entry.filepath),
         frequency_metadata_keys=frequency_metadata_keys,
         time_dimension=time_dimension,
+        xr_variable_processor=xr_variable_processor,
     )
 
     # TODO: all references to external variables (like cell areas) can be resolved

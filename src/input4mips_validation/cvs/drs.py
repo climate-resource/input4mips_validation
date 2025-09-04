@@ -38,9 +38,9 @@ from collections.abc import Iterable
 from pathlib import Path
 
 import cftime
+import iris
 import numpy as np
 import pandas as pd
-import xarray as xr
 from attrs import frozen
 from typing_extensions import TypeAlias
 
@@ -51,6 +51,11 @@ from input4mips_validation.inference.from_data import (
     infer_time_start_time_end_for_filename,
 )
 from input4mips_validation.serialisation import converter_json
+from input4mips_validation.xarray_helpers.iris import ds_from_iris_cubes
+from input4mips_validation.xarray_helpers.variables import (
+    XRVariableHelper,
+    XRVariableProcessorLike,
+)
 
 DATA_REFERENCE_SYNTAX_FILENAME: str = "input4MIPs_DRS.json"
 """Default name of the file in which the data reference syntax is saved"""
@@ -539,6 +544,7 @@ class DataReferenceSyntax:
         file: Path,
         frequency_metadata_keys: FrequencyMetadataKeys = FrequencyMetadataKeys(),
         time_dimension: str = "time",
+        xr_variable_processor: XRVariableProcessorLike = XRVariableHelper(),
     ) -> None:
         """
         Validate that a file is correctly written in the DRS
@@ -553,6 +559,9 @@ class DataReferenceSyntax:
 
         time_dimension
             The time dimension of the data
+
+        xr_variable_processor
+            Helper to use for processing the variables in xarray objects.
 
         Raises
         ------
@@ -570,7 +579,12 @@ class DataReferenceSyntax:
             file.name
         )
 
-        ds = xr.open_dataset(file, use_cftime=True)
+        ds = ds_from_iris_cubes(
+            iris.load(file),
+            xr_variable_processor=xr_variable_processor,
+            raw_file=file,
+            time_dimension=time_dimension,
+        )
         comparison_metadata = {
             k: apply_known_replacements(v)
             for k, v in ds.attrs.items()

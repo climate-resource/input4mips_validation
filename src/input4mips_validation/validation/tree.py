@@ -480,6 +480,7 @@ def get_validate_tree_result(  # noqa: PLR0913
                 file,
                 frequency_metadata_keys=frequency_metadata_keys,
                 time_dimension=time_dimension,
+                xr_variable_processor=xr_variable_processor,
             )
 
         # TODO: check cross references in files to external variables

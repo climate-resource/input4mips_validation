@@ -21,6 +21,26 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## Input4MIPs validation v0.20.0 (2025-09-04)
+
+
+### 🆕 Features
+
+- Added [`input4mips_validation.cvs.author.Author`][], [`input4mips_validation.validation.email`][] and [`input4mips_validation.validation.orcid`][] to support the inclusion of parsable author information in the source ID CVs. ([#116](https://github.com/climate-resource/input4mips_validation/pull/116))
+
+### 🎉 Improvements
+
+- Added the `author` attribute to [`input4mips_validation.cvs.source_id.SourceIDValues`][] to support the inclusion of parsable author information in the source ID CVs. ([#116](https://github.com/climate-resource/input4mips_validation/pull/116))
+
+### 🐛 Bug Fixes
+
+- Fixed the `validate-tree` CLI (and associated functionality) so that it handles climatology files correctly ([#119](https://github.com/climate-resource/input4mips_validation/pull/119))
+
+### 🔧 Trivial/Internal Changes
+
+- [#116](https://github.com/climate-resource/input4mips_validation/pull/116)
+
+
 ## Input4MIPs validation v0.19.1 (2025-02-08)
 
 

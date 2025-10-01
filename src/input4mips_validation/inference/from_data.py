@@ -385,6 +385,34 @@ def is_monthly_steps(
     return bool(is_monthly_steps)
 
 
+def is_daily_steps(
+    step_start: xr.DataArray,
+    step_end: xr.DataArray,
+) -> bool:
+    """
+    Determine whether the steps are daily
+
+    Parameters
+    ----------
+    step_start
+        Start of each step (e.g. start of each bound)
+
+    step_end
+        End of each step (e.g. end of each bound)
+
+    Returns
+    -------
+    :
+        `True` if the steps are daily, otherwise `False`
+    """
+    # Use compute to avoid any dask stupidity
+    step_start = step_start.compute()
+    step_end = step_end.compute()
+    time_deltas = step_end - step_start
+
+    return (time_deltas.dt.days == 1).all()
+
+
 def get_frequency_label_stem(  # noqa: PLR0913
     ds: xr.Dataset,
     climatology: bool,
@@ -438,8 +466,9 @@ def get_frequency_label_stem(  # noqa: PLR0913
         step_end = ds[time_dimension].isel(time=slice(1, None))
 
     else:
-        step_start = ds[time_bounds].sel({bounds_dim: bounds_dim_lower_val})
-        step_end = ds[time_bounds].sel({bounds_dim: bounds_dim_upper_val})
+        # Use compute to avoid any dask stupidity
+        step_start = ds[time_bounds].sel({bounds_dim: bounds_dim_lower_val}).compute()
+        step_end = ds[time_bounds].sel({bounds_dim: bounds_dim_upper_val}).compute()
 
     if is_yearly_steps(
         step_start=step_start,

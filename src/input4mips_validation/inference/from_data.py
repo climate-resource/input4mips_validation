@@ -482,8 +482,10 @@ def get_frequency_label_stem(  # noqa: PLR0913
     ):
         return "mon"
 
-    time_deltas = step_end - step_start
-    if (time_deltas.dt.days == 1).all():
+    if is_daily_steps(
+        step_start=step_start,
+        step_end=step_end,
+    ):
         return "day"
 
     raise NotImplementedError(ds)

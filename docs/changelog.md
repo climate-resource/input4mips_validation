@@ -21,6 +21,18 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## Input4MIPs validation v0.20.1 (2025-10-01)
+
+
+### 🐛 Bug Fixes
+
+- Fixed inference of daily time steps (previously this would fail if data was lazy loaded as subtraction of `cftime` with `xarray` doesn't work properly if the data is a dask array) ([#121](https://github.com/climate-resource/input4mips_validation/pull/121))
+
+### 🔧 Trivial/Internal Changes
+
+- [#121](https://github.com/climate-resource/input4mips_validation/pull/121)
+
+
 ## Input4MIPs validation v0.20.0 (2025-09-04)
 
 

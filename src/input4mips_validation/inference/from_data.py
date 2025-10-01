@@ -410,7 +410,7 @@ def is_daily_steps(
     step_end = step_end.compute()
     time_deltas = step_end - step_start
 
-    return (time_deltas.dt.days == 1).all()
+    return bool((time_deltas.dt.days == 1).all())
 
 
 def get_frequency_label_stem(  # noqa: PLR0913

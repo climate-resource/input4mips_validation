@@ -7,6 +7,7 @@ from __future__ import annotations
 import datetime as dt
 import re
 from contextlib import nullcontext as does_not_raise
+from pathlib import Path
 
 import cftime
 import numpy as np
@@ -111,6 +112,8 @@ def create_daily_data(
         cftime.datetime(2023, 8, 1, 12, 0, 0),
         cftime.datetime(2023, 8, 2, 12, 0, 0),
     ),
+    # cftime_class: type = cftime.datetime,
+    cftime_class: type = cftime.DatetimeGregorian,
 ) -> xr.Dataset:
     time_axis = list(days)
 
@@ -124,10 +127,11 @@ def create_daily_data(
     res = xr.Dataset(
         data_vars={
             "co2": (("time", "lat", "lon"), RNG.random((len(time_axis), 6, 6))),
+            # "time_bounds": (("time", "bnds"), time_bounds),
         },
         coords=dict(
-            time=("time", time_axis),
             time_bounds=(("time", "bnds"), time_bounds),
+            time=("time", time_axis),
             lon=("lon", np.linspace(-180.0 + 15.0, 180.0, 6)),
             lat=("lat", np.linspace(-90.0 + 15.0, 90.0, 6)),
         ),
@@ -290,6 +294,22 @@ MONTHLY_CLIMATOLOGY_DATA = create_monthly_climatology_data()
         #   (Table 2 here also helpful for rules: https://wcrp-cmip.github.io/WGCM_Infrastructure_Panel/Papers/CMIP6_global_attributes_filenames_CVs_v6.2.7.pdf)
     ),
 )
-def test_frequency_validation(ds, frequency, expectation):
+@pytest.mark.parametrize(
+    "start_from_lazy_loaded_from_disk",
+    (
+        pytest.param(True, id="lazy-loaded-start"),
+        pytest.param(False, id="in-memory-start"),
+    ),
+)
+def test_frequency_validation(
+    ds, frequency, expectation, start_from_lazy_loaded_from_disk, tmp_path
+):
+    if start_from_lazy_loaded_from_disk:
+        tmp_file = Path(tmp_path) / "ds.nc"
+        ds.to_netcdf(tmp_file)
+        ds = xr.open_dataset(tmp_file, use_cftime=True, chunks={})
+        for data_var in ds.data_vars:
+            assert ds[data_var].chunks is not None, "Test not using dask"
+
     with expectation:
         validate_frequency(frequency, ds=ds, bounds_info=BoundsInfo(bounds_dim="bnds"))

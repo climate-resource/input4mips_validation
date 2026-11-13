@@ -61,9 +61,6 @@ class Input4MIPsDatabaseEntryFileRaw:
     frequency: str
     """Frequency of the data in the file"""
 
-    further_info_url: str
-    """URL where further information about the file/data in the file can be found"""
-
     grid_label: str = field()
     """
     Label that identfies the file's grid
@@ -129,8 +126,10 @@ class Input4MIPsDatabaseEntryFileRaw:
 
     The ESGF also has a _version_ attribute for each file entry,
     which is different again.
-
     """
+
+    further_info_url: str = "not-supplied.invalid"
+    """URL where further information about the file/data in the file can be found"""
 
     comment: Union[str, None] = None
     """
